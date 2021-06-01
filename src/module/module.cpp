@@ -97,6 +97,7 @@ PandaProsthesisRobotModule::PandaProsthesisRobotModule(const std::string & prost
     ofs << rbd::parsers::to_urdf({mb, mbc, mbg, limits, _visual, _collision, "panda_" + prosthesis});
   }
   this->urdf_path = urdf_path.string();
+  this->name = "panda_" + prosthesis;
   mc_rtc::log::info("Wrote URDF to {}", urdf_path.string());
 }
 
