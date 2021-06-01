@@ -1,0 +1,8 @@
+# DUMMY DATA, 50 grams solid cylinder, length 18 cm, radius 1cm
+# Mass (in kilograms)
+mass: 0.05
+# Center of mass (in meters)
+com: [0.0, 0.0, 0.09]
+# Inertia (kg.meters²) [Ixx, Ixy, Ixz, Iyy, Iyz, Izz]
+inertia: [0.00013625, 0.0, 0.0, 0.00013625, 0.0, 0.00000042]
+

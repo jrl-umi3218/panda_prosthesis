@@ -1,0 +1,6 @@
+# Mass (in kilograms)
+mass: 0.17030
+# Center of mass (in meters)
+com: [0.0017, -0.00080, -0.00714]
+# Inertia (kg.meters²) [Ixx, Ixy, Ixz, Iyy, Iyz, Izz]
+inertia: [0.00004802731, -0.00000097126, -0.00000030391, 0.00009665074, 0.00000048834, 0.00010429248]
