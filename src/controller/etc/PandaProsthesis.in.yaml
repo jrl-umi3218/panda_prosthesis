@@ -62,9 +62,6 @@ states:
     target:
       translation: [0.5, -0.3, 0.5]
       rotation: [0.0, -3.14, 1.57]
-      #rotation: [1.57, 0.0, 1.57]
-      #rotation: [0.0, 0.0, 0.0]
-      #rotation: [0.0, 0.0, 0.0]
   GoHorizontal::Both:
     base: Parallel
     states: [GoHorizontal::Femur, GoHorizontal::Tibia]
