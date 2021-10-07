@@ -40,6 +40,12 @@ collisions:
   collisions:
     - body1: femur
       body2: tibia
+    - body1: femur
+      body2: support_tibia
+    - body1: support_femur
+      body2: tibia
+    - body1: support_femur
+      body2: support_tibia
 
 
 # Initial set of contacts
