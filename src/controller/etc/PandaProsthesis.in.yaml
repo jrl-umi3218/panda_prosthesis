@@ -34,13 +34,42 @@ collisions:
 - type: collision
   robot: panda_tibia
   useMinimal: true
+- type: collision
+  r1: panda_femur
+  r2: panda_tibia
+  collisions:
+    - body1: femur
+      body2: tibia
+
+
 # Initial set of contacts
 contacts: []
 # Implement some additional text states
-states: {}
-# Transitions map
+states:
+  GoHorizontal::Femur:
+    base: GoRelative
+    robot: panda_femur
+    surface: FemurHead
+    stiffness: 5
+    weight: 100
+    target:
+      translation: [0.5, -0.3, 0.5]
+      rotation: [0.0, -3.14, 1.57]
+  GoHorizontal::Tibia:
+    base: GoHorizontal::Femur
+    robot: panda_tibia
+    surface: TibiaHead
+    target:
+      translation: [0.5, -0.3, 0.5]
+      rotation: [0.0, -3.14, 1.57]
+      #rotation: [1.57, 0.0, 1.57]
+      #rotation: [0.0, 0.0, 0.0]
+      #rotation: [0.0, 0.0, 0.0]
+  GoHorizontal::Both:
+    base: Parallel
+    states: [GoHorizontal::Femur, GoHorizontal::Tibia]
 transitions:
-- [Initial, OK, Initial, Auto]
+- [Initial, OK, GoHorizontal::Both, Auto]
 # Initial state
 init: Initial
 # Store the location of configuration files
