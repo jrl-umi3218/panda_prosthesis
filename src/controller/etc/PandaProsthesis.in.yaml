@@ -2,10 +2,10 @@
 # If true, the FSM transitions are managed by an external tool
 Managed: false
 # If true and the FSM is self-managed, transitions should be triggered
-StepByStep: true
+StepByStep: false
 # Change idle behaviour, if true the state is kept until transition,
 # otherwise the FSM holds the last state until transition
-IdleKeepState: false
+IdleKeepState: true
 # Where to look for state libraries
 StatesLibraries:
 - "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@"
@@ -63,6 +63,12 @@ states:
     target:
       translation: [0.5, -0.3, 0.5]
       rotation: [0.0, -3.14, 1.57]
+    completion:
+      OR:
+        - eval: 0.05
+        - AND:
+            - timeout: 1
+            - speed: 0.005
   GoHorizontal::Tibia:
     base: GoHorizontal::Femur
     robot: panda_tibia
@@ -70,11 +76,22 @@ states:
     target:
       translation: [0.5, -0.3, 0.5]
       rotation: [0.0, -3.14, 1.57]
-  GoHorizontal::Both:
+
+  GoHorizontal::Both::Initial:
     base: Parallel
     states: [GoHorizontal::Femur, GoHorizontal::Tibia]
+
+  GoHorizontal::Both::Strong:
+    base: GoHorizontal::Both::Initial
+    configs:
+      GoHorizontal::Femur:
+        stiffness: 10
+      GoHorizontal::Tibia:
+        stiffness: 10
+
 transitions:
-- [Initial, OK, GoHorizontal::Both, Auto]
+- [Initial, OK, GoHorizontal::Both::Initial, Auto]
+- [GoHorizontal::Both::Initial, OK, GoHorizontal::Both::Strong, Auto]
 # Initial state
 init: Initial
 # Store the location of configuration files

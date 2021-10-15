@@ -2,7 +2,7 @@
 
 #include <mc_control/fsm/Controller.h>
 
-void GoRelative::configure(const mc_rtc::Configuration & config) 
+void GoRelative::configure(const mc_rtc::Configuration & config)
 {
   if(config.has("target"))
   {
@@ -13,6 +13,10 @@ void GoRelative::configure(const mc_rtc::Configuration & config)
   config("surface", surface_);
   config("stiffness", stiffness_);
   config("weight", weight_);
+  if(config.has("completion"))
+  {
+    criteria_config_.load(config("completion"));
+  }
 }
 
 void GoRelative::start(mc_control::fsm::Controller & ctl)
@@ -32,20 +36,25 @@ void GoRelative::start(mc_control::fsm::Controller & ctl)
   surfaceTask_->stiffness(stiffness_);
   surfaceTask_->weight(weight_);
   ctl.solver().addTask(surfaceTask_);
-  
+
+  criteria_.configure(*surfaceTask_, ctl.timeStep, criteria_config_);
+
   if(has_target_)
   {
     surfaceTask_->target(target_ * r.posW());
   }
+
+  output("OK");
 }
 
 bool GoRelative::run(mc_control::fsm::Controller & ctl)
 {
-  return false;
+  return criteria_.completed(*surfaceTask_);
 }
 
 void GoRelative::teardown(mc_control::fsm::Controller & ctl)
 {
+  ctl.solver().removeTask(surfaceTask_);
 }
 
 EXPORT_SINGLE_STATE("GoRelative", GoRelative)
