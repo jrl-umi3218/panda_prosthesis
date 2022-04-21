@@ -29,7 +29,7 @@ constraints:
 - type: dynamics
   robot: panda_tibia
   damper: [0.1, 0.01, 0.5]
-# Collision constraint
+#Collision constraint
 collisions:
 - type: collision
   robot: panda_tibia
