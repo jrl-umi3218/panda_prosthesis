@@ -16,6 +16,4 @@ private:
   bool pose_changed_ = false;
   sva::PTransformd initial_pose_panda_femur_;
   sva::PTransformd initial_pose_panda_tibia_;
-  std::vector<std::vector<double>> initial_joints_panda_femur_;
-  std::vector<std::vector<double>> initial_joints_panda_tibia_;  
 };

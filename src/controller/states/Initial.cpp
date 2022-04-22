@@ -12,36 +12,19 @@ static sva::PTransformd LoadInitialPose(mc_control::fsm::Controller & ctl, const
   return initial("initial_pose_" + robot, ctl.robot(robot).posW());
 }
 
-static std::vector<std::vector<double>> LoadInitialJoints(mc_control::fsm::Controller & ctl, const std::string & robot)
-{
-  std::string etc_dir = ctl.config()("ETC_DIR");
-  mc_rtc::Configuration initial(etc_dir + "/initial_pose.yaml");
-  if(initial.has("initial_joints_" + robot))
-  {
-        return initial("initial_joints_" + robot);
-  }
-  else
-  {
-  	return ctl.robot(robot).mbc().q;
-  }
-}
-
-static void SaveInitial(mc_control::fsm::Controller & ctl, const std::string & robot)
+static void SaveInitialPose(mc_control::fsm::Controller & ctl, const std::string & robot)
 {
   std::string etc_dir = ctl.config()("ETC_DIR");
   std::string initial_pose_yaml = etc_dir + "/initial_pose.yaml";
   mc_rtc::Configuration initial(initial_pose_yaml);
   initial.add("initial_pose_" + robot, ctl.robot(robot).posW());
-  initial.add("initial_joints_" + robot, ctl.robot(robot).mbc().q);
   initial.save(initial_pose_yaml);
 }
 
-static void SetInitial(mc_control::fsm::Controller & ctl, const std::string & robot, const sva::PTransformd & pose, const std::vector<std::vector<double>> & joints)
+static void SetInitialPose(mc_control::fsm::Controller & ctl, const std::string & robot, const sva::PTransformd & pose)
 {
   ctl.robot(robot).posW(pose);
-  ctl.robot(robot).mbc().q = joints;
-  ctl.robot(robot).forwardKinematics();
-  SaveInitial(ctl, robot);
+  SaveInitialPose(ctl, robot);
 }
 
 } // namespace
@@ -51,9 +34,7 @@ void Initial::configure(const mc_rtc::Configuration & config) {}
 void Initial::start(mc_control::fsm::Controller & ctl)
 {
   initial_pose_panda_femur_ = LoadInitialPose(ctl, "panda_femur");
-  initial_joints_panda_femur_ = LoadInitialJoints(ctl, "panda_femur");
-  SetInitial(ctl, "panda_femur", initial_pose_panda_tibia_, initial_joints_panda_femur_);
-
+  SetInitialPose(ctl, "panda_femur", initial_pose_panda_femur_);
   ctl.gui()->addElement({}, mc_rtc::gui::Button("Done", [this]() { output("OK"); }),
                         mc_rtc::gui::Transform(
                             "Initial pose (femur)",
@@ -63,9 +44,7 @@ void Initial::start(mc_control::fsm::Controller & ctl)
                               pose_changed_ = true;
                             }));
   initial_pose_panda_tibia_ = LoadInitialPose(ctl, "panda_tibia");
-  initial_joints_panda_tibia_ = LoadInitialJoints(ctl, "panda_tibia");
-  SetInitial(ctl, "panda_tibia", initial_pose_panda_tibia_, initial_joints_panda_tibia_);
-  
+  SetInitialPose(ctl, "panda_tibia", initial_pose_panda_tibia_);
   ctl.gui()->addElement({}, mc_rtc::gui::Transform(
                                 "Initial pose (tibia)",
                                 [this]() -> const sva::PTransformd & { return initial_pose_panda_tibia_; },
@@ -80,8 +59,8 @@ bool Initial::run(mc_control::fsm::Controller & ctl)
   if(pose_changed_)
   {
     pose_changed_ = false;
-    SetInitial(ctl, "panda_femur", initial_pose_panda_femur_, initial_joints_panda_femur_);
-    SetInitial(ctl, "panda_tibia", initial_pose_panda_tibia_, initial_joints_panda_tibia_);
+    SetInitialPose(ctl, "panda_femur", initial_pose_panda_femur_);
+    SetInitialPose(ctl, "panda_tibia", initial_pose_panda_tibia_);
   }
   return output().size() != 0;
 }
