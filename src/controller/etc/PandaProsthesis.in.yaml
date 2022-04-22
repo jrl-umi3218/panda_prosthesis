@@ -16,6 +16,7 @@ StatesFiles:
 - "@MC_STATES_RUNTIME_INSTALL_PREFIX@/data"
 # If true, state factory will be more verbose
 VerboseStateFactory: false
+
 # Additional robots to load
 robots:
   panda_tibia:
@@ -23,10 +24,10 @@ robots:
 # General constraints, always on
 constraints:
 - type: contact
-- type: dynamics
+- type: kinematics
   robot: panda_femur
   damper: [0.1, 0.01, 0.5]
-- type: dynamics
+- type: kinematics
   robot: panda_tibia
   damper: [0.1, 0.01, 0.5]
 # Collision constraint
@@ -34,20 +35,20 @@ collisions:
 - type: collision
   robot: panda_tibia
   useMinimal: true
-- type: collision
-  r1: panda_femur
-  r2: panda_tibia
-  collisions:
-    - body1: femur
-      body2: tibia
-    - body1: femur
-      body2: support_tibia
-    - body1: support_femur
-      body2: tibia
-    - body1: support_femur
-      body2: support_tibia
-    - body1: panda_link*
-      body2: panda_link*
+    # - type: collision
+    #   r1: panda_femur
+    #   r2: panda_tibia
+    #   collisions:
+    #     - body1: femur
+    #       body2: tibia
+    #     - body1: femur
+    #       body2: support_tibia
+    #     - body1: support_femur
+    #       body2: tibia
+    #     - body1: support_femur
+    #       body2: support_tibia
+    #     - body1: panda_link*
+    #       body2: panda_link*
 
 
 # Initial set of contacts
@@ -60,9 +61,10 @@ states:
     surface: FemurHead
     stiffness: 5
     weight: 100
-    target:
-      translation: [0.5, -0.3, 0.5]
-      rotation: [0.0, -3.14, 1.57]
+      ## If no target is specified this starts from the current robot posture
+      #target:
+      #  translation: [0.5, -0.3, 0.5]
+      #  rotation: [0.0, -3.14, 1.57]
     completion:
       OR:
         - eval: 0.05
@@ -73,26 +75,36 @@ states:
     base: GoHorizontal::Femur
     robot: panda_tibia
     surface: TibiaHead
-    target:
-      translation: [0.5, -0.3, 0.5]
-      rotation: [0.0, -3.14, 1.57]
+      #target:
+      #  translation: [0.5, -0.3, 0.5]
+      #  rotation: [0.0, -3.14, 1.57]
 
   GoHorizontal::Both::Initial:
     base: Parallel
     states: [GoHorizontal::Femur, GoHorizontal::Tibia]
 
-  GoHorizontal::Both::Strong:
-    base: GoHorizontal::Both::Initial
-    configs:
-      GoHorizontal::Femur:
-        stiffness: 10
-      GoHorizontal::Tibia:
-        stiffness: 10
+  InitializePandaFemur:
+    base: Initial
+    robot: panda_femur
+    category: "Initial Configuration"
+    default_pose:
+      translation: [-0.7, 0, 0]
+      rotation: [0, 0, 0]
+
+  InitializePandaTibia:
+    base: InitializePandaFemur
+    robot: panda_tibia
+    default_pose:
+      translation: [0.7, 0, 0]
+      rotation: [0, 0, 3.14]
+
+  InitializeRobots:
+    base: Parallel
+    states: [InitializePandaFemur, InitializePandaTibia]
 
 transitions:
-- [Initial, OK, GoHorizontal::Both::Initial, Auto]
-- [GoHorizontal::Both::Initial, OK, GoHorizontal::Both::Strong, Auto]
+  - [InitializeRobots, OK, GoHorizontal::Both::Initial, Auto]
 # Initial state
-init: Initial
+init: InitializeRobots
 # Store the location of configuration files
 ETC_DIR: "@CMAKE_CURRENT_SOURCE_DIR@/etc"

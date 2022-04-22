@@ -1,7 +1,7 @@
 #pragma once
 
-#include <mc_control/fsm/State.h>
 #include <mc_control/CompletionCriteria.h>
+#include <mc_control/fsm/State.h>
 #include <mc_tasks/SurfaceTransformTask.h>
 
 struct GoRelative : mc_control::fsm::State

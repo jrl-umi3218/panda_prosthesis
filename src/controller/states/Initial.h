@@ -12,8 +12,14 @@ struct Initial : mc_control::fsm::State
 
   void teardown(mc_control::fsm::Controller & ctl) override;
 
+  void load(mc_control::fsm::Controller & ctl);
+  void save(mc_control::fsm::Controller & ctl);
+
 private:
+  std::vector<std::string> category_{};
+  std::string robot_;
+  std::string etc_file_;
   bool pose_changed_ = false;
-  sva::PTransformd initial_pose_panda_femur_;
-  sva::PTransformd initial_pose_panda_tibia_;
+  sva::PTransformd initial_pose_ = sva::PTransformd::Identity();
+  sva::PTransformd default_pose_ = sva::PTransformd::Identity();
 };
