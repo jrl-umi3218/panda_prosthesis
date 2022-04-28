@@ -10,7 +10,7 @@ void GoRelative::configure(const mc_rtc::Configuration & config)
     has_target_ = true;
   }
   config("robot", robot_);
-  config("surface", surface_);
+  config("frame", frame_);
   config("stiffness", stiffness_);
   config("weight", weight_);
   if(config.has("completion"))
@@ -26,22 +26,20 @@ void GoRelative::start(mc_control::fsm::Controller & ctl)
     mc_rtc::log::error_and_throw<std::runtime_error>("[{}] No robot named {}", name(), robot_);
   }
   auto & r = ctl.robot(robot_);
-  if(!r.hasSurface(surface_))
+  if(!r.hasFrame(frame_))
   {
-    mc_rtc::log::error_and_throw<std::runtime_error>("[{}] No surface named {}", name(), surface_);
+    mc_rtc::log::error_and_throw<std::runtime_error>("[{}] No frame named {} in robot {}", name(), frame_, robot_);
   }
 
-  surfaceTask_ = std::make_shared<mc_tasks::SurfaceTransformTask>(surface_, ctl.robots(), r.robotIndex());
-  surfaceTask_->reset();
-  surfaceTask_->stiffness(stiffness_);
-  surfaceTask_->weight(weight_);
-  ctl.solver().addTask(surfaceTask_);
+  transformTask_ = std::make_shared<mc_tasks::TransformTask>(ctl.robot(robot_).frame(frame_), stiffness_, weight_);
+  transformTask_->reset();
+  ctl.solver().addTask(transformTask_);
 
-  criteria_.configure(*surfaceTask_, ctl.timeStep, criteria_config_);
+  criteria_.configure(*transformTask_, ctl.timeStep, criteria_config_);
 
   if(has_target_)
   {
-    surfaceTask_->target(target_ * r.posW());
+    transformTask_->target(target_ * r.posW());
   }
 
   output("OK");
@@ -49,12 +47,12 @@ void GoRelative::start(mc_control::fsm::Controller & ctl)
 
 bool GoRelative::run(mc_control::fsm::Controller & ctl)
 {
-  return criteria_.completed(*surfaceTask_);
+  return criteria_.completed(*transformTask_);
 }
 
 void GoRelative::teardown(mc_control::fsm::Controller & ctl)
 {
-  ctl.solver().removeTask(surfaceTask_);
+  ctl.solver().removeTask(transformTask_);
 }
 
 EXPORT_SINGLE_STATE("GoRelative", GoRelative)

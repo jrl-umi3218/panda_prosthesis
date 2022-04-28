@@ -39,7 +39,6 @@ void Initial::load(mc_control::fsm::Controller & ctl)
       mc_rtc::log::error_and_throw("[{}] No \"joints\" defined in {}", name(), etc_file_);
     }
   }
-  ctl.robot(robot_).mbc().q = initial_joints;
   ctl.getPostureTask(robot_)->posture(initial_joints);
   ctl.robot(robot_).posW(initial_pose_);
   ctl.robot().forwardKinematics();

@@ -15,12 +15,12 @@ struct GoRelative : mc_control::fsm::State
   void teardown(mc_control::fsm::Controller & ctl) override;
 
 private:
-  std::shared_ptr<mc_tasks::SurfaceTransformTask> surfaceTask_;
+  std::shared_ptr<mc_tasks::SurfaceTransformTask> transformTask_;
   sva::PTransformd target_ = sva::PTransformd::Identity();
   mc_rtc::Configuration criteria_config_;
   mc_control::CompletionCriteria criteria_;
   bool has_target_ = false;
-  std::string surface_ = {};
+  std::string frame_ = {};
   std::string robot_ = {};
   double stiffness_ = 1;
   double weight_ = 100;

@@ -19,8 +19,23 @@ VerboseStateFactory: false
 
 # Additional robots to load
 robots:
+  panda_femur:
+    init_pos:
+      translation: [0,0,0]
+    frames:
+      - name: FemurHead
+        parent: panda_link8
+        X_p_f:
+          translation: [0, 0, 0.15]
+          rotation: [0, 0, 0]
   panda_tibia:
     module: PandaProsthesis::Tibia
+    frames:
+      - name: TibiaHead
+        parent: panda_link8
+        X_p_f:
+          translation: [0, 0, 0.2]
+          rotation: [-1.57, 0, 0]
 # General constraints, always on
 constraints:
 - type: contact
@@ -58,7 +73,7 @@ states:
   GoHorizontal::Femur:
     base: GoRelative
     robot: panda_femur
-    surface: FemurHead
+    frame: FemurHead
     stiffness: 5
     weight: 100
       ## If no target is specified this starts from the current robot posture
@@ -74,7 +89,7 @@ states:
   GoHorizontal::Tibia:
     base: GoHorizontal::Femur
     robot: panda_tibia
-    surface: TibiaHead
+    frame: TibiaHead
       #target:
       #  translation: [0.5, -0.3, 0.5]
       #  rotation: [0.0, -3.14, 1.57]
