@@ -65,6 +65,21 @@ collisions:
     #     - body1: panda_link*
     #       body2: panda_link*
 
+ObserverPipelines:
+  - name: PandaFemur
+    observers:
+    - type: Encoder
+      config:
+        robot: panda_femur
+        position: control
+        velocity: control
+  - name: PandaFemur
+    observers:
+    - type: Encoder
+      config:
+        robot: panda_tibia
+        position: control
+        velocity: control
 
 # Initial set of contacts
 contacts: []
@@ -117,9 +132,21 @@ states:
     base: Parallel
     states: [InitializePandaFemur, InitializePandaTibia]
 
+  Simulation:
+    base: Meta
+    transitions:
+    - [InitializeRobots, OK, GoHorizontal::Both::Initial, Auto]
+
+  Real:
+    base: Meta
+    transitions:
+    - [Calibrate, OK, Posture, Auto]
+
 transitions:
-  - [InitializeRobots, OK, GoHorizontal::Both::Initial, Auto]
+  - [ChooseMode, Simulation, Simulation, Auto]
+  - [ChooseMode, Real, Calibrate, Auto]
+
 # Initial state
-init: InitializeRobots
+init: ChooseMode
 # Store the location of configuration files
 ETC_DIR: "@CMAKE_CURRENT_SOURCE_DIR@/etc"
