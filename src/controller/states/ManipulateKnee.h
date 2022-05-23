@@ -16,6 +16,7 @@ protected:
   Eigen::Vector3d rotation_ = Eigen::Vector3d::Zero(); ///< Joint rotation in [deg]
   Eigen::Vector3d min_{-20, -10, -10};
   Eigen::Vector3d max_ = {20, 10, 10};
+  double percentFemur = 0.8;
   std::shared_ptr<mc_tasks::TransformTask> tibia_task_;
   std::shared_ptr<mc_tasks::TransformTask> femur_task_;
 };
