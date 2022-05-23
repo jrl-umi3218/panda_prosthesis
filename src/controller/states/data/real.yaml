@@ -1,0 +1,66 @@
+Real::InitializeRobots::Load:
+  base: InitializeRobots::Load
+  configs:
+    InitializePandaFemur:
+      load: true
+      reset_mbc: false
+    InitializePandaTibia:
+      load: true
+      reset_mbc: false
+  AddCollisions:
+    - r1: panda_femur
+      r2: panda_tibia
+      collisions:
+        - body1: femur
+          body2: tibia
+          iDist: 0.02
+          sDist: 0.005
+        - body1: femur
+          body2: support_tibia
+        - body1: support_femur
+          body2: tibia
+        - body1: support_femur
+          body2: support_tibia
+        - body1: panda_link*
+          body2: panda_link*
+  RemoveCollisionsAfter:
+    - r1: panda_femur
+      r2: panda_tibia
+      collisions:
+        - body1: femur
+          body2: tibia
+        - body1: femur
+          body2: support_tibia
+        - body1: support_femur
+          body2: tibia
+        - body1: support_femur
+          body2: support_tibia
+        - body1: panda_link*
+          body2: panda_link*
+
+Real::InitializeRobots::NoLoad:
+  base: InitializeRobots::Load
+  configs:
+    InitializePandaFemur:
+      load: false
+      reset_mbc: false
+    InitializePandaTibia:
+      load: false
+      reset_mbc: false
+
+Real:
+  base: Meta
+  transitions:
+  - [InitialChoice, LoadSavedCalibration, Real::InitializeRobots::Load, Auto]
+  - [InitialChoice, StartFromCurrent, Real::InitializeRobots::NoLoad, Auto]
+  - [Real::InitializeRobots::Load, SaveAndCalibrate, Calibrate, Auto]
+  - [Real::InitializeRobots::Load, CalibrateWithoutSaving, Calibrate, Auto]
+  - [Real::InitializeRobots::Load, SaveAndSkipCalibration, PrepareJoint, Auto]
+  - [Real::InitializeRobots::Load, SkipCalibration, PrepareJoint, Auto]
+  - [Real::InitializeRobots::NoLoad, SaveAndCalibrate, Calibrate, Auto]
+  - [Real::InitializeRobots::NoLoad, CalibrateWithoutSaving, Calibrate, Auto]
+  - [Real::InitializeRobots::NoLoad, SaveAndSkipCalibration, PrepareJoint, Auto]
+  - [Real::InitializeRobots::NoLoad, SkipCalibration, PrepareJoint, Auto]
+  - [Calibrate, ChangeTool, ChangeTool, Auto]
+  - [ChangeTool, ToolChanged, PrepareJoint, Auto]
+  - [PrepareJoint, "PrepareTibia(OK), PrepareFemur(OK)", ManipulateKnee::Rotation, Auto]

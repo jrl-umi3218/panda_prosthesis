@@ -7,13 +7,13 @@ void Calibrate::start(mc_control::fsm::Controller & ctl)
   ctl.gui()->addElement(this, {}, mc_rtc::gui::Button("Save calibration", [this, &ctl]() {}),
                         mc_rtc::gui::Button("Change Tool", [this, &ctl]() { output("ChangeTool"); }));
 
-  if(!ctl.datastore().has("X_0_Femur"))
+  if(!ctl.datastore().has("Femur"))
   {
-    ctl.datastore().make<sva::PTransformd>("X_0_Femur", sva::PTransformd::Identity());
+    ctl.datastore().make<sva::PTransformd>("Femur", sva::PTransformd::Identity());
   }
-  if(!ctl.datastore().has("X_0_Tibia"))
+  if(!ctl.datastore().has("Tibia"))
   {
-    ctl.datastore().make<sva::PTransformd>("X_0_Tibia", sva::PTransformd::Identity());
+    ctl.datastore().make<sva::PTransformd>("Tibia", sva::PTransformd::Identity());
   }
 
   // Computes calibration online
@@ -37,8 +37,8 @@ bool Calibrate::run(mc_control::fsm::Controller & ctl)
   ctl.realRobot("panda_femur").posW(X_0_pf);
   ctl.robot("panda_femur").posW(X_0_pf);
 
-  ctl.datastore().assign("X_0_Tibia", ctl.robot("panda_tibia").frame("Tibia").position());
-  ctl.datastore().assign("X_0_Femur", ctl.robot("panda_femur").frame("Femur").position());
+  ctl.datastore().assign("Tibia", ctl.robot("panda_tibia").frame("Tibia").position());
+  ctl.datastore().assign("Femur", ctl.robot("panda_femur").frame("Femur").position());
 
   return output().size() != 0;
 }

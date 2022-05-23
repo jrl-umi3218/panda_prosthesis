@@ -43,9 +43,9 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
   Eigen::Vector3d femurRotationRad = percentFemur * mc_rtc::constants::PI / (180.) * rotation_;
   Eigen::Vector3d tibiaRotationRad = -(1 - percentFemur) * mc_rtc::constants::PI / (180.) * rotation_;
 
-  const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("X_0_Tibia");
+  const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
   auto X_0_tibiaTarget = sva::PTransformd(mc_rbdyn::rpyToMat(tibiaRotationRad)) * X_0_tibiaFrame;
-  const auto & X_0_femurFrame = ctl.datastore().get<sva::PTransformd>("X_0_Femur");
+  const auto & X_0_femurFrame = ctl.datastore().get<sva::PTransformd>("Femur");
   auto X_0_femurTarget = sva::PTransformd(mc_rbdyn::rpyToMat(femurRotationRad)) * X_0_femurFrame;
   tibia_task_->target(X_0_tibiaTarget);
   femur_task_->target(X_0_femurTarget);

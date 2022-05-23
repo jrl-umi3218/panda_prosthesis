@@ -1,1 +1,166 @@
-{}
+InitializePandaFemur:
+  base: Initial
+  robot: panda_femur
+  frame: Femur
+  stiffness: 10
+  category: ["Initial Configuration"]
+  default_pose:
+    translation: [-0.7, 0, 0]
+    rotation: [0, 0, 0]
+
+InitializePandaTibia:
+  base: InitializePandaFemur
+  robot: panda_tibia
+  frame: Tibia
+  default_pose:
+    translation: [0.7, 0, 0]
+    rotation: [0, 0, 3.14]
+
+InitializeRobots:
+  base: Parallel
+  states: [InitializePandaFemur, InitializePandaTibia, Choice]
+  configs:
+    Choice:
+      category: []
+      choices:
+        - ["Save and Calibrate", "SaveAndCalibrate"]
+        - ["Calibrate Without Saving", "CalibrateWithoutSaving"]
+        - ["Save and Skip Calibration", "SaveAndSkipCalibration"]
+        - ["Skip Calibration", "SkipCalibration"]
+
+InitializeRobots::Load:
+  base: InitializeRobots
+  configs:
+    InitializePandaFemur:
+      load: true
+    InitializePandaTibia:
+      load: true
+
+InitializeRobots::NoLoad:
+  base: InitializeRobots
+  configs:
+    InitializePandaFemur:
+      load: false
+    InitializePandaTibia:
+      load: false
+
+ChangeTool:
+  base: Parallel
+  states: [Choice]
+  configs:
+    Choice:
+      category: []
+      choices:
+        - ["Tool Changed", "ToolChanged"]
+  constraints:                                                                                          
+    MoveFemurUpConstraint:                                                                                    
+      type: boundedSpeed                                                                                
+      robot: panda_femur
+      constraints:                                                                                      
+        - frame: Femur                                                                         
+          dof: [ 1.0, 1.0, 1.0, 1.0, 1.0, 0.0 ]                                                         
+          lowerSpeed: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]                                                  
+          upperSpeed: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.1 ]                                                  
+    MoveTibiaDownConstraint:                                                                                    
+      type: boundedSpeed                                                                                
+      robot: panda_tibia
+      constraints:                                                                                      
+        - frame: Tibia                                                                         
+          dof: [ 1.0, 1.0, 1.0, 1.0, 1.0, 0.0 ]                                                         
+          lowerSpeed: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]                                                  
+          upperSpeed: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.1 ]                                                  
+  tasks:                                                                                                
+    MoveFemurUp:                                                                                        
+      type: transform                                                                                   
+      robot: panda_femur
+      frame: Femur                                                                             
+      stiffness: 5
+      move:
+        translation: [0, 0, -0.05]
+    MoveTibiaDown:                                                                                        
+      type: transform                                                                                   
+      robot: panda_tibia
+      frame: Tibia                                                                             
+      stiffness: 5
+      move:
+        translation: [0, 0, 0.05]
+
+PrepareTibia:
+  base: TransformDatastore
+  datastoreTarget: Tibia
+  TransformTask:
+    type: transform
+    weight: 1000
+    stiffness: 20
+    robot: panda_tibia
+    frame: Tibia
+  completion:
+    eval: 0.001
+  constraints:                                                                                      
+    MoveTibiaConstraint:                                                                                    
+      type: boundedSpeed                                                                                
+      robot: panda_tibia
+      constraints:
+        - frame: Tibia                                                                         
+          lowerSpeed: [ -0.01, -0.01, -0.01, -0.01, -0.01, -0.01 ]                                                  
+          upperSpeed: [ 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 ]                                                  
+
+PrepareFemur:
+  base: PrepareTibia
+  datastoreTarget: Femur
+  TransformTask:
+    robot: panda_femur
+    frame: Femur
+  constraints:                                                                                      
+    MoveFemurConstraint:                                                                                    
+      type: boundedSpeed                                                                                
+      robot: panda_femur
+      constraints:
+        - frame: Femur                                                                         
+          lowerSpeed: [ -0.01, -0.01, -0.01, -0.01, -0.01, -0.01 ]                                                  
+          upperSpeed: [ 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 ]                                                  
+
+PrepareJoint:
+  base: Parallel
+  states: [PrepareTibia, PrepareFemur]
+  outputs: [PrepareTibia, PrepareFemur]
+
+ManipulateKnee::Rotation:
+  base: ManipulateKnee
+  TibiaTask:
+    type: transform
+    dimWeight: [100, 100, 100, 10000, 10000, 10000]
+    stiffness: [10, 10, 10, 100, 100, 100]
+    robot: panda_tibia
+    frame: Tibia
+  FemurTask:
+    type: transform
+    dimWeight: [100, 100, 100, 10000, 10000, 10000]
+    stiffness: [10, 10, 10, 100, 100, 100]
+    robot: panda_femur
+    frame: Femur
+
+InitialChoice:
+  base: Choice
+  category: []
+  choices:
+    - ["Load Saved Calibration", "LoadSavedCalibration"]
+    - ["Start from current configuration", "StartFromCurrent"]
+
+Simulation:
+  base: Meta
+  transitions:
+  - [InitialChoice, LoadSavedCalibration, InitializeRobots::Load, Auto]
+  - [InitialChoice, StartFromCurrent, InitializeRobots::NoLoad, Auto]
+  - [InitializeRobots::Load, SaveAndCalibrate, Calibrate, Auto]
+  - [InitializeRobots::Load, CalibrateWithoutSaving, Calibrate, Auto]
+  - [InitializeRobots::Load, SaveAndSkipCalibration, PrepareJoint, Auto]
+  - [InitializeRobots::Load, SkipCalibration, PrepareJoint, Auto]
+  - [InitializeRobots::NoLoad, SaveAndCalibrate, Calibrate, Auto]
+  - [InitializeRobots::NoLoad, CalibrateWithoutSaving, Calibrate, Auto]
+  - [InitializeRobots::NoLoad, SaveAndSkipCalibration, PrepareJoint, Auto]
+  - [InitializeRobots::NoLoad, SkipCalibration, PrepareJoint, Auto]
+  - [Calibrate, ChangeTool, ChangeTool, Auto]
+  - [ChangeTool, ToolChanged, PrepareJoint, Auto]
+  - [PrepareJoint, "PrepareTibia(OK), PrepareFemur(OK)", ManipulateKnee::Rotation, Auto]
+

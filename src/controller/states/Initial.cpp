@@ -40,23 +40,42 @@ void Initial::load(mc_control::fsm::Controller & ctl)
     }
   }
   ctl.getPostureTask(robot_)->posture(initial_joints);
-  ctl.robot(robot_).mbc().q = initial_joints;
-  ctl.robot(robot_).posW(initial_pose_);
-  ctl.robot().forwardKinematics();
-}
+  auto & robot = ctl.robot(robot_);
+  auto qActual = robot.mbc().q;
+  robot.mbc().q = initial_joints;
+  robot.posW(initial_pose_);
+  robot.forwardKinematics();
 
-void Initial::configure(const mc_rtc::Configuration & config)
-{
-  config("robot", robot_);
-  config("category", category_);
-  config("default_pose", default_pose_);
+  if(!ctl.datastore().has(frame_))
+  {
+    ctl.datastore().make<sva::PTransformd>(frame_, sva::PTransformd::Identity());
+  }
+  ctl.datastore().assign(frame_, robot.frame(frame_).position());
+
+  // Restore current joint configuration if we are not updating the mbc
+  if(!reset_mbc_)
+  {
+    robot.mbc().q = qActual;
+    robot.forwardKinematics();
+  }
 }
 
 void Initial::start(mc_control::fsm::Controller & ctl)
 {
+  config_("robot", robot_);
+  config_("load", load_);
+  config_("frame", frame_);
+  config_("reset_mbc", reset_mbc_);
+  config_("category", category_);
+  config_("default_pose", default_pose_);
   if(!ctl.hasRobot(robot_))
   {
     mc_rtc::log::error_and_throw("[{}] No robot named \"{}\" in this controller", name(), robot_);
+  }
+
+  if(!ctl.robot(robot_).hasFrame(frame_))
+  {
+    mc_rtc::log::error_and_throw("[{}] No frame named \"{}\" in robot \"{}\"", name(), frame_, robot_);
   }
 
   if(!ctl.config().has("ETC_DIR") && ctl.config()("ETC_DIR").empty())
@@ -65,7 +84,13 @@ void Initial::start(mc_control::fsm::Controller & ctl)
   }
   etc_file_ = static_cast<std::string>(ctl.config()("ETC_DIR")) + "/initial_" + robot_ + ".yaml";
 
-  load(ctl);
+  saved_stiffness_ = ctl.getPostureTask(robot_)->stiffness();
+  ctl.getPostureTask(robot_)->stiffness(config_("stiffness", 1.0));
+
+  if(load_)
+  {
+    load(ctl);
+  }
 
   category_.push_back(robot_);
   ctl.gui()->addElement(this, category_,
@@ -76,6 +101,7 @@ void Initial::start(mc_control::fsm::Controller & ctl)
                               initial_pose_ = p;
                               pose_changed_ = true;
                             }));
+
   mc_rtc::log::success("[{}] started", name());
 }
 
@@ -91,7 +117,8 @@ bool Initial::run(mc_control::fsm::Controller & ctl)
 
 void Initial::teardown(mc_control::fsm::Controller & ctl)
 {
-  if(output() == "SaveAndContinue")
+  ctl.getPostureTask(robot_)->stiffness(saved_stiffness_);
+  if(output() == "SaveAndCalibrate" || output() == "SaveAndSkipCalibration")
   {
     mc_rtc::log::success("[{}] Initial configuration saved", name());
     save(ctl);

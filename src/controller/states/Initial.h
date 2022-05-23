@@ -4,8 +4,6 @@
 
 struct Initial : mc_control::fsm::State
 {
-  void configure(const mc_rtc::Configuration & config) override;
-
   void start(mc_control::fsm::Controller & ctl) override;
 
   bool run(mc_control::fsm::Controller & ctl) override;
@@ -20,6 +18,10 @@ private:
   std::string robot_;
   std::string etc_file_;
   bool pose_changed_ = false;
+  bool load_ = true;
+  bool reset_mbc_ = true;
+  std::string frame_;
+  double saved_stiffness_ = 1.0;
   sva::PTransformd initial_pose_ = sva::PTransformd::Identity();
   sva::PTransformd default_pose_ = sva::PTransformd::Identity();
 };
