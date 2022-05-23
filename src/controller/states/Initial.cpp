@@ -40,6 +40,7 @@ void Initial::load(mc_control::fsm::Controller & ctl)
     }
   }
   ctl.getPostureTask(robot_)->posture(initial_joints);
+  ctl.robot(robot_).mbc().q = initial_joints;
   ctl.robot(robot_).posW(initial_pose_);
   ctl.robot().forwardKinematics();
 }
@@ -68,11 +69,6 @@ void Initial::start(mc_control::fsm::Controller & ctl)
 
   category_.push_back(robot_);
   ctl.gui()->addElement(this, category_,
-                        mc_rtc::gui::Button("Done",
-                                            [this, &ctl]() {
-                                              output("OK");
-                                              save(ctl);
-                                            }),
                         mc_rtc::gui::Transform(
                             fmt::format("Initial pose ({})", robot_),
                             [this]() -> const sva::PTransformd & { return initial_pose_; },
@@ -90,12 +86,20 @@ bool Initial::run(mc_control::fsm::Controller & ctl)
     pose_changed_ = false;
     ctl.robot(robot_).posW(initial_pose_);
   }
-  return output().size() != 0;
+  return true;
 }
 
 void Initial::teardown(mc_control::fsm::Controller & ctl)
 {
-  save(ctl);
+  if(output() == "SaveAndContinue")
+  {
+    mc_rtc::log::success("[{}] Initial configuration saved", name());
+    save(ctl);
+  }
+  else
+  {
+    mc_rtc::log::warning("[{}] Skipped saving configuration", name());
+  }
   ctl.gui()->removeElements(this);
 }
 

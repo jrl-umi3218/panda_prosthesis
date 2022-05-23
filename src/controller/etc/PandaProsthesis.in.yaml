@@ -17,25 +17,44 @@ StatesFiles:
 # If true, state factory will be more verbose
 VerboseStateFactory: false
 
+tibia_joint_offset:
+  translation: [0, 0, -0.01]
+tibia_femur_offset:
+  translation: [0, 0, 0.01]
+
 # Additional robots to load
 robots:
   panda_femur:
     init_pos:
       translation: [0,0,0]
     frames:
-      - name: FemurHead
+      - name: FemurCalibration
         parent: panda_link8
         X_p_f:
-          translation: [0, 0, 0.15]
+          translation: [0, 0, 0.18]
+          rotation: [0, 0, 0]
+      # Frame above the surface of the Femur
+      # This should contain the desired offset distance between the femur and the joint center
+      - name: Femur
+        parent: panda_link8
+        X_p_f:
+          translation: [0, 0, 0.19]
           rotation: [0, 0, 0]
   panda_tibia:
     module: PandaProsthesis::Tibia
     frames:
-      - name: TibiaHead
+      - name: TibiaCalibration
         parent: panda_link8
         X_p_f:
           translation: [0, 0, 0.2]
-          rotation: [-1.57, 0, 0]
+          rotation: [3.14, 0, 1.57]
+      # Frame above the surface of the Tibia
+      # This should contain the desired offset distance between the tibia and the joint center
+      - name: Tibia
+        parent: panda_link8
+        X_p_f:
+          translation: [0, 0, 0.21]
+          rotation: [3.14, 0, 1.57]
 # General constraints, always on
 constraints:
 - type: contact
@@ -68,13 +87,21 @@ collisions:
 ObserverPipelines:
   - name: PandaFemur
     observers:
+    - type: BodySensor
+      config:
+        robot: panda_femur
+        method: control
     - type: Encoder
       config:
         robot: panda_femur
         position: control
         velocity: control
-  - name: PandaFemur
+  - name: PandaTibia
     observers:
+    - type: BodySensor
+      config:
+        robot: panda_tibia
+        method: control
     - type: Encoder
       config:
         robot: panda_tibia
@@ -88,7 +115,7 @@ states:
   GoHorizontal::Femur:
     base: GoRelative
     robot: panda_femur
-    frame: FemurHead
+    frame: Femur
     stiffness: 5
     weight: 100
       ## If no target is specified this starts from the current robot posture
@@ -104,7 +131,7 @@ states:
   GoHorizontal::Tibia:
     base: GoHorizontal::Femur
     robot: panda_tibia
-    frame: TibiaHead
+    frame: Tibia
       #target:
       #  translation: [0.5, -0.3, 0.5]
       #  rotation: [0.0, -3.14, 1.57]
@@ -116,7 +143,7 @@ states:
   InitializePandaFemur:
     base: Initial
     robot: panda_femur
-    category: "Initial Configuration"
+    category: ["Initial Configuration"]
     default_pose:
       translation: [-0.7, 0, 0]
       rotation: [0, 0, 0]
@@ -130,12 +157,103 @@ states:
 
   InitializeRobots:
     base: Parallel
-    states: [InitializePandaFemur, InitializePandaTibia]
+    states: [InitializePandaFemur, InitializePandaTibia, Choice]
+    configs:
+      Choice:
+        category: []
+        choices:
+          - ["Save and Continue", "SaveAndContinue"]
+          - ["Continue without saving", "ContinueWithoutSaving"]
+
+  ChangeTool:
+    base: Parallel
+    states: [Choice]
+    configs:
+      Choice:
+        category: []
+        choices:
+          - ["Tool Changed", "ToolChanged"]
+    constraints:                                                                                          
+      MoveFemurUpConstraint:                                                                                    
+        type: boundedSpeed                                                                                
+        robot: panda_femur
+        constraints:                                                                                      
+          - frame: Femur                                                                         
+            dof: [ 1.0, 1.0, 1.0, 1.0, 1.0, 0.0 ]                                                         
+            lowerSpeed: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]                                                  
+            upperSpeed: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.1 ]                                                  
+      MoveTibiaDownConstraint:                                                                                    
+        type: boundedSpeed                                                                                
+        robot: panda_tibia
+        constraints:                                                                                      
+          - frame: Tibia                                                                         
+            dof: [ 1.0, 1.0, 1.0, 1.0, 1.0, 0.0 ]                                                         
+            lowerSpeed: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]                                                  
+            upperSpeed: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.1 ]                                                  
+    tasks:                                                                                                
+      MoveFemurUp:                                                                                        
+        type: transform                                                                                   
+        robot: panda_femur
+        frame: Femur                                                                             
+        stiffness: 5
+        move:
+          translation: [0, 0, -0.05]
+      MoveTibiaDown:                                                                                        
+        type: transform                                                                                   
+        robot: panda_tibia
+        frame: Tibia                                                                             
+        stiffness: 5
+        move:
+          translation: [0, 0, 0.05]
+
+  PrepareTibia:
+    base: TransformDatastore
+    datastoreTarget: X_0_Tibia
+    TransformTask:
+      type: transform
+      weight: 1000
+      stiffness: 100
+      robot: panda_tibia
+      frame: Tibia
+    completion:
+      eval: 0.001
+    constraints:                                                                                      
+      MoveTibiaConstraint:                                                                                    
+        type: boundedSpeed                                                                                
+        robot: panda_tibia
+        constraints:
+          - frame: Tibia                                                                         
+            lowerSpeed: [ -0.01, -0.01, -0.01, -0.01, -0.01, -0.01 ]                                                  
+            upperSpeed: [ 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 ]                                                  
+
+  PrepareFemur:
+    base: PrepareTibia
+    datastoreTarget: X_0_Femur
+    TransformTask:
+      robot: panda_femur
+      frame: Femur
+    constraints:                                                                                      
+      MoveFemurConstraint:                                                                                    
+        type: boundedSpeed                                                                                
+        robot: panda_femur
+        constraints:
+          - frame: Femur                                                                         
+            lowerSpeed: [ -0.01, -0.01, -0.01, -0.01, -0.01, -0.01 ]                                                  
+            upperSpeed: [ 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 ]                                                  
+
+  PrepareJoint:
+    base: Parallel
+    states: [PrepareTibia, PrepareFemur]
+    outputs: [PrepareTibia, PrepareFemur]
 
   Simulation:
     base: Meta
     transitions:
-    - [InitializeRobots, OK, GoHorizontal::Both::Initial, Auto]
+    - [InitializeRobots, SaveAndContinue, Calibrate, Auto]
+    - [InitializeRobots, ContinueWithoutSaving, Calibrate, Auto]
+    - [Calibrate, ChangeTool, ChangeTool, Auto]
+    - [ChangeTool, ToolChanged, PrepareJoint, Auto]
+    - [PrepareJoint, "PrepareTibia(OK), PrepareFemur(OK)", GoHorizontal::Both::Initial, Auto]
 
   Real:
     base: Meta

@@ -2,25 +2,22 @@
 
 #include <mc_control/fsm/Controller.h>
 
-void GoRelative::configure(const mc_rtc::Configuration & config)
-{
-  if(config.has("target"))
-  {
-    target_ = config("target");
-    has_target_ = true;
-  }
-  config("robot", robot_);
-  config("frame", frame_);
-  config("stiffness", stiffness_);
-  config("weight", weight_);
-  if(config.has("completion"))
-  {
-    criteria_config_.load(config("completion"));
-  }
-}
-
 void GoRelative::start(mc_control::fsm::Controller & ctl)
 {
+  if(config_.has("target"))
+  {
+    target_ = config_("target");
+    has_target_ = true;
+  }
+  config_("robot", robot_);
+  config_("frame", frame_);
+  config_("stiffness", stiffness_);
+  config_("weight", weight_);
+
+  if(config_.has("completion"))
+  {
+    criteria_config_.load(config_("completion"));
+  }
   if(!ctl.hasRobot(robot_))
   {
     mc_rtc::log::error_and_throw<std::runtime_error>("[{}] No robot named {}", name(), robot_);

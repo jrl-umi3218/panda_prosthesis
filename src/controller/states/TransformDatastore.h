@@ -2,9 +2,9 @@
 
 #include <mc_control/CompletionCriteria.h>
 #include <mc_control/fsm/State.h>
-#include <mc_tasks/SurfaceTransformTask.h>
+#include <mc_tasks/TransformTask.h>
 
-struct GoRelative : mc_control::fsm::State
+struct TransformDatastore : mc_control::fsm::State
 {
   void start(mc_control::fsm::Controller & ctl) override;
 
@@ -12,14 +12,11 @@ struct GoRelative : mc_control::fsm::State
 
   void teardown(mc_control::fsm::Controller & ctl) override;
 
-private:
-  std::shared_ptr<mc_tasks::SurfaceTransformTask> transformTask_;
-  sva::PTransformd target_ = sva::PTransformd::Identity();
+protected:
+  std::shared_ptr<mc_tasks::TransformTask> task_;
+  std::string datastorePose_ = "";
+  bool continuous_ = false;
   mc_rtc::Configuration criteria_config_;
   mc_control::CompletionCriteria criteria_;
-  bool has_target_ = false;
-  std::string frame_ = {};
-  std::string robot_ = {};
-  double stiffness_ = 1;
-  double weight_ = 100;
+  sva::PTransformd X_0_target_ = sva::PTransformd::Identity();
 };
