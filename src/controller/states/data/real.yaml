@@ -4,7 +4,9 @@ Real::InitializeRobots::Load:
     InitializePandaFemur:
       load: true
       reset_mbc: false
+      stiffness: 1
     InitializePandaTibia:
+      stiffness: 1
       load: true
       reset_mbc: false
   AddCollisions:
@@ -53,13 +55,9 @@ Real:
   transitions:
   - [InitialChoice, LoadSavedCalibration, Real::InitializeRobots::Load, Auto]
   - [InitialChoice, StartFromCurrent, Real::InitializeRobots::NoLoad, Auto]
-  - [Real::InitializeRobots::Load, SaveAndCalibrate, Calibrate, Auto]
-  - [Real::InitializeRobots::Load, CalibrateWithoutSaving, Calibrate, Auto]
-  - [Real::InitializeRobots::Load, SaveAndSkipCalibration, PrepareJoint, Auto]
+  - [Real::InitializeRobots::Load, Calibrate, Calibrate, Auto]
   - [Real::InitializeRobots::Load, SkipCalibration, PrepareJoint, Auto]
-  - [Real::InitializeRobots::NoLoad, SaveAndCalibrate, Calibrate, Auto]
-  - [Real::InitializeRobots::NoLoad, CalibrateWithoutSaving, Calibrate, Auto]
-  - [Real::InitializeRobots::NoLoad, SaveAndSkipCalibration, PrepareJoint, Auto]
+  - [Real::InitializeRobots::NoLoad, Calibrate, Calibrate, Auto]
   - [Real::InitializeRobots::NoLoad, SkipCalibration, PrepareJoint, Auto]
   - [Calibrate, ChangeTool, ChangeTool, Auto]
   - [ChangeTool, ToolChanged, PrepareJoint, Auto]

@@ -3,16 +3,6 @@
 #include <mc_control/fsm/Controller.h>
 #include <boost/filesystem.hpp>
 
-void Initial::save(mc_control::fsm::Controller & ctl)
-{
-  mc_rtc::log::info("[{}] Saving initial state to {}", name(), etc_file_);
-  mc_rtc::Configuration initial(etc_file_);
-  initial.add(robot_);
-  initial(robot_).add("pose", initial_pose_);
-  initial(robot_).add("joints", ctl.robot(robot_).mbc().q);
-  initial.save(etc_file_);
-}
-
 void Initial::load(mc_control::fsm::Controller & ctl)
 {
   mc_rtc::log::info("[{}] Loading configuration from {}", name(), etc_file_);
@@ -118,15 +108,6 @@ bool Initial::run(mc_control::fsm::Controller & ctl)
 void Initial::teardown(mc_control::fsm::Controller & ctl)
 {
   ctl.getPostureTask(robot_)->stiffness(saved_stiffness_);
-  if(output() == "SaveAndCalibrate" || output() == "SaveAndSkipCalibration")
-  {
-    mc_rtc::log::success("[{}] Initial configuration saved", name());
-    save(ctl);
-  }
-  else
-  {
-    mc_rtc::log::warning("[{}] Skipped saving configuration", name());
-  }
   ctl.gui()->removeElements(this);
 }
 

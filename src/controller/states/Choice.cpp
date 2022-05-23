@@ -8,6 +8,11 @@ void Choice::start(mc_control::fsm::Controller & ctl)
   auto choices = config_("choices", std::vector<std::pair<std::string, std::string>>{});
   auto category = config_("category", std::vector<std::string>{});
 
+  if(choices.empty())
+  {
+    mc_rtc::log::error_and_throw("[{}] No choice provided", name());
+  }
+
   for(const auto & choice : choices)
   {
     const auto & name = choice.first;

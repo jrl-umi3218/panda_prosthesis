@@ -11,7 +11,6 @@ struct Initial : mc_control::fsm::State
   void teardown(mc_control::fsm::Controller & ctl) override;
 
   void load(mc_control::fsm::Controller & ctl);
-  void save(mc_control::fsm::Controller & ctl);
 
 private:
   std::vector<std::string> category_{};
