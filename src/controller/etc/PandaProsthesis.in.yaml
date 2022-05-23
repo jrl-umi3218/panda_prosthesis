@@ -38,7 +38,7 @@ robots:
       - name: Femur
         parent: panda_link8
         X_p_f:
-          translation: [0, 0, 0.19]
+          translation: [0, 0, 0.20]
           rotation: [0, 0, 0]
   panda_tibia:
     module: PandaProsthesis::Tibia
@@ -53,7 +53,7 @@ robots:
       - name: Tibia
         parent: panda_link8
         X_p_f:
-          translation: [0, 0, 0.21]
+          translation: [0, 0, 0.22]
           rotation: [3.14, 0, 1.57]
 # General constraints, always on
 constraints:
@@ -246,6 +246,21 @@ states:
     states: [PrepareTibia, PrepareFemur]
     outputs: [PrepareTibia, PrepareFemur]
 
+  ManipulateKnee::Rotation:
+    base: ManipulateKnee
+    TibiaTask:
+      type: transform
+      dimWeight: [100, 100, 100, 10000, 10000, 10000]
+      stiffness: [10, 10, 10, 100, 100, 100]
+      robot: panda_tibia
+      frame: Tibia
+    FemurTask:
+      type: transform
+      dimWeight: [100, 100, 100, 10000, 10000, 10000]
+      stiffness: [10, 10, 10, 100, 100, 100]
+      robot: panda_femur
+      frame: Femur
+
   Simulation:
     base: Meta
     transitions:
@@ -253,7 +268,7 @@ states:
     - [InitializeRobots, ContinueWithoutSaving, Calibrate, Auto]
     - [Calibrate, ChangeTool, ChangeTool, Auto]
     - [ChangeTool, ToolChanged, PrepareJoint, Auto]
-    - [PrepareJoint, "PrepareTibia(OK), PrepareFemur(OK)", GoHorizontal::Both::Initial, Auto]
+    - [PrepareJoint, "PrepareTibia(OK), PrepareFemur(OK)", ManipulateKnee::Rotation, Auto]
 
   Real:
     base: Meta
