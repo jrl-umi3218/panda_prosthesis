@@ -26,29 +26,29 @@ robots:
       - name: FemurCalibration
         parent: panda_link8
         X_p_f:
-          translation: [0, 0, 0.18]
+          translation: [0, 0, 0.235]
           rotation: [0, 0, 0]
       # Frame above the surface of the Femur
       # This should contain the desired offset distance between the femur and the joint center
       - name: Femur
         parent: panda_link8
         X_p_f:
-          translation: [0, 0, 0.19]
-          rotation: [0, 0, 0]
+          translation: [0, -0.01, 0.23] # real size is 22.5
+          rotation: [0, 0, 0.5] # calibration holes and real tool are not aligned!
   panda_tibia:
     module: PandaProsthesis::Tibia
     frames:
       - name: TibiaCalibration
         parent: panda_link8
         X_p_f:
-          translation: [0, 0, 0.19]
+          translation: [0, 0, 0.215]
           rotation: [3.14, 0, 1.57]
       # Frame above the surface of the Tibia
       # This should contain the desired offset distance between the tibia and the joint center
       - name: Tibia
         parent: panda_link8
         X_p_f:
-          translation: [0, 0, 0.2]
+          translation: [0, 0, 0.235] # real size is 0.23
           rotation: [3.14, 0, 1.57]
 # General constraints, always on
 constraints:
