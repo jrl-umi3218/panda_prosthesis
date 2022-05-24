@@ -6,6 +6,8 @@
 
 void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 {
+  config_("min", min_);
+  config_("max", max_);
   auto make_slider = [this](const std::string & name, size_t axis) {
     return mc_rtc::gui::NumberSlider(
         name, [this, axis]() { return rotation_[axis]; }, [this, axis](double angle) { rotation_[axis] = angle; },
@@ -45,7 +47,7 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
 
   const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
   auto X_0_tibiaTarget = sva::PTransformd(mc_rbdyn::rpyToMat(tibiaRotationRad)) * X_0_tibiaFrame;
-  const auto & X_0_femurFrame = ctl.datastore().get<sva::PTransformd>("Femur");
+  const auto & X_0_femurFrame = X_0_tibiaFrame;
   auto X_0_femurTarget = sva::PTransformd(mc_rbdyn::rpyToMat(femurRotationRad)) * X_0_femurFrame;
   tibia_task_->target(X_0_tibiaTarget);
   femur_task_->target(X_0_femurTarget);

@@ -2,6 +2,9 @@
 
 #include <mc_control/fsm/Controller.h>
 
+// XXX it would make more sense to store the pose corresponding to the
+// calibrated joint without the calibration tool,
+// e.g the one after PrepareJoint
 void save(const std::string & etc_file, const mc_rbdyn::Robot & robot)
 {
   mc_rtc::Configuration initial(etc_file);
@@ -14,23 +17,8 @@ void save(const std::string & etc_file, const mc_rbdyn::Robot & robot)
 
 void Calibrate::start(mc_control::fsm::Controller & ctl)
 {
-  if(!ctl.config().has("ETC_DIR") && ctl.config()("ETC_DIR").empty())
-  {
-    mc_rtc::log::error_and_throw("[{}] No \"ETC_DIR\"  entry specified", name());
-  }
-  auto etc_file_panda_femur = static_cast<std::string>(ctl.config()("ETC_DIR")) + "/initial_panda_femur.yaml";
-  auto etc_file_panda_tibia = static_cast<std::string>(ctl.config()("ETC_DIR")) + "/initial_panda_tibia.yaml";
-  auto save_calibration = [&ctl, etc_file_panda_tibia, etc_file_panda_femur]() {
-    save(etc_file_panda_femur, ctl.robot("panda_femur"));
-    save(etc_file_panda_tibia, ctl.robot("panda_tibia"));
-  };
-  ctl.gui()->addElement(this, {}, mc_rtc::gui::Button("Save calibration", save_calibration));
-  ctl.gui()->addElement(this, {}, mc_rtc::gui::Button("Save calibration and change tool", [this, save_calibration]() {
-                          save_calibration();
-                          output("ChangeTool");
-                        }));
-  ctl.gui()->addElement(this, {},
-                        mc_rtc::gui::Button("Change Tool without saving", [this, &ctl]() { output("ChangeTool"); }));
+  ctl.gui()->addElement(this, {}, mc_rtc::gui::Button("Change Tool", [this]() { output("ChangeTool"); }));
+  ctl.gui()->addElement(this, {}, mc_rtc::gui::Button("Skip tool changing", [this, &ctl]() { output("ChangeTool"); }));
 
   if(!ctl.datastore().has("Femur"))
   {
@@ -62,8 +50,10 @@ bool Calibrate::run(mc_control::fsm::Controller & ctl)
   ctl.realRobot("panda_femur").posW(X_0_pf);
   ctl.robot("panda_femur").posW(X_0_pf);
 
+  // X_0_tibiaCalib = X_0_femurCalib
+  // Axis of rotation: X_0_tibia
   ctl.datastore().assign("Tibia", ctl.robot("panda_tibia").frame("Tibia").position());
-  ctl.datastore().assign("Femur", ctl.robot("panda_femur").frame("Femur").position());
+  ctl.datastore().assign("Femur", ctl.robot("panda_tibia").frame("Tibia").position());
 
   return output().size() != 0;
 }

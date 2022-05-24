@@ -16,6 +16,8 @@ protected:
   std::shared_ptr<mc_tasks::TransformTask> task_;
   std::string datastorePose_ = "";
   bool continuous_ = false;
+  bool save_ = true;
+  std::string robot_;
   mc_rtc::Configuration criteria_config_;
   mc_control::CompletionCriteria criteria_;
   sva::PTransformd X_0_target_ = sva::PTransformd::Identity();

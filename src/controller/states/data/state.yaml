@@ -124,16 +124,18 @@ ManipulateKnee::Rotation:
   base: ManipulateKnee
   TibiaTask:
     type: transform
-    dimWeight: [100, 100, 100, 10000, 10000, 10000]
+    dimWeight: [100, 100, 100, 1000, 1000, 1000]
     stiffness: [10, 10, 10, 100, 100, 100]
     robot: panda_tibia
     frame: Tibia
   FemurTask:
     type: transform
-    dimWeight: [100, 100, 100, 10000, 10000, 10000]
+    dimWeight: [100, 100, 100, 1000, 1000, 1000]
     stiffness: [10, 10, 10, 100, 100, 100]
     robot: panda_femur
     frame: Femur
+  min: [-40, -20, -20]
+  max: [40, 20, 20]
 
 InitialChoice:
   base: Choice

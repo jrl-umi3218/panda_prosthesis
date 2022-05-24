@@ -17,11 +17,6 @@ StatesFiles:
 # If true, state factory will be more verbose
 VerboseStateFactory: false
 
-tibia_joint_offset:
-  translation: [0, 0, -0.01]
-tibia_femur_offset:
-  translation: [0, 0, 0.01]
-
 # Additional robots to load
 robots:
   panda_femur:
@@ -38,7 +33,7 @@ robots:
       - name: Femur
         parent: panda_link8
         X_p_f:
-          translation: [0, 0, 0.20]
+          translation: [0, 0, 0.19]
           rotation: [0, 0, 0]
   panda_tibia:
     module: PandaProsthesis::Tibia
@@ -46,14 +41,14 @@ robots:
       - name: TibiaCalibration
         parent: panda_link8
         X_p_f:
-          translation: [0, 0, 0.2]
+          translation: [0, 0, 0.19]
           rotation: [3.14, 0, 1.57]
       # Frame above the surface of the Tibia
       # This should contain the desired offset distance between the tibia and the joint center
       - name: Tibia
         parent: panda_link8
         X_p_f:
-          translation: [0, 0, 0.22]
+          translation: [0, 0, 0.2]
           rotation: [3.14, 0, 1.57]
 # General constraints, always on
 constraints:
@@ -61,6 +56,7 @@ constraints:
 - type: kinematics
   robot: panda_femur
   damper: [0.1, 0.01, 0.5]
+  velocityPercent: 0.9
 - type: kinematics
   robot: panda_tibia
   damper: [0.1, 0.01, 0.5]

@@ -9,4 +9,7 @@ struct Calibrate : mc_control::fsm::State
   bool run(mc_control::fsm::Controller & ctl) override;
 
   void teardown(mc_control::fsm::Controller & ctl) override;
+
+protected:
+  bool saveOnly_ = false;
 };
