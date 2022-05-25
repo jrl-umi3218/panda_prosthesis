@@ -24,31 +24,31 @@ robots:
       translation: [0,0,0]
     frames:
       - name: FemurCalibration
-        parent: panda_link8
+        parent: support_femur
         X_p_f:
-          translation: [0, 0, 0.215]
-          rotation: [0, 0, 3.14]
+          translation: [0, 0, -0.215]
+          rotation: [3.14, 0, 0.0]
       # Frame above the surface of the Femur
       # This should contain the desired offset distance between the femur and the joint center
       - name: Femur
-        parent: panda_link8
+        parent: support_femur
         X_p_f:
-          translation: [0, 0, 0.215]
-          rotation: [0, 0, 3.14]
+          translation: [0, 0, -0.245] # Keep 3cm margin (on top of FemurCalibration)
+          rotation: [3.14, 0, 0]
   panda_tibia:
     module: PandaProsthesis::Tibia
     frames:
       - name: TibiaCalibration
         parent: panda_link8
         X_p_f:
-          translation: [0, 0.065, 0.225]
+          translation: [0, 0.096, 0.225] # assuming 2cm height for the calibration tool
           rotation: [1.57, 0, 0]
       # Frame above the surface of the Tibia
       # This should contain the desired offset distance between the tibia and the joint center
       - name: Tibia
         parent: panda_link8
         X_p_f:
-          translation: [0, 0.065, 0.225]
+          translation: [0, 0.096, 0.225]
           rotation: [1.57, 0, 0]
 # General constraints, always on
 constraints:
