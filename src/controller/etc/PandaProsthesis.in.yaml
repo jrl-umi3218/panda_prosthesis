@@ -34,7 +34,7 @@ robots:
         parent: panda_link8
         X_p_f:
           translation: [0, -0.01, 0.23] # real size is 22.5
-          rotation: [0, 0, 0.5] # calibration holes and real tool are not aligned!
+          rotation: [0, 0, 0.55] # calibration holes and real tool are not aligned!
   panda_tibia:
     module: PandaProsthesis::Tibia
     frames:
