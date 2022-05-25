@@ -9,7 +9,11 @@ PandaProsthetics::PandaProsthetics(mc_rbdyn::RobotModulePtr rm, double dt, const
 {
   gui()->addElement(
       {"Frames"}, mc_rtc::gui::Transform("Tibia", [this]() { return robot("panda_tibia").frame("Tibia").position(); }),
-      mc_rtc::gui::Transform("Femur", [this]() { return robot("panda_femur").frame("Femur").position(); }));
+      mc_rtc::gui::Transform("Femur", [this]() { return robot("panda_femur").frame("Femur").position(); }),
+      mc_rtc::gui::Transform("TibiaCalibration",
+                             [this]() { return robot("panda_tibia").frame("TibiaCalibration").position(); }),
+      mc_rtc::gui::Transform("FemurCalibration",
+                             [this]() { return robot("panda_femur").frame("FemurCalibration").position(); }));
 }
 
 bool PandaProsthetics::run()

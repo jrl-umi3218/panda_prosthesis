@@ -30,6 +30,34 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
           [this](const Eigen::Vector3d & rotation) { max_ = rotation; }),
       mc_rtc::gui::Button("Finished", [this]() { output("Finished"); }));
 
+  ctl.gui()->addElement(
+      this, {"ManipulateKnee", "Angle"},
+      mc_rtc::gui::ArrayLabel("Tibia Position [m]", {"tx", "ty", "tz"},
+                              [this]() -> const Eigen::Vector3d & { return tibia_angle_.translation(); }),
+      mc_rtc::gui::ArrayLabel("Tibia Rotation [deg]", {"r", "p", "y"},
+                              [this]() -> Eigen::Vector3d {
+                                return 180 / mc_rtc::constants::PI * mc_rbdyn::rpyFromMat(tibia_angle_.rotation());
+                              }),
+      mc_rtc::gui::ArrayLabel("Femur Position [m]", {"tx", "ty", "tz"},
+                              [this]() -> const Eigen::Vector3d & { return femur_angle_.translation(); }),
+      mc_rtc::gui::ArrayLabel("Femur Rotation [deg]", {"r", "p", "y"}, [this]() -> Eigen::Vector3d {
+        return 180 / mc_rtc::constants::PI * mc_rbdyn::rpyFromMat(femur_angle_.rotation());
+      }));
+
+  ctl.gui()->addElement(
+      this, {"ManipulateKnee", "Error"},
+      mc_rtc::gui::ArrayLabel("Tibia Error Position [m]", {"tx", "ty", "tz"},
+                              [this]() -> const Eigen::Vector3d & { return tibia_error_.translation(); }),
+      mc_rtc::gui::ArrayLabel("Tibia Error Rotation [deg]", {"r", "p", "y"},
+                              [this]() -> Eigen::Vector3d {
+                                return 180 / mc_rtc::constants::PI * mc_rbdyn::rpyFromMat(tibia_error_.rotation());
+                              }),
+      mc_rtc::gui::ArrayLabel("Femur Error Position [m]", {"tx", "ty", "tz"},
+                              [this]() -> const Eigen::Vector3d & { return femur_error_.translation(); }),
+      mc_rtc::gui::ArrayLabel("Femur Error Rotation [deg]", {"r", "p", "y"}, [this]() -> Eigen::Vector3d {
+        return 180 / mc_rtc::constants::PI * mc_rbdyn::rpyFromMat(femur_error_.rotation());
+      }));
+
   tibia_task_ = mc_tasks::MetaTaskLoader::load<mc_tasks::TransformTask>(ctl.solver(), config_("TibiaTask"));
   tibia_task_->reset();
   femur_task_ = mc_tasks::MetaTaskLoader::load<mc_tasks::TransformTask>(ctl.solver(), config_("FemurTask"));
@@ -42,15 +70,27 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 
 bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
 {
+  // Rotation axis for the knee joint
+  // For now we rotate around the Tibia frame obtained during calibration
+  const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
   Eigen::Vector3d femurRotationRad = percentFemur * mc_rtc::constants::PI / (180.) * rotation_;
   Eigen::Vector3d tibiaRotationRad = -(1 - percentFemur) * mc_rtc::constants::PI / (180.) * rotation_;
 
-  const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
-  auto X_0_tibiaTarget = sva::PTransformd(mc_rbdyn::rpyToMat(tibiaRotationRad)) * X_0_tibiaFrame;
-  const auto & X_0_femurFrame = X_0_tibiaFrame;
-  auto X_0_femurTarget = sva::PTransformd(mc_rbdyn::rpyToMat(femurRotationRad)) * X_0_femurFrame;
-  tibia_task_->target(X_0_tibiaTarget);
-  femur_task_->target(X_0_femurTarget);
+  auto handle_rotation = [](mc_tasks::TransformTask & task, const sva::PTransformd X_0_axisFrame,
+                            const Eigen::Vector3d & rotation) {
+    auto X_0_target = sva::PTransformd(mc_rbdyn::rpyToMat(rotation)) * X_0_axisFrame;
+    task.target(X_0_target);
+
+    auto X_0_actual = task.frame().position();
+    // Error between current state and target
+    auto error = X_0_actual * X_0_target.inv();
+    // Angle between current state and axis
+    auto angleActual = X_0_actual * X_0_target.inv();
+    return std::tuple<sva::PTransformd, sva::PTransformd>{error, angleActual};
+  };
+
+  std::tie(femur_error_, femur_angle_) = handle_rotation(*femur_task_, X_0_tibiaFrame, femurRotationRad);
+  std::tie(tibia_error_, tibia_angle_) = handle_rotation(*tibia_task_, X_0_tibiaFrame, tibiaRotationRad);
 
   return output().size() != 0;
 }

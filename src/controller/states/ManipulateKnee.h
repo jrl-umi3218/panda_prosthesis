@@ -19,4 +19,8 @@ protected:
   double percentFemur = 0.8;
   std::shared_ptr<mc_tasks::TransformTask> tibia_task_;
   std::shared_ptr<mc_tasks::TransformTask> femur_task_;
+  sva::PTransformd tibia_error_ = sva::PTransformd::Identity();
+  sva::PTransformd femur_error_ = sva::PTransformd::Identity();
+  sva::PTransformd tibia_angle_ = sva::PTransformd::Identity();
+  sva::PTransformd femur_angle_ = sva::PTransformd::Identity();
 };
