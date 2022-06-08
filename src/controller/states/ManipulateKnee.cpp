@@ -3,6 +3,34 @@
 #include <mc_control/fsm/Controller.h>
 #include <mc_filter/utils/clamp.h>
 #include <mc_tasks/MetaTaskLoader.h>
+#include "../3rd-party/csv.h"
+
+void ReadCSV::clear()
+{
+  femurTranslationVector.clear();
+  tibiaTranslationVector.clear();
+  femurRotationVector.clear();
+  tibiaRotationVector.clear();
+}
+
+void ReadCSV::load(const std::string & path)
+{
+  clear();
+  io::CSVReader<12> in(path);
+  in.read_header(io::ignore_extra_column, "femur_tangage", "femur_roulis", "femur_lacet", "tibia_tangage",
+                 "tibia_roulis", "tibia_lacet", "femur_x", "femur_y", "femur_z", "tibia_x", "tibia_y", "tibia_z");
+  // std::string vendor; int size; double speed;
+  Eigen::Vector3d femurRotation, tibiaRotation, femurTranslation, tibiaTranslation;
+  while(in.read_row(femurRotation[0], femurRotation[1], femurRotation[2], tibiaRotation[0], tibiaRotation[1],
+                    tibiaRotation[2], femurTranslation[0], femurTranslation[1], femurTranslation[2],
+                    tibiaTranslation[0], tibiaTranslation[1], tibiaTranslation[2]))
+  {
+    femurTranslationVector.push_back(femurTranslation);
+    tibiaTranslationVector.push_back(tibiaTranslation);
+    femurRotationVector.push_back(femurRotation);
+    tibiaRotationVector.push_back(tibiaRotation);
+  }
+}
 
 void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 {
@@ -22,6 +50,27 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
     c("maxTranslation", maxTibiaTranslation_);
     c("minRotation", minTibiaRotation_);
     c("maxRotation", maxTibiaRotation_);
+  }
+
+  setRate(config_("rate", 0.2), ctl.timeStep);
+
+  if(config_.has("thresholds"))
+  {
+    auto c = config_("thresholds");
+    if(c.has("translation"))
+    {
+      translationTreshold_ = c("translation");
+    }
+    if(c.has("rotation"))
+    {
+      rotationTreshold_ = c("rotation");
+    }
+  }
+
+  if(config_.has("file"))
+  {
+    file_.load(config_("file"));
+    play_ = true;
   }
 
   auto make_input = [this](mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category, const std::string & name,
@@ -65,6 +114,19 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 
   gui.addElement(this, {}, mc_rtc::gui::Button("Finished", [this]() { output("Finished"); }));
 
+  ctl.gui()->addElement(this, {"ManipulateKnee", "Trajectory"},
+                        mc_rtc::gui::Checkbox(
+                            "Play", [this]() { return play_; }, [this]() { play_ = !play_; }),
+                        mc_rtc::gui::NumberInput(
+                            "Rate [s]", [this, &ctl]() { return getRate(ctl.timeStep); },
+                            [this, &ctl](double rate) { setRate(rate, ctl.timeStep); }),
+                        mc_rtc::gui::NumberInput(
+                            "Translation Threshold [mm]", [this]() { return translationTreshold_; },
+                            [this](double treshold) { translationTreshold_ = treshold; }),
+                        mc_rtc::gui::NumberInput(
+                            "Rotation Threshold [deg]", [this]() { return rotationTreshold_; },
+                            [this](double treshold) { rotationTreshold_ = treshold; }));
+
   ctl.gui()->addElement(
       this, {"ManipulateKnee", "Angle"},
       mc_rtc::gui::ArrayLabel("Tibia Position [m]", {"tx", "ty", "tz"},
@@ -105,6 +167,43 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 
 bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
 {
+  if(file_.tibiaRotationVector.empty())
+  {
+    play_ = false;
+  }
+
+  if(play_)
+  {
+    if(next_)
+    {
+      tibiaRotation_ = file_.tibiaRotationVector.front();
+      tibiaTranslation_ = file_.tibiaTranslationVector.front();
+      femurRotation_ = file_.femurRotationVector.front();
+      femurTranslation_ = file_.femurTranslationVector.front();
+      file_.tibiaRotationVector.pop_front();
+      file_.tibiaTranslationVector.pop_front();
+      file_.femurRotationVector.pop_front();
+      file_.femurTranslationVector.pop_front();
+      mc_rtc::log::info("Next pose");
+      next_ = false;
+    }
+    if(iter_ == 0 || iter_ % iterRate_ == 0)
+    {
+      iter_ = 0;
+      auto tibia_error = tibia_task_->eval();
+      auto femur_error = femur_task_->eval();
+      if(tibia_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
+         && tibia_error.tail<3>().norm() <= translationTreshold_ / 1000.
+         && femur_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
+         && femur_error.tail<3>().norm() <= translationTreshold_ / 1000.)
+      {
+        measure();
+        // Only go to next when all measurements are finished.
+        next_ = true;
+      }
+    }
+  }
+
   // Rotation axis for the knee joint
   // For now we rotate around the Tibia frame obtained during calibration
   const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
@@ -128,6 +227,7 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
   std::tie(femur_error_, femur_angle_) = handle_motion(*femur_task_, X_0_tibiaFrame, femurTranslation_, femurRotation_);
   std::tie(tibia_error_, tibia_angle_) = handle_motion(*tibia_task_, X_0_tibiaFrame, tibiaTranslation_, tibiaRotation_);
 
+  ++iter_;
   return output().size() != 0;
 }
 

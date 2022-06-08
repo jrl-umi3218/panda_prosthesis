@@ -3,6 +3,18 @@
 #include <mc_control/CompletionCriteria.h>
 #include <mc_control/fsm/State.h>
 #include <mc_tasks/TransformTask.h>
+#include <deque>
+
+struct ReadCSV
+{
+  void clear();
+  void load(const std::string & path);
+
+  std::deque<Eigen::Vector3d> femurTranslationVector;
+  std::deque<Eigen::Vector3d> femurRotationVector;
+  std::deque<Eigen::Vector3d> tibiaTranslationVector;
+  std::deque<Eigen::Vector3d> tibiaRotationVector;
+};
 
 struct ManipulateKnee : mc_control::fsm::State
 {
@@ -13,6 +25,30 @@ struct ManipulateKnee : mc_control::fsm::State
   void teardown(mc_control::fsm::Controller & ctl) override;
 
 protected:
+  void setRate(double rate, double timeStep)
+  {
+    iterRate_ = std::max(1u, static_cast<unsigned>(ceil(1 / (1 / rate * timeStep))));
+  }
+
+  double getRate(double timeStep) const noexcept
+  {
+    return iterRate_ * timeStep;
+  }
+
+  void measure()
+  {
+    mc_rtc::log::warning("Sensor measurement not implemented yet");
+  }
+
+protected:
+  ReadCSV file_;
+  bool play_ = false;
+  bool next_ = false;
+  size_t iter_ = 0;
+  size_t iterRate_ = 1;
+  double translationTreshold_ = 1; ///< Convergence threshold on translation [mm]
+  double rotationTreshold_ = 0.1; ///< Convergence threshold on rotation [deg]
+
   Eigen::Vector3d femurTranslation_ = Eigen::Vector3d::Zero(); ///< Joint translation in [mm]
   Eigen::Vector3d minFemurTranslation_{-20, -20, -10}; ///< Min translation [mm]
   Eigen::Vector3d maxFemurTranslation_ = {20, 20, 10}; ///< Max translation [mm]
