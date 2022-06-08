@@ -13,10 +13,18 @@ struct ManipulateKnee : mc_control::fsm::State
   void teardown(mc_control::fsm::Controller & ctl) override;
 
 protected:
+  Eigen::Vector3d femurTranslation_ = Eigen::Vector3d::Zero(); ///< Joint translation in [mm]
+  Eigen::Vector3d minFemurTranslation_{-20, -20, -10}; ///< Min translation [mm]
+  Eigen::Vector3d maxFemurTranslation_ = {20, 20, 10}; ///< Max translation [mm]
+
+  Eigen::Vector3d tibiaTranslation_ = Eigen::Vector3d::Zero(); ///< Joint translation in [mm]
+  Eigen::Vector3d minTibiaTranslation_{-20, -20, -10}; ///< Min translation [mm]
+  Eigen::Vector3d maxTibiaTranslation_ = {20, 20, 10}; ///< Max translation [mm]
+                                                       ///
   Eigen::Vector3d rotation_ = Eigen::Vector3d::Zero(); ///< Joint rotation in [deg]
-  Eigen::Vector3d min_{-20, -10, -10};
-  Eigen::Vector3d max_ = {20, 10, 10};
-  double percentFemur = 0.8;
+  Eigen::Vector3d minRotation_{-20, -10, -10}; ///< Min Allowed Rotation [deg]
+  Eigen::Vector3d maxRotation_ = {20, 10, 10}; ///< Max Allowed Rotation [deg]
+  double percentFemur = 0.8; ///< How much should the femur/tibia move [0..1]
   std::shared_ptr<mc_tasks::TransformTask> tibia_task_;
   std::shared_ptr<mc_tasks::TransformTask> femur_task_;
   sva::PTransformd tibia_error_ = sva::PTransformd::Identity();
