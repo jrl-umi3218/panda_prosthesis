@@ -21,10 +21,14 @@ protected:
   Eigen::Vector3d minTibiaTranslation_{-20, -20, -10}; ///< Min translation [mm]
   Eigen::Vector3d maxTibiaTranslation_ = {20, 20, 10}; ///< Max translation [mm]
                                                        ///
-  Eigen::Vector3d rotation_ = Eigen::Vector3d::Zero(); ///< Joint rotation in [deg]
-  Eigen::Vector3d minRotation_{-20, -10, -10}; ///< Min Allowed Rotation [deg]
-  Eigen::Vector3d maxRotation_ = {20, 10, 10}; ///< Max Allowed Rotation [deg]
-  double percentFemur = 0.8; ///< How much should the femur/tibia move [0..1]
+  Eigen::Vector3d tibiaRotation_ = Eigen::Vector3d::Zero(); ///< Joint rotation in [deg]
+  Eigen::Vector3d minTibiaRotation_{-20, -10, -10}; ///< Min Allowed Rotation [deg]
+  Eigen::Vector3d maxTibiaRotation_ = {20, 10, 10}; ///< Max Allowed Rotation [deg]
+
+  Eigen::Vector3d femurRotation_ = Eigen::Vector3d::Zero(); ///< Joint rotation in [deg]
+  Eigen::Vector3d minFemurRotation_{-20, -10, -10}; ///< Min Allowed Rotation [deg]
+  Eigen::Vector3d maxFemurRotation_ = {20, 10, 10}; ///< Max Allowed Rotation [deg]
+
   std::shared_ptr<mc_tasks::TransformTask> tibia_task_;
   std::shared_ptr<mc_tasks::TransformTask> femur_task_;
   sva::PTransformd tibia_error_ = sva::PTransformd::Identity();

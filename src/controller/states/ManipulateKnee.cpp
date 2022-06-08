@@ -6,45 +6,64 @@
 
 void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 {
-  config_("min", minRotation_);
-  config_("max", maxRotation_);
-  config_("minFemurTranslation", minFemurTranslation_);
-  config_("minTibiaTranslation", minTibiaTranslation_);
-  config_("maxFemurTranslation", maxFemurTranslation_);
-  config_("maxTibiaTranslation", maxTibiaTranslation_);
-  auto make_slider = [this](const std::string & name, size_t axis) {
-    return mc_rtc::gui::NumberSlider(
-        name, [this, axis]() { return rotation_[axis]; }, [this, axis](double angle) { rotation_[axis] = angle; },
-        minRotation_[axis], maxRotation_[axis]);
-  };
-  ctl.gui()->addElement(
-      this, {},
+  if(config_.has("femur"))
+  {
+    const auto & c = config_("femur");
+    c("minTranslation", minFemurTranslation_);
+    c("maxTranslation", maxFemurTranslation_);
+    c("minRotation", minFemurRotation_);
+    c("maxRotation", maxFemurRotation_);
+  }
+
+  if(config_.has("tibia"))
+  {
+    const auto & c = config_("femur");
+    c("minTranslation", minTibiaTranslation_);
+    c("maxTranslation", maxTibiaTranslation_);
+    c("minRotation", minTibiaRotation_);
+    c("maxRotation", maxTibiaRotation_);
+  }
+
+  auto make_input = [this](mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category, const std::string & name,
+                           const std::string & title, std::vector<std::string> axes, Eigen::Vector3d & rotation,
+                           const Eigen::Vector3d & minRotation, const Eigen::Vector3d & maxRotation) {
+    // clang-format off
+    gui.addElement(
+      this, category,
       mc_rtc::gui::ArrayInput(
-          "Femur Translation [mm]", {"x", "y", "z"}, [this]() -> const Eigen::Vector3d & { return femurTranslation_; },
-          [this](const Eigen::Vector3d & translation) {
-            femurTranslation_ = mc_filter::utils::clamp(translation, minFemurTranslation_, maxFemurTranslation_);
+          name + " " + title, axes,
+          [this, &rotation]() -> const Eigen::Vector3d { return rotation; },
+          [this, &rotation, &minRotation, &maxRotation](const Eigen::Vector3d & r) {
+            rotation = mc_filter::utils::clamp(r, minRotation, maxRotation);
           }),
-      mc_rtc::gui::ArrayInput(
-          "Tibia Translation [mm]", {"x", "y", "z"}, [this]() -> const Eigen::Vector3d & { return tibiaTranslation_; },
-          [this](const Eigen::Vector3d & translation) {
-            tibiaTranslation_ = mc_filter::utils::clamp(translation, minTibiaTranslation_, maxTibiaTranslation_);
-          }),
-      mc_rtc::gui::ArrayInput(
-          "Rotation Angle [deg]", {"Roll", "Pitch", "Yaw"}, [this]() -> const Eigen::Vector3d { return rotation_; },
-          [this](const Eigen::Vector3d & rotation) {
-            rotation_ = mc_filter::utils::clamp(rotation, minRotation_, maxRotation_);
-          }),
-      make_slider("Roll [deg]", 0), make_slider("Pitch [deg]", 1), make_slider("Yaw [deg]", 2),
       mc_rtc::gui::NumberSlider(
-          "Percent Femur", [this]() { return percentFemur; }, [this](double percent) { percentFemur = percent; }, 0.,
-          1.),
-      mc_rtc::gui::ArrayInput(
-          "Min Angle [deg]", {"Roll", "Pitch", "Yaw"}, [this]() -> const Eigen::Vector3d { return minRotation_; },
-          [this](const Eigen::Vector3d & rotation) { minRotation_ = rotation; }),
-      mc_rtc::gui::ArrayInput(
-          "Max Angle [deg]", {"Roll", "Pitch", "Yaw"}, [this]() -> const Eigen::Vector3d { return maxRotation_; },
-          [this](const Eigen::Vector3d & rotation) { maxRotation_ = rotation; }),
-      mc_rtc::gui::Button("Finished", [this]() { output("Finished"); }));
+          name + " " + axes[0],
+          [this, &rotation]() { return rotation[0]; },
+          [this, &rotation](double angle) { rotation[0] = angle; },
+          minRotation[0], maxRotation[0]),
+      mc_rtc::gui::NumberSlider(
+          name + " " + axes[1],
+          [this, &rotation]() { return rotation[1]; },
+          [this, &rotation](double angle) { rotation[1] = angle; },
+          minRotation[1], maxRotation[1]),
+      mc_rtc::gui::NumberSlider(
+          name + " " + axes[2],
+          [this, &rotation]() { return rotation[2]; },
+          [this, &rotation](double angle) { rotation[2] = angle; },
+          minRotation[2], maxRotation[2])
+      );
+    // clang-format on
+  };
+
+  auto & gui = *ctl.gui();
+  // clang-format off
+  make_input(gui, {"ManipulateKnee", "Tibia"}, "Tibia", "Translation", {"x [mm]", "y[mm]", "z[mm]"}, tibiaTranslation_, minTibiaTranslation_, maxTibiaTranslation_);
+  make_input(gui, {"ManipulateKnee", "Tibia"}, "Tibia", "Rotation", {"Roll [deg]", "Pitch [deg]", "Yaw [deg]"}, tibiaRotation_,  minTibiaRotation_, maxTibiaRotation_);
+  make_input(gui, {"ManipulateKnee", "Femur"}, "Femur", "Translation", {"x [mm]", "y[mm]", "z[mm]"}, femurTranslation_, minFemurTranslation_, maxFemurTranslation_);
+  make_input(gui, {"ManipulateKnee", "Femur"}, "Femur", "Rotation", {"Roll [deg]", "Pitch [deg]", "Yaw [deg]"}, femurRotation_,  minFemurRotation_, maxFemurRotation_);
+  // clang-format on
+
+  gui.addElement(this, {}, mc_rtc::gui::Button("Finished", [this]() { output("Finished"); }));
 
   ctl.gui()->addElement(
       this, {"ManipulateKnee", "Angle"},
@@ -89,8 +108,6 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
   // Rotation axis for the knee joint
   // For now we rotate around the Tibia frame obtained during calibration
   const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
-  Eigen::Vector3d femurRotation = percentFemur * rotation_;
-  Eigen::Vector3d tibiaRotation = -(1 - percentFemur) * rotation_;
 
   auto handle_motion = [](mc_tasks::TransformTask & task, const sva::PTransformd X_0_axisFrame,
                           Eigen::Vector3d translation, Eigen::Vector3d rotation) {
@@ -108,8 +125,8 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
     return std::tuple<sva::PTransformd, sva::PTransformd>{error, angleActual};
   };
 
-  std::tie(femur_error_, femur_angle_) = handle_motion(*femur_task_, X_0_tibiaFrame, femurTranslation_, femurRotation);
-  std::tie(tibia_error_, tibia_angle_) = handle_motion(*tibia_task_, X_0_tibiaFrame, tibiaTranslation_, tibiaRotation);
+  std::tie(femur_error_, femur_angle_) = handle_motion(*femur_task_, X_0_tibiaFrame, femurTranslation_, femurRotation_);
+  std::tie(tibia_error_, tibia_angle_) = handle_motion(*tibia_task_, X_0_tibiaFrame, tibiaTranslation_, tibiaRotation_);
 
   return output().size() != 0;
 }
