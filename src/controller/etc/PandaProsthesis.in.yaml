@@ -33,7 +33,7 @@ robots:
       - name: Femur
         parent: support_femur
         X_p_f:
-          translation: [0, 0, -0.245] # Keep 3cm margin (on top of FemurCalibration)
+          translation: [0, 0, -0.225] # Keep 1cm margin (on top of FemurCalibration)
           rotation: [3.14, 0, 0]
   panda_tibia:
     module: PandaProsthesis::Tibia
