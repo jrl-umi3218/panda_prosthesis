@@ -14,11 +14,17 @@ struct BoneTagSerial
   void close();
   const Data & read();
 
+  inline const std::string & descriptor() const noexcept
+  {
+    return descriptor_;
+  }
+
 protected:
   void synchronize();
 
 protected:
   std::fstream f;
+  std::string descriptor_;
   std::array<uint16_t, 10> result;
 };
 } // namespace io

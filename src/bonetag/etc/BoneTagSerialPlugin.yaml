@@ -1,0 +1,8 @@
+# Global configuration options for BoneTagSerialPlugin plugin
+# These are the default values used by the plugin
+# They may be overriden at controller's level,
+# See https://jrl-umi3218.github.io/mc_rtc/tutorials/usage/global-plugins.html for more details
+
+verbose: false
+rate: 200 # Rate at which the plugin looks for new data
+descriptor: "/dev/ttyACM0" # USB serial device

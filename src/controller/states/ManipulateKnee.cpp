@@ -2,6 +2,7 @@
 
 #include <mc_control/fsm/Controller.h>
 #include <mc_filter/utils/clamp.h>
+#include <mc_rtc/io_utils.h>
 #include <mc_tasks/MetaTaskLoader.h>
 #include "../3rd-party/csv.h"
 
@@ -32,6 +33,49 @@ void ReadCSV::load(const std::string & path)
   }
 }
 
+std::string Result::to_csv() const
+{
+  return mc_rtc::io::to_string(
+             std::vector<double>{
+                 femurRotation.x(),
+                 femurRotation.y(),
+                 femurRotation.z(),
+                 tibiaRotation.x(),
+                 tibiaRotation.y(),
+                 tibiaRotation.z(),
+                 femurTranslation.x(),
+                 femurTranslation.y(),
+                 femurTranslation.z(),
+                 tibiaTranslation.x(),
+                 tibiaTranslation.y(),
+                 tibiaTranslation.z(),
+             },
+             ",")
+         + "," + mc_rtc::io::to_string(sensorData);
+}
+
+void ResultHandler::write_csv(const std::string & path)
+{
+  std::ofstream csv;
+  csv.open(path);
+  if(!csv)
+  {
+    mc_rtc::log::error("Failed to write results to CSV file {}", path);
+  }
+
+  csv << "femur_tangage,femur_roulis,femur_lacet,tibia_tangage,tibia_roulis,tibia_lacet,femur_x,femur_y,femur_z,tibia_"
+         "x,tibia_y,tibia_z,sensor_0,sensor_1,sensor_2,sensor_3,sensor_4,sensor_5,sensor_6,sensor_7,sensor_8,sensor_9"
+      << std::endl;
+
+  for(const auto & result : results_)
+  {
+    csv << result.to_csv() << std::endl;
+  }
+
+  csv.close();
+  mc_rtc::log::success("Results written to {}", path);
+}
+
 void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 {
   if(config_.has("femur"))
@@ -53,6 +97,7 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
   }
 
   setRate(config_("rate", 0.2), ctl.timeStep);
+  config_("samples", desiredSamples_);
 
   if(config_.has("thresholds"))
   {
@@ -69,8 +114,9 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 
   if(config_.has("file"))
   {
-    file_.load(config_("file"));
-    play_ = true;
+    auto inPath = config_("file");
+    file_.load(inPath);
+    play();
   }
 
   auto make_input = [this](mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category, const std::string & name,
@@ -114,46 +160,31 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 
   gui.addElement(this, {}, mc_rtc::gui::Button("Finished", [this]() { output("Finished"); }));
 
-  ctl.gui()->addElement(this, {"ManipulateKnee", "Trajectory"},
-                        mc_rtc::gui::Checkbox(
-                            "Play", [this]() { return play_; }, [this]() { play_ = !play_; }),
-                        mc_rtc::gui::NumberInput(
-                            "Rate [s]", [this, &ctl]() { return getRate(ctl.timeStep); },
-                            [this, &ctl](double rate) { setRate(rate, ctl.timeStep); }),
-                        mc_rtc::gui::NumberInput(
-                            "Translation Threshold [mm]", [this]() { return translationTreshold_; },
-                            [this](double treshold) { translationTreshold_ = treshold; }),
-                        mc_rtc::gui::NumberInput(
-                            "Rotation Threshold [deg]", [this]() { return rotationTreshold_; },
-                            [this](double treshold) { rotationTreshold_ = treshold; }));
-
   ctl.gui()->addElement(
-      this, {"ManipulateKnee", "Angle"},
-      mc_rtc::gui::ArrayLabel("Tibia Position [m]", {"tx", "ty", "tz"},
-                              [this]() -> const Eigen::Vector3d & { return tibia_angle_.translation(); }),
-      mc_rtc::gui::ArrayLabel("Tibia Rotation [deg]", {"r", "p", "y"},
-                              [this]() -> Eigen::Vector3d {
-                                return 180 / mc_rtc::constants::PI * mc_rbdyn::rpyFromMat(tibia_angle_.rotation());
-                              }),
-      mc_rtc::gui::ArrayLabel("Femur Position [m]", {"tx", "ty", "tz"},
-                              [this]() -> const Eigen::Vector3d & { return femur_angle_.translation(); }),
-      mc_rtc::gui::ArrayLabel("Femur Rotation [deg]", {"r", "p", "y"}, [this]() -> Eigen::Vector3d {
-        return 180 / mc_rtc::constants::PI * mc_rbdyn::rpyFromMat(femur_angle_.rotation());
-      }));
-
-  ctl.gui()->addElement(
-      this, {"ManipulateKnee", "Error"},
-      mc_rtc::gui::ArrayLabel("Tibia Error Position [m]", {"tx", "ty", "tz"},
-                              [this]() -> const Eigen::Vector3d & { return tibia_error_.translation(); }),
-      mc_rtc::gui::ArrayLabel("Tibia Error Rotation [deg]", {"r", "p", "y"},
-                              [this]() -> Eigen::Vector3d {
-                                return 180 / mc_rtc::constants::PI * mc_rbdyn::rpyFromMat(tibia_error_.rotation());
-                              }),
-      mc_rtc::gui::ArrayLabel("Femur Error Position [m]", {"tx", "ty", "tz"},
-                              [this]() -> const Eigen::Vector3d & { return femur_error_.translation(); }),
-      mc_rtc::gui::ArrayLabel("Femur Error Rotation [deg]", {"r", "p", "y"}, [this]() -> Eigen::Vector3d {
-        return 180 / mc_rtc::constants::PI * mc_rbdyn::rpyFromMat(femur_error_.rotation());
-      }));
+      this, {"ManipulateKnee", "Trajectory"},
+      mc_rtc::gui::Checkbox(
+          "Play", [this]() { return play_; },
+          [this]() {
+            if(play_)
+            {
+              stop();
+            }
+            else
+            {
+              play();
+            }
+          }),
+      mc_rtc::gui::Button("Force Next", [this]() { forceNext(); }),
+      mc_rtc::gui::Label("Waypoints Remaining", [this]() { return std::to_string(file_.tibiaRotationVector.size()); }),
+      mc_rtc::gui::NumberInput(
+          "Rate [s]", [this, &ctl]() { return getRate(ctl.timeStep); },
+          [this, &ctl](double rate) { setRate(rate, ctl.timeStep); }),
+      mc_rtc::gui::NumberInput(
+          "Translation Threshold [mm]", [this]() { return translationTreshold_; },
+          [this](double treshold) { translationTreshold_ = treshold; }),
+      mc_rtc::gui::NumberInput(
+          "Rotation Threshold [deg]", [this]() { return rotationTreshold_; },
+          [this](double treshold) { rotationTreshold_ = treshold; }));
 
   tibia_task_ = mc_tasks::MetaTaskLoader::load<mc_tasks::TransformTask>(ctl.solver(), config_("TibiaTask"));
   tibia_task_->reset();
@@ -165,11 +196,34 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
   run(ctl);
 }
 
+bool ManipulateKnee::measure(mc_control::fsm::Controller & ctl)
+{
+  auto sensorData = ctl.datastore().call<std::optional<io::BoneTagSerial::Data>>("BoneTagSerialPlugin::GetNewData");
+  if(sensorData)
+  {
+    mc_rtc::log::info("Got new data");
+    Result result;
+    result.femurRotation = femurRotationActual_;
+    result.femurTranslation = femurTranslationActual_;
+    result.tibiaRotation = tibiaRotationActual_;
+    result.tibiaTranslation = tibiaTranslationActual_;
+    result.sensorData = *sensorData;
+    results_.addResult(result);
+    ++measuredSamples_;
+  }
+  mc_rtc::log::info("Measured Samples: {}/{}", measuredSamples_, desiredSamples_);
+  return measuredSamples_ == desiredSamples_;
+}
+
 bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
 {
   if(file_.tibiaRotationVector.empty())
   {
     play_ = false;
+    if(!play_)
+    {
+      saveResults();
+    }
   }
 
   if(play_)
@@ -184,24 +238,20 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
       file_.tibiaTranslationVector.pop_front();
       file_.femurRotationVector.pop_front();
       file_.femurTranslationVector.pop_front();
-      mc_rtc::log::info("Next pose");
+      iter_ = 0;
+      measuredSamples_ = 0;
       next_ = false;
     }
-    if(iter_ == 0 || iter_ % iterRate_ == 0)
-    {
-      iter_ = 0;
-      auto tibia_error = tibia_task_->eval();
-      auto femur_error = femur_task_->eval();
-      if(tibia_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
-         && tibia_error.tail<3>().norm() <= translationTreshold_ / 1000.
-         && femur_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
-         && femur_error.tail<3>().norm() <= translationTreshold_ / 1000.)
-      {
-        measure();
-        // Only go to next when all measurements are finished.
-        next_ = true;
-      }
-    }
+
+    auto tibia_error = tibia_task_->eval();
+    auto femur_error = femur_task_->eval();
+    bool hasConverged = (tibia_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
+                         && tibia_error.tail<3>().norm() <= translationTreshold_ / 1000.
+                         && femur_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
+                         && femur_error.tail<3>().norm() <= translationTreshold_ / 1000.);
+
+    // Only go to next when all measurements are finished.
+    next_ = hasConverged && iter_ >= iterRate_ && measure(ctl);
   }
 
   // Rotation axis for the knee joint
@@ -209,7 +259,8 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
   const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
 
   auto handle_motion = [](mc_tasks::TransformTask & task, const sva::PTransformd X_0_axisFrame,
-                          Eigen::Vector3d translation, Eigen::Vector3d rotation) {
+                          Eigen::Vector3d translation, Eigen::Vector3d rotation, Eigen::Vector3d & translationActual,
+                          Eigen::Vector3d & rotationActual) {
     translation *= 0.001; // translation in [m]
     rotation *= mc_rtc::constants::PI / 180.; // rotation in [rad]
 
@@ -217,15 +268,17 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
     task.target(X_0_target);
 
     auto X_0_actual = task.frame().position();
-    // Error between current state and target
-    auto error = X_0_actual * X_0_target.inv();
-    // Angle between current state and axis
-    auto angleActual = X_0_actual * X_0_target.inv();
-    return std::tuple<sva::PTransformd, sva::PTransformd>{error, angleActual};
+    auto X_axisFrame_actual = X_0_actual * X_0_axisFrame.inv();
+
+    translationActual = X_axisFrame_actual.translation() * 1000;
+    // XXX should we store as RPY?
+    rotationActual = mc_rbdyn::rpyFromMat(X_axisFrame_actual.rotation()) * 180 / mc_rtc::constants::PI;
   };
 
-  std::tie(femur_error_, femur_angle_) = handle_motion(*femur_task_, X_0_tibiaFrame, femurTranslation_, femurRotation_);
-  std::tie(tibia_error_, tibia_angle_) = handle_motion(*tibia_task_, X_0_tibiaFrame, tibiaTranslation_, tibiaRotation_);
+  handle_motion(*femur_task_, X_0_tibiaFrame, femurTranslation_, femurRotation_, femurTranslationActual_,
+                femurRotationActual_);
+  handle_motion(*tibia_task_, X_0_tibiaFrame, tibiaTranslation_, tibiaRotation_, tibiaTranslationActual_,
+                tibiaRotationActual_);
 
   ++iter_;
   return output().size() != 0;
