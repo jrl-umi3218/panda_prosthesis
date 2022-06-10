@@ -11,7 +11,7 @@ target_link_libraries(TestBoneTagUSB PUBLIC BoneTagSerial)
 
 
 
-set(AUTOLOAD_BoneTagPlugin_PLUGIN false CACHE BOOL "When true the plugin will always be loaded")
+set(AUTOLOAD_BoneTagSerialPlugin_PLUGIN false CACHE BOOL "When true the plugin will always be loaded")
 
 set(plugin_SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/BoneTagSerialPlugin.cpp
