@@ -100,7 +100,7 @@ contacts: []
 # Implement some additional text states
 states: {}
 
-plugins: [BoneTagSerialPlugin]
+# plugins: [BoneTagSerialPlugin]
 
 transitions:
   - [ChooseMode, Simulation, Simulation, Auto]
