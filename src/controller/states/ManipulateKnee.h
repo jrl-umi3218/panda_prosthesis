@@ -114,6 +114,9 @@ protected:
   ResultHandler results_;
   std::string resultPath_ = "/tmp/BoneTagResults.csv";
 
+  sva::PTransformd X_0_femurAxis = sva::PTransformd::Identity(); ///< Axis around which the Femur frame rotates and translates
+  sva::PTransformd X_0_tibiaAxis = sva::PTransformd::Identity(); ///< Axis around which the Tibia frame rotates and translates
+
   Eigen::Vector3d femurTranslation_ = Eigen::Vector3d::Zero(); ///< Desired joint translation in [mm]
   Eigen::Vector3d femurTranslationActual_ = Eigen::Vector3d::Zero(); ///< Current joint translation in [mm]
   Eigen::Vector3d minFemurTranslation_{-20, -20, -10}; ///< Min translation [mm]

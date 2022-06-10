@@ -193,6 +193,24 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
   ctl.solver().addTask(tibia_task_);
   ctl.solver().addTask(femur_task_);
 
+  // Rotation axis for the knee joint
+  // For now we rotate around the Tibia frame obtained during calibration
+  const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
+  auto tibiaOffset = sva::PTransformd::Identity();
+  if(ctl.config().has("offsets"))
+  {
+    ctl.config()("offsets")("tibia", tibiaOffset);
+  }
+  const auto & X_0_femurFrame = ctl.datastore().get<sva::PTransformd>("Femur");
+  auto femurOffset = sva::PTransformd::Identity();
+  if(ctl.config().has("offsets"))
+  {
+    ctl.config()("offsets")("femur", femurOffset);
+  }
+
+  X_0_femurAxis = femurOffset * X_0_femurFrame;
+  X_0_tibiaAxis = tibiaOffset * X_0_tibiaFrame;
+
   run(ctl);
 }
 
@@ -201,7 +219,7 @@ bool ManipulateKnee::measure(mc_control::fsm::Controller & ctl)
   auto sensorData = ctl.datastore().call<std::optional<io::BoneTagSerial::Data>>("BoneTagSerialPlugin::GetNewData");
   if(sensorData)
   {
-    mc_rtc::log::info("Got new data");
+    // mc_rtc::log::info("Got new data");
     Result result;
     result.femurRotation = femurRotationActual_;
     result.femurTranslation = femurTranslationActual_;
@@ -211,7 +229,6 @@ bool ManipulateKnee::measure(mc_control::fsm::Controller & ctl)
     results_.addResult(result);
     ++measuredSamples_;
   }
-  mc_rtc::log::info("Measured Samples: {}/{}", measuredSamples_, desiredSamples_);
   return measuredSamples_ == desiredSamples_;
 }
 
@@ -219,11 +236,11 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
 {
   if(file_.tibiaRotationVector.empty())
   {
-    play_ = false;
-    if(!play_)
+    if(play_)
     {
       saveResults();
     }
+    play_ = false;
   }
 
   if(play_)
@@ -254,9 +271,6 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
     next_ = hasConverged && iter_ >= iterRate_ && measure(ctl);
   }
 
-  // Rotation axis for the knee joint
-  // For now we rotate around the Tibia frame obtained during calibration
-  const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
 
   auto handle_motion = [](mc_tasks::TransformTask & task, const sva::PTransformd X_0_axisFrame,
                           Eigen::Vector3d translation, Eigen::Vector3d rotation, Eigen::Vector3d & translationActual,
@@ -275,9 +289,9 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
     rotationActual = mc_rbdyn::rpyFromMat(X_axisFrame_actual.rotation()) * 180 / mc_rtc::constants::PI;
   };
 
-  handle_motion(*femur_task_, X_0_tibiaFrame, femurTranslation_, femurRotation_, femurTranslationActual_,
+  handle_motion(*femur_task_, X_0_femurAxis, femurTranslation_, femurRotation_, femurTranslationActual_,
                 femurRotationActual_);
-  handle_motion(*tibia_task_, X_0_tibiaFrame, tibiaTranslation_, tibiaRotation_, tibiaTranslationActual_,
+  handle_motion(*tibia_task_, X_0_tibiaAxis, tibiaTranslation_, tibiaRotation_, tibiaTranslationActual_,
                 tibiaRotationActual_);
 
   ++iter_;

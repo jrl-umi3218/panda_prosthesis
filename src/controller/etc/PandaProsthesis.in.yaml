@@ -17,6 +17,11 @@ StatesFiles:
 # If true, state factory will be more verbose
 VerboseStateFactory: false
 
+offsets:
+  femur:
+    translation: [0, 0, -0.01]
+  tibia:
+    translation: [0, 0, 0.01]
 # Additional robots to load
 robots:
   panda_femur:
@@ -33,7 +38,7 @@ robots:
       - name: Femur
         parent: support_femur
         X_p_f:
-          translation: [0, 0, -0.225] # Keep 1cm margin (on top of FemurCalibration)
+          translation: [0, 0, -0.19]
           rotation: [3.14, 0, 0]
   panda_tibia:
     module: PandaProsthesis::Tibia
@@ -48,7 +53,7 @@ robots:
       - name: Tibia
         parent: panda_link8
         X_p_f:
-          translation: [0, 0.096, 0.225]
+          translation: [0, 0.046, 0.23]
           rotation: [1.57, 0, 0]
 # General constraints, always on
 constraints:
