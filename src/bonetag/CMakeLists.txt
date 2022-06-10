@@ -1,0 +1,1 @@
+add_executable(TestBoneTagUSB test_bonetag_usb.cpp)
