@@ -160,6 +160,39 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 
   gui.addElement(this, {}, mc_rtc::gui::Button("Finished", [this]() { output("Finished"); }));
 
+  ctl.gui()->addElement(this, {"ManipulateKnee", "Offsets"},
+                        mc_rtc::gui::ArrayInput(
+                            "Tibia Offset Translation", {"x [mm]", "y [mm]", "z [mm]"},
+                            [this]() -> Eigen::Vector3d { return tibiaOffset_.translation() * 1000; },
+                            [this, &ctl](const Eigen::Vector3d & t) {
+                              tibiaOffset_.translation() = t / 1000;
+                              updateAxes(ctl);
+                            }),
+                        mc_rtc::gui::ArrayInput(
+                            "Tibia Offset Rotation", {"r [deg]", "p [deg]", "y [deg]"},
+                            [this]() -> Eigen::Vector3d {
+                              return mc_rbdyn::rpyFromMat(tibiaOffset_.rotation()) * 180 / mc_rtc::constants::PI;
+                            },
+                            [this, &ctl](const Eigen::Vector3d & r) {
+                              tibiaOffset_.rotation() = mc_rbdyn::rpyToMat(r * mc_rtc::constants::PI / 180);
+                              updateAxes(ctl);
+                            }),
+                        mc_rtc::gui::ArrayInput(
+                            "Femur Offset Translation", {"x", "y", "z"},
+                            [this]() -> Eigen::Vector3d { return femurOffset_.translation() * 1000; },
+                            [this, &ctl](const Eigen::Vector3d & t) {
+                              femurOffset_.translation() = t / 1000;
+                              updateAxes(ctl);
+                            }),
+                        mc_rtc::gui::ArrayInput(
+                            "Femur Offset Rotation", {"r [deg]", "p [deg]", "y [deg]"},
+                            [this]() -> Eigen::Vector3d {
+                              return mc_rbdyn::rpyFromMat(femurOffset_.rotation()) * 180 / mc_rtc::constants::PI;
+                            },
+                            [this, &ctl](const Eigen::Vector3d & r) {
+                              femurOffset_.rotation() = mc_rbdyn::rpyToMat(r * mc_rtc::constants::PI / 180);
+                              updateAxes(ctl);
+                            }));
   ctl.gui()->addElement(
       this, {"ManipulateKnee", "Trajectory"},
       mc_rtc::gui::Checkbox(
@@ -193,25 +226,25 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
   ctl.solver().addTask(tibia_task_);
   ctl.solver().addTask(femur_task_);
 
-  // Rotation axis for the knee joint
-  // For now we rotate around the Tibia frame obtained during calibration
-  const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
-  auto tibiaOffset = sva::PTransformd::Identity();
   if(ctl.config().has("offsets"))
   {
-    ctl.config()("offsets")("tibia", tibiaOffset);
+    ctl.config()("offsets")("tibia", tibiaOffset_);
   }
-  const auto & X_0_femurFrame = ctl.datastore().get<sva::PTransformd>("Femur");
-  auto femurOffset = sva::PTransformd::Identity();
   if(ctl.config().has("offsets"))
   {
-    ctl.config()("offsets")("femur", femurOffset);
+    ctl.config()("offsets")("femur", femurOffset_);
   }
-
-  X_0_femurAxis = femurOffset * X_0_femurFrame;
-  X_0_tibiaAxis = tibiaOffset * X_0_tibiaFrame;
+  updateAxes(ctl);
 
   run(ctl);
+}
+
+void ManipulateKnee::updateAxes(mc_control::fsm::Controller & ctl)
+{
+  const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
+  const auto & X_0_femurFrame = ctl.datastore().get<sva::PTransformd>("Femur");
+  X_0_femurAxis = femurOffset_ * X_0_femurFrame;
+  X_0_tibiaAxis = tibiaOffset_ * X_0_tibiaFrame;
 }
 
 bool ManipulateKnee::measure(mc_control::fsm::Controller & ctl)
@@ -275,7 +308,6 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
     // Only go to next when all measurements are finished.
     next_ = hasConverged && iter_ >= iterRate_ && measure(ctl);
   }
-
 
   auto handle_motion = [](mc_tasks::TransformTask & task, const sva::PTransformd X_0_axisFrame,
                           Eigen::Vector3d translation, Eigen::Vector3d rotation, Eigen::Vector3d & translationActual,

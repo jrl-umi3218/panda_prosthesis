@@ -96,6 +96,9 @@ protected:
     return iterRate_ * timeStep;
   }
 
+  /// Rotation axis for the knee joint
+  void updateAxes(mc_control::fsm::Controller & ctl);
+
   /// Returns true when all measurements have been taken
   bool measure(mc_control::fsm::Controller & ctl);
 
@@ -114,8 +117,10 @@ protected:
   ResultHandler results_;
   std::string resultPath_ = "/tmp/BoneTagResults.csv";
 
-  sva::PTransformd X_0_femurAxis = sva::PTransformd::Identity(); ///< Axis around which the Femur frame rotates and translates
-  sva::PTransformd X_0_tibiaAxis = sva::PTransformd::Identity(); ///< Axis around which the Tibia frame rotates and translates
+  sva::PTransformd X_0_femurAxis =
+      sva::PTransformd::Identity(); ///< Axis around which the Femur frame rotates and translates
+  sva::PTransformd X_0_tibiaAxis =
+      sva::PTransformd::Identity(); ///< Axis around which the Tibia frame rotates and translates
 
   Eigen::Vector3d femurTranslation_ = Eigen::Vector3d::Zero(); ///< Desired joint translation in [mm]
   Eigen::Vector3d femurTranslationActual_ = Eigen::Vector3d::Zero(); ///< Current joint translation in [mm]
@@ -136,6 +141,9 @@ protected:
   Eigen::Vector3d femurRotationActual_ = Eigen::Vector3d::Zero(); ///< Current joint rotation in [deg]
   Eigen::Vector3d minFemurRotation_{-20, -10, -10}; ///< Min Allowed Rotation [deg]
   Eigen::Vector3d maxFemurRotation_ = {20, 10, 10}; ///< Max Allowed Rotation [deg]
+
+  sva::PTransformd tibiaOffset_ = sva::PTransformd::Identity(); // Tibia offset [m]
+  sva::PTransformd femurOffset_ = sva::PTransformd::Identity(); // Femur offset [m]
 
   std::shared_ptr<mc_tasks::TransformTask> tibia_task_;
   std::shared_ptr<mc_tasks::TransformTask> femur_task_;
