@@ -17,11 +17,14 @@ StatesFiles:
 # If true, state factory will be more verbose
 VerboseStateFactory: false
 
+trajectory_dir: "@TRAJECTORY_DIR@"
+results_dir: "@RESULTS_DIR@"
 offsets:
   femur:
     translation: [0, 0, -0.01]
   tibia:
     translation: [0, 0, 0.01]
+
 # Additional robots to load
 robots:
   panda_femur:

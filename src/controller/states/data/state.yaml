@@ -122,7 +122,6 @@ PrepareJoint:
 
 ManipulateKnee::Rotation:
   base: ManipulateKnee
-  file: "/home/arnaud/src/panda_prosthesis/data/Consignes_robotsv2.csv"
   thresholds:
     translation: 5
     rotation: 0.5

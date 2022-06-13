@@ -106,6 +106,9 @@ protected:
 
 protected:
   ReadCSV file_;
+  std::string trajectory_dir_ = "";
+  std::string trajectory_file_ = "";
+
   bool play_ = false;
   bool next_ = true;
   size_t iter_ = 0;

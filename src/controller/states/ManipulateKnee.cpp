@@ -4,7 +4,30 @@
 #include <mc_filter/utils/clamp.h>
 #include <mc_rtc/io_utils.h>
 #include <mc_tasks/MetaTaskLoader.h>
+#include <boost/filesystem.hpp>
 #include "../3rd-party/csv.h"
+
+namespace fs = boost::filesystem;
+
+/**
+ * \brief   Return the filenames of all files that have the specified extension
+ *          in the specified directory and all subdirectories.
+ */
+std::vector<std::string> get_all(fs::path const & root, std::string const & ext)
+{
+  std::vector<std::string> paths;
+
+  if(fs::exists(root) && fs::is_directory(root))
+  {
+    for(auto const & entry : fs::recursive_directory_iterator(root))
+    {
+      if(fs::is_regular_file(entry) && entry.path().extension() == ext)
+        paths.emplace_back(entry.path().filename().c_str());
+    }
+  }
+
+  return paths;
+}
 
 void ReadCSV::clear()
 {
@@ -56,6 +79,7 @@ std::string Result::to_csv() const
 
 void ResultHandler::write_csv(const std::string & path)
 {
+  if(results_.empty()) return;
   std::ofstream csv;
   csv.open(path);
   if(!csv)
@@ -112,12 +136,7 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
     }
   }
 
-  if(config_.has("file"))
-  {
-    auto inPath = config_("file");
-    file_.load(inPath);
-    play();
-  }
+  ctl.config()("trajectory_dir", trajectory_dir_);
 
   auto make_input = [this](mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category, const std::string & name,
                            const std::string & title, std::vector<std::string> axes, Eigen::Vector3d & rotation,
@@ -163,8 +182,6 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                           stop();
                         }));
 
-  gui.addElement(this, {}, mc_rtc::gui::Button("Finished", [this]() { output("Finished"); }));
-
   ctl.gui()->addElement(this, {"ManipulateKnee", "Offsets"},
                         mc_rtc::gui::ArrayInput(
                             "Tibia Offset Translation", {"x [mm]", "y [mm]", "z [mm]"},
@@ -198,6 +215,35 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                               femurOffset_.rotation() = mc_rbdyn::rpyToMat(r * mc_rtc::constants::PI / 180);
                               updateAxes(ctl);
                             }));
+
+  auto scene_files = get_all(trajectory_dir_, ".csv");
+  mc_rtc::log::info("[{}] Looking for trajectory files in \"{}\"", name(), trajectory_dir_);
+  if(scene_files.size())
+  {
+    mc_rtc::log::info("Found trajectory files: {}", mc_rtc::io::to_string(scene_files));
+  }
+  else
+  {
+    mc_rtc::log::warning("No trajectory file found in \"{}\" (expected extension .csv)", trajectory_dir_);
+  }
+
+  // Load scenes from disk
+  ctl.gui()->addElement(this, {}, mc_rtc::gui::ElementsStacking::Horizontal,
+                        mc_rtc::gui::ComboInput(
+                            "Trajectory", scene_files, [&ctl, this]() { return trajectory_file_; },
+                            [this](const std::string & name) {
+                              stop();
+                              trajectory_file_ = name;
+                              file_.load(trajectory_dir_ + "/" + name);
+                            }),
+                        mc_rtc::gui::Button("Play",
+                                            [this]() {
+                                              stop();
+                                              file_.load(trajectory_dir_ + "/" + trajectory_file_);
+                                              play();
+                                            })
+
+  );
   ctl.gui()->addElement(
       this, {"ManipulateKnee", "Trajectory"},
       mc_rtc::gui::Checkbox(
