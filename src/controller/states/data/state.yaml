@@ -122,6 +122,8 @@ PrepareJoint:
 
 ManipulateKnee::Rotation:
   base: ManipulateKnee
+  samples: 15 
+  rate: 0.001
   thresholds:
     translation: 5
     rotation: 0.5

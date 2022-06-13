@@ -23,8 +23,7 @@ offsets:
   femur:
     translation: [0, 0, -0.01]
   tibia:
-    translation: [0, 0, 0.01]
-
+    translation: [0, 0, -0.02]
 # Additional robots to load
 robots:
   panda_femur:
@@ -103,7 +102,7 @@ contacts: []
 # Implement some additional text states
 states: {}
 
-# plugins: [BoneTagSerialPlugin]
+# Plugins: [BoneTagSerialPlugin]
 
 transitions:
   - [ChooseMode, Simulation, Simulation, Auto]
