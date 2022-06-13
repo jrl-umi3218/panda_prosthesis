@@ -158,6 +158,11 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
   make_input(gui, {"ManipulateKnee", "Femur"}, "Femur", "Rotation", {"Roll [deg]", "Pitch [deg]", "Yaw [deg]"}, femurRotation_,  minFemurRotation_, maxFemurRotation_);
   // clang-format on
 
+  ctl.gui()->addElement(this, {"ManipulateKnee"}, mc_rtc::gui::Button("Reset to Zero", [this]() {
+                          resetToZero();
+                          stop();
+                        }));
+
   gui.addElement(this, {}, mc_rtc::gui::Button("Finished", [this]() { output("Finished"); }));
 
   ctl.gui()->addElement(this, {"ManipulateKnee", "Offsets"},
@@ -237,6 +242,18 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
   updateAxes(ctl);
 
   run(ctl);
+}
+
+void ManipulateKnee::resetToZero()
+{
+  tibiaRotation_.setZero();
+  tibiaTranslation_.setZero();
+  femurRotation_.setZero();
+  femurTranslation_.setZero();
+  femurRotationActual_.setZero();
+  femurTranslationActual_.setZero();
+  tibiaRotationActual_.setZero();
+  tibiaTranslationActual_.setZero();
 }
 
 void ManipulateKnee::updateAxes(mc_control::fsm::Controller & ctl)

@@ -56,6 +56,8 @@ struct ManipulateKnee : mc_control::fsm::State
   void teardown(mc_control::fsm::Controller & ctl) override;
 
 protected:
+  void resetToZero();
+
   void play()
   {
     if(file_.tibiaRotationVector.empty())
