@@ -65,6 +65,7 @@ protected:
       mc_rtc::log::error("[{}] Cannot play, empty file", name());
       return;
     }
+    resultPath_ = results_dir_ + "/" + trajectory_file_;
     play_ = true;
     measuredSamples_ = 0;
   }
@@ -120,6 +121,7 @@ protected:
   unsigned measuredSamples_ = 0;
 
   ResultHandler results_;
+  std::string results_dir_ = "/tmp";
   std::string resultPath_ = "/tmp/BoneTagResults.csv";
 
   sva::PTransformd X_0_femurAxis =

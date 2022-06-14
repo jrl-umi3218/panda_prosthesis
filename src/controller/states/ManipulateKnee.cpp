@@ -137,6 +137,7 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
   }
 
   ctl.config()("trajectory_dir", trajectory_dir_);
+  ctl.config()("results_dir", results_dir_);
 
   auto make_input = [this](mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category, const std::string & name,
                            const std::string & title, std::vector<std::string> axes, Eigen::Vector3d & rotation,
@@ -216,6 +217,7 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                               updateAxes(ctl);
                             }));
 
+  // Load scenes from disk
   auto scene_files = get_all(trajectory_dir_, ".csv");
   mc_rtc::log::info("[{}] Looking for trajectory files in \"{}\"", name(), trajectory_dir_);
   if(scene_files.size())
@@ -227,8 +229,7 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
     mc_rtc::log::warning("No trajectory file found in \"{}\" (expected extension .csv)", trajectory_dir_);
   }
 
-  // Load scenes from disk
-  ctl.gui()->addElement(this, {}, mc_rtc::gui::ElementsStacking::Horizontal,
+  ctl.gui()->addElement(this, {"ManipulateKnee", "Trajectory"}, mc_rtc::gui::ElementsStacking::Horizontal,
                         mc_rtc::gui::ComboInput(
                             "Trajectory", scene_files, [&ctl, this]() { return trajectory_file_; },
                             [this](const std::string & name) {
@@ -241,24 +242,23 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                                               stop();
                                               file_.load(trajectory_dir_ + "/" + trajectory_file_);
                                               play();
-                                            })
+                                            }),
+                        mc_rtc::gui::Checkbox(
+                            "Pause", [this]() { return !play_; },
+                            [this]() {
+                              if(play_)
+                              {
+                                stop();
+                              }
+                              else
+                              {
+                                play();
+                              }
+                            })
 
   );
   ctl.gui()->addElement(
-      this, {"ManipulateKnee", "Trajectory"},
-      mc_rtc::gui::Checkbox(
-          "Play", [this]() { return play_; },
-          [this]() {
-            if(play_)
-            {
-              stop();
-            }
-            else
-            {
-              play();
-            }
-          }),
-      mc_rtc::gui::Button("Force Next", [this]() { forceNext(); }),
+      this, {"ManipulateKnee", "Trajectory"}, mc_rtc::gui::Button("Force Next", [this]() { forceNext(); }),
       mc_rtc::gui::Label("Waypoints Remaining", [this]() { return std::to_string(file_.tibiaRotationVector.size()); }),
       mc_rtc::gui::NumberInput(
           "Rate [s]", [this, &ctl]() { return getRate(ctl.timeStep); },

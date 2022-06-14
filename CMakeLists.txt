@@ -20,4 +20,5 @@ install(DIRECTORY transforms DESTINATION "${DATA_DIR}" FILES_MATCHING PATTERN "*
 install(DIRECTORY rsdf DESTINATION "${DATA_DIR}" FILES_MATCHING PATTERN "*.rsdf")
 
 set(TRAJECTORY_DIR "${PROJECT_SOURCE_DIR}/data/trajectories")
+set(RESULTS_DIR "${PROJECT_SOURCE_DIR}/data/results")
 add_subdirectory(src)
