@@ -113,7 +113,7 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 
   if(config_.has("tibia"))
   {
-    const auto & c = config_("femur");
+    const auto & c = config_("tibia");
     c("minTranslation", minTibiaTranslation_);
     c("maxTranslation", maxTibiaTranslation_);
     c("minRotation", minTibiaRotation_);

@@ -139,8 +139,16 @@ ManipulateKnee::Rotation:
     stiffness: [10, 10, 10, 100, 100, 100]
     robot: panda_femur
     frame: Femur
-  min: [-40, -15, -20]
-  max: [40, 15, 20]
+  femur:
+    minRotation: [-60, -15, -15]
+    maxRotation: [10, 15, 15]
+    minTranslation: [-30, -50, -50]
+    maxTranslation: [30, 50, 10]
+  tibia:
+    minRotation: [-30, -15, -15]
+    maxRotation: [30, 15, 15]
+    minTranslation: [-30, -50, -10]
+    maxTranslation: [30, 50, 50]
 
 InitialChoice:
   base: Choice
