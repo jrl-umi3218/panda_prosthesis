@@ -102,7 +102,7 @@ contacts: []
 # Implement some additional text states
 states: {}
 
-# Plugins: [BoneTagSerialPlugin]
+Plugins: [BoneTagSerialPlugin]
 
 transitions:
   - [ChooseMode, Simulation, Simulation, Auto]

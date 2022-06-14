@@ -15,10 +15,11 @@ BoneTagSerial::~BoneTagSerial()
 
 void BoneTagSerial::open(const std::string & descriptor)
 {
+  f.close();
   f.open(descriptor);
   if(!f.is_open())
   {
-    mc_rtc::log::error_and_throw("[BoneTagSerial] Failed to open file descriptor {}", descriptor);
+    throw std::runtime_error(fmt::format("[BoneTagSerial] Failed to open file descriptor {}", descriptor));
   }
   descriptor_ = descriptor;
 }
@@ -26,6 +27,11 @@ void BoneTagSerial::open(const std::string & descriptor)
 void BoneTagSerial::close()
 {
   f.close();
+}
+
+bool BoneTagSerial::connected() const noexcept
+{
+  return f.is_open();
 }
 
 void BoneTagSerial::synchronize()

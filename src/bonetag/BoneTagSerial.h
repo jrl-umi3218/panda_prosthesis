@@ -12,6 +12,7 @@ struct BoneTagSerial
   ~BoneTagSerial();
   void open(const std::string & descriptor);
   void close();
+  bool connected() const noexcept;
   const Data & read();
 
   inline const std::string & descriptor() const noexcept

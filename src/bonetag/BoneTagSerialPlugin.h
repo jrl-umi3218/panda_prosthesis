@@ -26,7 +26,13 @@ struct BoneTagSerialPlugin : public mc_control::GlobalPlugin
 
   ~BoneTagSerialPlugin() override;
 
+  // Thread functions
 protected:
+  void connect();
+
+protected:
+  std::string descriptor_;
+  bool connect_requested_ = false;
   io::BoneTagSerial serial_;
   std::thread thread_;
   std::mutex dataMutex_;

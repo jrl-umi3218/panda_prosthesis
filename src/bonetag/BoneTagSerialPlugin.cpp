@@ -16,6 +16,20 @@ BoneTagSerialPlugin::~BoneTagSerialPlugin()
   mc_rtc::log::info("[BoneTagSerialPlugin] Communication thread stopped");
 }
 
+void BoneTagSerialPlugin::connect()
+{
+  serial_.close();
+  try
+  {
+    serial_.open(descriptor_);
+    mc_rtc::log::success("[BoneTagSerialPlugin] Communication with device {} opened", descriptor_);
+  }
+  catch(std::runtime_error & e)
+  {
+    mc_rtc::log::warning(e.what());
+  }
+}
+
 void BoneTagSerialPlugin::init(mc_control::MCGlobalController & gc, const mc_rtc::Configuration & config)
 {
   data_.fill(0);
@@ -25,17 +39,21 @@ void BoneTagSerialPlugin::init(mc_control::MCGlobalController & gc, const mc_rtc
   double rate = config("rate", DEFAULT_RATE);
   rate_ = (1. / rate) / gc.controller().timeStep;
 
-  auto descriptor = config("descriptor", std::string{"/dev/ttyACM0"});
-  thread_ = std::thread([this, descriptor]() {
-    mc_rtc::log::info("[BoneTagSerialPlugin] Starting serial communication thread with {}", descriptor);
-    serial_.open(descriptor);
-    mc_rtc::log::info("[BoneTagSerialPlugin] Communication with device {} opened", descriptor);
+  descriptor_ = config("descriptor", std::string{"/dev/ttyACM0"});
+  thread_ = std::thread([this]() {
+    mc_rtc::log::info("[BoneTagSerialPlugin] Starting serial communication thread with {}", descriptor_);
+    connect();
 
     unsigned iter_ = 0;
     while(running_)
     {
       if(iter_ == 0 || iter_ % rate_ == 0)
       {
+        if(connect_requested_)
+        {
+          connect();
+          connect_requested_ = false;
+        }
         try
         {
           auto data = serial_.read();
@@ -56,6 +74,7 @@ void BoneTagSerialPlugin::init(mc_control::MCGlobalController & gc, const mc_rtc
   });
 
   gc.controller().datastore().make<bool>("BoneTagSerialPlugin", true);
+  gc.controller().datastore().make_call("BoneTagSerialPlugin::Connected", [this]() { return serial_.connected(); });
   gc.controller().datastore().make_call("BoneTagSerialPlugin::GetLastData",
                                         [this]() -> const io::BoneTagSerial::Data & { return lastData_; });
   gc.controller().datastore().make_call("BoneTagSerialPlugin::GetNewData",
@@ -73,6 +92,8 @@ void BoneTagSerialPlugin::init(mc_control::MCGlobalController & gc, const mc_rtc
   gc.controller().datastore().make_call("BoneTagSerialPlugin::Stop", [this]() -> void { running_ = false; });
 
   gc.controller().gui()->addElement({"BoneTagSerialPlugin"},
+                                    mc_rtc::gui::Label("Connected", [this]() { return serial_.connected(); }),
+                                    mc_rtc::gui::Button("Connect", [this]() { connect_requested_ = true; }),
                                     mc_rtc::gui::ArrayLabel("Data", {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
                                                             [this]() { return lastData_; }),
 
