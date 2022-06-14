@@ -112,7 +112,7 @@ void BoneTagSerialPlugin::init(mc_control::MCGlobalController & gc, const mc_rtc
 
   auto make_sensor_plot = [this, sensorColors](unsigned index) {
     return mc_rtc::gui::plot::Y(
-        fmt::format("Sensor {}", index), [this]() { return lastData_[0]; }, sensorColors[index].first,
+        fmt::format("Sensor {}", index), [this, index]() { return lastData_[index]; }, sensorColors[index].first,
         sensorColors[index].second);
   };
 
@@ -144,7 +144,7 @@ mc_control::GlobalPlugin::GlobalPluginConfiguration BoneTagSerialPlugin::configu
 {
   mc_control::GlobalPlugin::GlobalPluginConfiguration out;
   out.should_run_before = true;
-  out.should_run_after = false;
+  out.should_run_after = true;
   out.should_always_run = false;
   return out;
 }
