@@ -101,6 +101,25 @@ void BoneTagSerialPlugin::init(mc_control::MCGlobalController & gc, const mc_rtc
                                       running_ = false;
                                       thread_.join();
                                     }));
+
+  using Color = mc_rtc::gui::Color;
+  using Style = mc_rtc::gui::plot::Style;
+  const std::vector<std::pair<Color, Style>> sensorColors = {
+      {Color::Red, Style::Solid},     {Color::Blue, Style::Dashed},          {Color::Green, Style::Solid},
+      {Color::Black, Style::Dashed},  {Color::Gray, Style::Solid},           {Color::Cyan, Style::Dashed},
+      {Color::Magenta, Style::Solid}, {Color(0.96, 0.74, 0), Style::Dashed}, {Color::Blue, Style::Solid},
+      {Color::Green, Style::Dashed}};
+
+  auto make_sensor_plot = [this, sensorColors](unsigned index) {
+    return mc_rtc::gui::plot::Y(
+        fmt::format("Sensor {}", index), [this]() { return lastData_[0]; }, sensorColors[index].first,
+        sensorColors[index].second);
+  };
+
+  gc.controller().gui()->addPlot("BoneTag Measurements", mc_rtc::gui::plot::X("N", [this]() { return t_; }),
+                                 make_sensor_plot(0), make_sensor_plot(1), make_sensor_plot(2), make_sensor_plot(3),
+                                 make_sensor_plot(4), make_sensor_plot(5), make_sensor_plot(6), make_sensor_plot(7),
+                                 make_sensor_plot(8), make_sensor_plot(9));
 }
 
 void BoneTagSerialPlugin::reset(mc_control::MCGlobalController & controller) {}
@@ -116,7 +135,10 @@ void BoneTagSerialPlugin::before(mc_control::MCGlobalController & gc)
   }
 }
 
-void BoneTagSerialPlugin::after(mc_control::MCGlobalController & controller) {}
+void BoneTagSerialPlugin::after(mc_control::MCGlobalController & controller)
+{
+  t_ += controller.timestep();
+}
 
 mc_control::GlobalPlugin::GlobalPluginConfiguration BoneTagSerialPlugin::configuration()
 {

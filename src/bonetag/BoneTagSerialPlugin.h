@@ -38,6 +38,7 @@ protected:
   std::mutex dataMutex_;
   io::BoneTagSerial::Data data_;
   io::BoneTagSerial::Data lastData_;
+  double t_ = 0;
 
   bool hasReceivedData_ = false;
   bool lastDataIsNew_ = false;

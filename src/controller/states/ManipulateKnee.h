@@ -34,10 +34,12 @@ struct Result
 struct ResultHandler
 {
   void write_csv(const std::string & path);
+
   void clear()
   {
     results_.clear();
   }
+
   void addResult(const Result & result)
   {
     results_.push_back(result);
@@ -79,6 +81,7 @@ protected:
   void saveResults()
   {
     results_.write_csv(resultPath_);
+    results_.clear();
   }
 
   inline void forceNext() noexcept
