@@ -157,4 +157,6 @@ protected:
 
   std::shared_ptr<mc_tasks::TransformTask> tibia_task_;
   std::shared_ptr<mc_tasks::TransformTask> femur_task_;
+  bool continuous_ = false;
+  bool measure_ = true;
 };

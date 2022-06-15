@@ -257,15 +257,23 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                               trajectory_file_ = name;
                               file_.load(trajectory_dir_ + "/" + name);
                             }),
-                        mc_rtc::gui::Button("Play",
-                                            [this]() {
-                                              stop();
-                                              file_.load(trajectory_dir_ + "/" + trajectory_file_);
-                                              play();
-                                            }),
+                        mc_rtc::gui::Button("Play", [this]() {
+                          stop();
+                          file_.load(trajectory_dir_ + "/" + trajectory_file_);
+                          play();
+                        }));
+
+  ctl.gui()->addElement(this, {"ManipulateKnee", "Trajectory"}, mc_rtc::gui::Label("Waypoints Remaining", [this]() {
+                          return std::to_string(file_.tibiaRotationVector.size());
+                        }));
+
+  ctl.gui()->addElement(this, {"ManipulateKnee", "Trajectory"}, mc_rtc::gui::ElementsStacking::Horizontal,
+                        mc_rtc::gui::Checkbox(
+                            "Continuous", [this]() { return continuous_; }, [this]() { continuous_ = !continuous_; }),
                         mc_rtc::gui::Checkbox(
                             "Pause", [this]() { return !play_; },
                             [this]() {
+                              if(file_.tibiaRotationVector.empty()) return;
                               if(play_)
                               {
                                 stop();
@@ -274,21 +282,26 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                               {
                                 play();
                               }
-                            })
+                            }),
+                        mc_rtc::gui::Button("Force Next", [this]() { forceNext(); }));
 
-  );
-  ctl.gui()->addElement(
-      this, {"ManipulateKnee", "Trajectory"}, mc_rtc::gui::Button("Force Next", [this]() { forceNext(); }),
-      mc_rtc::gui::Label("Waypoints Remaining", [this]() { return std::to_string(file_.tibiaRotationVector.size()); }),
-      mc_rtc::gui::NumberInput(
-          "Rate [s]", [this, &ctl]() { return getRate(ctl.timeStep); },
-          [this, &ctl](double rate) { setRate(rate, ctl.timeStep); }),
-      mc_rtc::gui::NumberInput(
-          "Translation Threshold [mm]", [this]() { return translationTreshold_; },
-          [this](double treshold) { translationTreshold_ = treshold; }),
-      mc_rtc::gui::NumberInput(
-          "Rotation Threshold [deg]", [this]() { return rotationTreshold_; },
-          [this](double treshold) { rotationTreshold_ = treshold; }));
+  ctl.gui()->addElement(this, {"ManipulateKnee", "Trajectory"}, mc_rtc::gui::ElementsStacking::Horizontal,
+                        mc_rtc::gui::Checkbox(
+                            "Measure", [this]() { return measure_; }, [this]() { measure_ = !measure_; }),
+                        mc_rtc::gui::NumberInput(
+                            "Samples", [this]() { return desiredSamples_; },
+                            [this](unsigned samples) { desiredSamples_ = std::max(1u, samples); }),
+                        mc_rtc::gui::NumberInput(
+                            "Rate [s]", [this, &ctl]() { return getRate(ctl.timeStep); },
+                            [this, &ctl](double rate) { setRate(rate, ctl.timeStep); }));
+
+  ctl.gui()->addElement(this, {"ManipulateKnee", "Trajectory", "Thresholds"},
+                        mc_rtc::gui::NumberInput(
+                            "Translation [mm]", [this]() { return translationTreshold_; },
+                            [this](double treshold) { translationTreshold_ = treshold; }),
+                        mc_rtc::gui::NumberInput(
+                            "Rotation [deg]", [this]() { return rotationTreshold_; },
+                            [this](double treshold) { rotationTreshold_ = treshold; }));
 
   tibia_task_ = mc_tasks::MetaTaskLoader::load<mc_tasks::TransformTask>(ctl.solver(), config_("TibiaTask"));
   tibia_task_->reset();
@@ -332,13 +345,14 @@ void ManipulateKnee::updateAxes(mc_control::fsm::Controller & ctl)
 
 bool ManipulateKnee::measure(mc_control::fsm::Controller & ctl)
 {
-  if(!ctl.datastore().has("BoneTagSerialPlugin"))
+  if(!measure_)
   {
     return true;
   }
-  else if(!ctl.datastore().call<bool>("BoneTagSerialPlugin::Connected"))
+  else if(!ctl.datastore().has("BoneTagSerialPlugin") || !ctl.datastore().call<bool>("BoneTagSerialPlugin::Connected"))
   {
-    return true;
+    mc_rtc::log::error("[{}] Requested measement of BoneTag sensors but the sensor is unavailable", name());
+    return false;
   }
 
   auto sensorData = ctl.datastore().call<std::optional<io::BoneTagSerial::Data>>("BoneTagSerialPlugin::GetNewData");
@@ -385,14 +399,20 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
       next_ = false;
     }
 
-    auto tibia_error = tibia_task_->eval();
-    auto femur_error = femur_task_->eval();
-    bool hasConverged = (tibia_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
-                         && tibia_error.tail<3>().norm() <= translationTreshold_ / 1000.
-                         && femur_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
-                         && femur_error.tail<3>().norm() <= translationTreshold_ / 1000.);
-
-    // Only go to next when all measurements are finished.
+    bool hasConverged = false;
+    if(!continuous_)
+    {
+      auto tibia_error = tibia_task_->eval();
+      auto femur_error = femur_task_->eval();
+      hasConverged = (tibia_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
+                      && tibia_error.tail<3>().norm() <= translationTreshold_ / 1000.
+                      && femur_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
+                      && femur_error.tail<3>().norm() <= translationTreshold_ / 1000.);
+    }
+    else
+    { // Ignore convergence criteria when running continous trajectories
+      hasConverged = true;
+    }
     next_ = hasConverged && iter_ >= iterRate_ && measure(ctl);
   }
 
