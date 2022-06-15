@@ -9,6 +9,22 @@
 
 namespace fs = boost::filesystem;
 
+double truncate(double value, double precision = 2)
+{
+  return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
+}
+
+template<typename VectorT>
+VectorT truncate(const VectorT & value, double precision = 2)
+{
+  VectorT r;
+  for(unsigned i = 0; i < value.size(); ++i)
+  {
+    r[i] = truncate(value[i], precision);
+  }
+  return r;
+}
+
 /**
  * \brief   Return the filenames of all files that have the specified extension
  *          in the specified directory and all subdirectories.
@@ -141,16 +157,20 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 
   auto make_input = [this](mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category, const std::string & name,
                            const std::string & title, std::vector<std::string> axes, Eigen::Vector3d & rotation,
-                           const Eigen::Vector3d & minRotation, const Eigen::Vector3d & maxRotation) {
+                           const Eigen::Vector3d & minRotation, const Eigen::Vector3d & maxRotation,
+                           const Eigen::Vector3d & actual) {
     // clang-format off
     gui.addElement(
       this, category,
       mc_rtc::gui::ArrayInput(
           name + " " + title, axes,
-          [this, &rotation]() -> const Eigen::Vector3d { return rotation; },
+          [this, &rotation]() -> Eigen::Vector3d { return rotation; },
           [this, &rotation, &minRotation, &maxRotation](const Eigen::Vector3d & r) {
             rotation = mc_filter::utils::clamp(r, minRotation, maxRotation);
           }),
+      mc_rtc::gui::ArrayLabel(
+          name + " " + title + " Actual", axes,
+          [this, &actual]() -> const Eigen::Vector3d { return truncate(actual, 1); }),
       mc_rtc::gui::NumberSlider(
           name + " " + axes[0],
           [this, &rotation]() { return rotation[0]; },
@@ -172,10 +192,10 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 
   auto & gui = *ctl.gui();
   // clang-format off
-  make_input(gui, {"ManipulateKnee", "Tibia"}, "Tibia", "Translation", {"x [mm]", "y[mm]", "z[mm]"}, tibiaTranslation_, minTibiaTranslation_, maxTibiaTranslation_);
-  make_input(gui, {"ManipulateKnee", "Tibia"}, "Tibia", "Rotation", {"Roll [deg]", "Pitch [deg]", "Yaw [deg]"}, tibiaRotation_,  minTibiaRotation_, maxTibiaRotation_);
-  make_input(gui, {"ManipulateKnee", "Femur"}, "Femur", "Translation", {"x [mm]", "y[mm]", "z[mm]"}, femurTranslation_, minFemurTranslation_, maxFemurTranslation_);
-  make_input(gui, {"ManipulateKnee", "Femur"}, "Femur", "Rotation", {"Roll [deg]", "Pitch [deg]", "Yaw [deg]"}, femurRotation_,  minFemurRotation_, maxFemurRotation_);
+  make_input(gui, {"ManipulateKnee", "Tibia"}, "Tibia", "Translation", {"x [mm]", "y[mm]", "z[mm]"}, tibiaTranslation_, minTibiaTranslation_, maxTibiaTranslation_, tibiaTranslationActual_);
+  make_input(gui, {"ManipulateKnee", "Tibia"}, "Tibia", "Rotation", {"Roll [deg]", "Pitch [deg]", "Yaw [deg]"}, tibiaRotation_,  minTibiaRotation_, maxTibiaRotation_, tibiaRotationActual_);
+  make_input(gui, {"ManipulateKnee", "Femur"}, "Femur", "Translation", {"x [mm]", "y[mm]", "z[mm]"}, femurTranslation_, minFemurTranslation_, maxFemurTranslation_, femurTranslationActual_);
+  make_input(gui, {"ManipulateKnee", "Femur"}, "Femur", "Rotation", {"Roll [deg]", "Pitch [deg]", "Yaw [deg]"}, femurRotation_,  minFemurRotation_, maxFemurRotation_, femurRotationActual_);
   // clang-format on
 
   ctl.gui()->addElement(this, {"ManipulateKnee"}, mc_rtc::gui::Button("Reset to Zero", [this]() {
