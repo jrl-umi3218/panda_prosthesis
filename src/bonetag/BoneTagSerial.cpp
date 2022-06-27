@@ -41,6 +41,10 @@ void BoneTagSerial::synchronize()
   // range leading to wrong measurements
   while(f.get() != 'T')
   {
+    if(f.get() == 'T')
+    {
+      return;
+    }
   }
 }
 
