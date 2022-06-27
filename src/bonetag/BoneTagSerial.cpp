@@ -39,11 +39,17 @@ void BoneTagSerial::synchronize()
   // Find the synchronization char marking the start of the stream
   // FIXME (protocol) 'T' may be randomly contained withing the sensor readout
   // range leading to wrong measurements
-  while(f.get() != 'T')
+  char synch = 0;
+  while(synch != 'T')
   {
-    if(f.get() == 'T')
+    synch = f.get();
+    if(synch == 'T')
     {
-      return;
+      synch = 0;
+      while(synch != 'T')
+      {
+        synch = f.get();
+      }
     }
   }
 }
