@@ -46,10 +46,11 @@ void BoneTagSerial::synchronize()
     if(synch == 'T')
     {
       synch = 0;
-      while(synch != 'T')
+      while(synch != 'A')
       {
         synch = f.get();
       }
+      synch = 'T';
     }
   }
 }
