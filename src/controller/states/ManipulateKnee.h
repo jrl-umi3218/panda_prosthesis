@@ -117,7 +117,7 @@ protected:
   bool next_ = true;
   size_t iter_ = 0;
   size_t iterRate_ = 1;
-  double translationTreshold_ = 1; ///< Convergence threshold on translation [mm]
+  double translationTreshold_ = 0.1; ///< Convergence threshold on translation [mm]
   double rotationTreshold_ = 0.1; ///< Convergence threshold on rotation [deg]
 
   unsigned desiredSamples_ = 10;
@@ -139,6 +139,8 @@ protected:
 
   Eigen::Vector3d tibiaTranslation_ = Eigen::Vector3d::Zero(); ///< Desired Joint translation in [mm]
   Eigen::Vector3d tibiaTranslationActual_ = Eigen::Vector3d::Zero(); ///< Current joint translation in [mm]
+  sva::MotionVecd tibiaError_ = sva::MotionVecd::Zero();
+  sva::MotionVecd femurError_ = sva::MotionVecd::Zero();
   Eigen::Vector3d minTibiaTranslation_{-20, -20, -10}; ///< Min translation [mm]
   Eigen::Vector3d maxTibiaTranslation_ = {20, 20, 10}; ///< Max translation [mm]
 

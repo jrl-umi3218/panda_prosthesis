@@ -303,6 +303,24 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                             "Rotation [deg]", [this]() { return rotationTreshold_; },
                             [this](double treshold) { rotationTreshold_ = treshold; }));
 
+  ctl.gui()->addElement(
+      this, {"ManipulateKnee", "Error"},
+      mc_rtc::gui::ArrayLabel("Tibia Error",
+                              {"Roll [deg]", "Pitch [deg]", "Yaw [deg]", "tx [mm]", "ty [mm]", "tz [mm]"},
+                              [this]() {
+                                Eigen::Vector6d res;
+                                res.head<3>() = tibiaError_.angular() * 180 / mc_rtc::constants::PI;
+                                res.tail<3>() = tibiaError_.linear() * 1000;
+                                return truncate(res);
+                              }),
+      mc_rtc::gui::ArrayLabel("Femur Error",
+                              {"Roll [deg]", "Pitch [deg]", "Yaw [deg]", "tx [mm]", "ty [mm]", "tz [mm]"}, [this]() {
+                                Eigen::Vector6d res;
+                                res.head<3>() = femurError_.angular() * 180 / mc_rtc::constants::PI;
+                                res.tail<3>() = femurError_.linear() * 1000;
+                                return truncate(res);
+                              }));
+
   tibia_task_ = mc_tasks::MetaTaskLoader::load<mc_tasks::TransformTask>(ctl.solver(), config_("TibiaTask"));
   tibia_task_->reset();
   femur_task_ = mc_tasks::MetaTaskLoader::load<mc_tasks::TransformTask>(ctl.solver(), config_("FemurTask"));
@@ -398,45 +416,50 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
       measuredSamples_ = 0;
       next_ = false;
     }
-
-    bool hasConverged = false;
-    if(!continuous_)
-    {
-      auto tibia_error = tibia_task_->eval();
-      auto femur_error = femur_task_->eval();
-      hasConverged = (tibia_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
-                      && tibia_error.tail<3>().norm() <= translationTreshold_ / 1000.
-                      && femur_error.head<3>().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
-                      && femur_error.tail<3>().norm() <= translationTreshold_ / 1000.);
-    }
     else
-    { // Ignore convergence criteria when running continous trajectories
-      hasConverged = true;
+    {
+      bool hasConverged = false;
+      if(!continuous_)
+      {
+        const auto & tibia_error = tibiaError_;
+        const auto & femur_error = femurError_;
+        hasConverged = (tibia_error.angular().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
+                        && tibia_error.linear().norm() <= translationTreshold_ / 1000.
+                        && femur_error.angular().norm() <= mc_rtc::constants::toRad(rotationTreshold_)
+                        && femur_error.linear().norm() <= translationTreshold_ / 1000.);
+      }
+      else
+      { // Ignore convergence criteria when running continous trajectories
+        hasConverged = true;
+      }
+      next_ = hasConverged && iter_ >= iterRate_ && measure(ctl);
     }
-    next_ = hasConverged && iter_ >= iterRate_ && measure(ctl);
   }
 
-  auto handle_motion = [](mc_tasks::TransformTask & task, const sva::PTransformd X_0_axisFrame,
-                          Eigen::Vector3d translation, Eigen::Vector3d rotation, Eigen::Vector3d & translationActual,
-                          Eigen::Vector3d & rotationActual) {
+  auto handle_motion = [](mc_rbdyn::Robot & realRobot, sva::MotionVecd & error, mc_tasks::TransformTask & task,
+                          const sva::PTransformd X_0_axisFrame, Eigen::Vector3d translation, Eigen::Vector3d rotation,
+                          Eigen::Vector3d & translationActual, Eigen::Vector3d & rotationActual) {
     translation *= 0.001; // translation in [m]
     rotation *= mc_rtc::constants::PI / 180.; // rotation in [rad]
 
     auto X_0_target = sva::PTransformd(mc_rbdyn::rpyToMat(rotation), translation) * X_0_axisFrame;
     task.target(X_0_target);
 
-    auto X_0_actual = task.frame().position();
+    auto X_0_actual = realRobot.frame(task.frame().name()).position(); // task.frame().position();
     auto X_axisFrame_actual = X_0_actual * X_0_axisFrame.inv();
 
     translationActual = X_axisFrame_actual.translation() * 1000;
     // XXX should we store as RPY?
     rotationActual = mc_rbdyn::rpyFromMat(X_axisFrame_actual.rotation()) * 180 / mc_rtc::constants::PI;
+
+    sva::PTransformd X_axis_target(mc_rbdyn::rpyToMat(rotation), translation);
+    error = sva::transformError(X_axisFrame_actual, X_axis_target);
   };
 
-  handle_motion(*femur_task_, X_0_femurAxis, femurTranslation_, femurRotation_, femurTranslationActual_,
-                femurRotationActual_);
-  handle_motion(*tibia_task_, X_0_tibiaAxis, tibiaTranslation_, tibiaRotation_, tibiaTranslationActual_,
-                tibiaRotationActual_);
+  handle_motion(ctl.realRobot("panda_femur"), femurError_, *femur_task_, X_0_femurAxis, femurTranslation_,
+                femurRotation_, femurTranslationActual_, femurRotationActual_);
+  handle_motion(ctl.realRobot("panda_tibia"), tibiaError_, *tibia_task_, X_0_tibiaAxis, tibiaTranslation_,
+                tibiaRotation_, tibiaTranslationActual_, tibiaRotationActual_);
 
   ++iter_;
   return output().size() != 0;
