@@ -290,7 +290,7 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                             "Measure", [this]() { return measure_; }, [this]() { measure_ = !measure_; }),
                         mc_rtc::gui::NumberInput(
                             "Samples", [this]() { return desiredSamples_; },
-                            [this](unsigned samples) { desiredSamples_ = std::max(1u, samples); }),
+                            [this](double samples) { desiredSamples_ = std::max(1, static_cast<int>(samples)); }),
                         mc_rtc::gui::NumberInput(
                             "Rate [s]", [this, &ctl]() { return getRate(ctl.timeStep); },
                             [this, &ctl](double rate) { setRate(rate, ctl.timeStep); }));
