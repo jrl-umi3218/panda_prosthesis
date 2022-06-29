@@ -192,10 +192,10 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 
   auto & gui = *ctl.gui();
   // clang-format off
-  make_input(gui, {"ManipulateKnee", "Tibia"}, "Tibia", "Translation", {"x [mm]", "y[mm]", "z[mm]"}, tibiaTranslation_, minTibiaTranslation_, maxTibiaTranslation_, tibiaTranslationActual_);
-  make_input(gui, {"ManipulateKnee", "Tibia"}, "Tibia", "Rotation", {"Roll [deg]", "Pitch [deg]", "Yaw [deg]"}, tibiaRotation_,  minTibiaRotation_, maxTibiaRotation_, tibiaRotationActual_);
-  make_input(gui, {"ManipulateKnee", "Femur"}, "Femur", "Translation", {"x [mm]", "y[mm]", "z[mm]"}, femurTranslation_, minFemurTranslation_, maxFemurTranslation_, femurTranslationActual_);
-  make_input(gui, {"ManipulateKnee", "Femur"}, "Femur", "Rotation", {"Roll [deg]", "Pitch [deg]", "Yaw [deg]"}, femurRotation_,  minFemurRotation_, maxFemurRotation_, femurRotationActual_);
+  make_input(gui, {"ManipulateKnee", "Tibia", "Translation [mm]"}, "Tibia", "Translation [mm]", {"Left (x)", "Forward (y)", "Down (z)"}, tibiaTranslation_, minTibiaTranslation_, maxTibiaTranslation_, tibiaTranslationActual_);
+  make_input(gui, {"ManipulateKnee", "Tibia", "Rotation [deg]"}, "Tibia", "Rotation [deg]", {"Tangage", "Roulis", "Lacet"}, tibiaRotation_,  minTibiaRotation_, maxTibiaRotation_, tibiaRotationActual_);
+  make_input(gui, {"ManipulateKnee", "Femur", "Translation [mm]"}, "Femur", "Translation [mm]", {"Left (x)", "Forward (y)", "Down (z)"}, femurTranslation_, minFemurTranslation_, maxFemurTranslation_, femurTranslationActual_);
+  make_input(gui, {"ManipulateKnee", "Femur", "Rotation [deg]"}, "Femur", "Rotation [deg]", {"Tangage", "Roulis", "Lacet"}, femurRotation_,  minFemurRotation_, maxFemurRotation_, femurRotationActual_);
   // clang-format on
 
   ctl.gui()->addElement(this, {"ManipulateKnee"}, mc_rtc::gui::Button("Reset to Zero", [this]() {
@@ -203,32 +203,33 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                           stop();
                         }));
 
-  ctl.gui()->addElement(this, {"ManipulateKnee", "Offsets"},
+  ctl.gui()->addElement(this, {"ManipulateKnee", "Offsets", "Tibia"},
                         mc_rtc::gui::ArrayInput(
-                            "Tibia Offset Translation", {"x [mm]", "y [mm]", "z [mm]"},
+                            "Tibia Offset Translation", {"Left (x) [mm]", "Forward (y) [mm]", "Down (z) [mm]"},
                             [this]() -> Eigen::Vector3d { return tibiaOffset_.translation() * 1000; },
                             [this, &ctl](const Eigen::Vector3d & t) {
                               tibiaOffset_.translation() = t / 1000;
                               updateAxes(ctl);
                             }),
                         mc_rtc::gui::ArrayInput(
-                            "Tibia Offset Rotation", {"r [deg]", "p [deg]", "y [deg]"},
+                            "Tibia Offset Rotation", {"Tangage [deg]", "Roulis [deg]", "Lacet [deg]"},
                             [this]() -> Eigen::Vector3d {
                               return mc_rbdyn::rpyFromMat(tibiaOffset_.rotation()) * 180 / mc_rtc::constants::PI;
                             },
                             [this, &ctl](const Eigen::Vector3d & r) {
                               tibiaOffset_.rotation() = mc_rbdyn::rpyToMat(r * mc_rtc::constants::PI / 180);
                               updateAxes(ctl);
-                            }),
+                            }));
+  ctl.gui()->addElement(this, {"ManipulateKnee", "Offsets", "Femur"},
                         mc_rtc::gui::ArrayInput(
-                            "Femur Offset Translation", {"x", "y", "z"},
+                            "Femur Offset Translation", {"Left (x) [mm]", "Forward (y) [mm]", "Down (z) [mm]"},
                             [this]() -> Eigen::Vector3d { return femurOffset_.translation() * 1000; },
                             [this, &ctl](const Eigen::Vector3d & t) {
                               femurOffset_.translation() = t / 1000;
                               updateAxes(ctl);
                             }),
                         mc_rtc::gui::ArrayInput(
-                            "Femur Offset Rotation", {"r [deg]", "p [deg]", "y [deg]"},
+                            "Femur Offset Rotation", {"Tangage [deg]", "Roulis [deg]", "Lacet [deg]"},
                             [this]() -> Eigen::Vector3d {
                               return mc_rbdyn::rpyFromMat(femurOffset_.rotation()) * 180 / mc_rtc::constants::PI;
                             },
@@ -303,23 +304,25 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                             "Rotation [deg]", [this]() { return rotationTreshold_; },
                             [this](double treshold) { rotationTreshold_ = treshold; }));
 
-  ctl.gui()->addElement(
-      this, {"ManipulateKnee", "Error"},
-      mc_rtc::gui::ArrayLabel("Tibia Error",
-                              {"Roll [deg]", "Pitch [deg]", "Yaw [deg]", "tx [mm]", "ty [mm]", "tz [mm]"},
-                              [this]() {
-                                Eigen::Vector6d res;
-                                res.head<3>() = tibiaError_.angular() * 180 / mc_rtc::constants::PI;
-                                res.tail<3>() = tibiaError_.linear() * 1000;
-                                return truncate(res);
-                              }),
-      mc_rtc::gui::ArrayLabel("Femur Error",
-                              {"Roll [deg]", "Pitch [deg]", "Yaw [deg]", "tx [mm]", "ty [mm]", "tz [mm]"}, [this]() {
-                                Eigen::Vector6d res;
-                                res.head<3>() = femurError_.angular() * 180 / mc_rtc::constants::PI;
-                                res.tail<3>() = femurError_.linear() * 1000;
-                                return truncate(res);
-                              }));
+  ctl.gui()->addElement(this, {"ManipulateKnee", "Error"},
+                        mc_rtc::gui::ArrayLabel("Tibia Error",
+                                                {"Tangage [deg]", "Roulis [deg]", "Lacet [deg]", "Left (x) [mm]",
+                                                 "Forward (y) [mm]", "Down (z) [mm]"},
+                                                [this]() {
+                                                  Eigen::Vector6d res;
+                                                  res.head<3>() = tibiaError_.angular() * 180 / mc_rtc::constants::PI;
+                                                  res.tail<3>() = tibiaError_.linear() * 1000;
+                                                  return truncate(res);
+                                                }),
+                        mc_rtc::gui::ArrayLabel("Femur Error",
+                                                {"Tangage [deg]", "Roulis [deg]", "Lacet [deg]", "Left (x) [mm]",
+                                                 "Forward (y) [mm]", "Down (z) [mm]"},
+                                                [this]() {
+                                                  Eigen::Vector6d res;
+                                                  res.head<3>() = femurError_.angular() * 180 / mc_rtc::constants::PI;
+                                                  res.tail<3>() = femurError_.linear() * 1000;
+                                                  return truncate(res);
+                                                }));
 
   tibia_task_ = mc_tasks::MetaTaskLoader::load<mc_tasks::TransformTask>(ctl.solver(), config_("TibiaTask"));
   tibia_task_->reset();
