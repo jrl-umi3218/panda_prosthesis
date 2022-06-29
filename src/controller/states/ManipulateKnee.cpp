@@ -332,6 +332,13 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                                                   res.tail<3>() = tibiaError_.linear() * 1000;
                                                   return truncate(res);
                                                 }),
+                        mc_rtc::gui::ArrayLabel("Tibia Error (norm)", {"Rotation [deg]", "Translation [mm]"},
+                                                [this]() {
+                                                  Eigen::Vector2d res;
+                                                  res[0] = tibiaError_.angular().norm() * 180 / mc_rtc::constants::PI;
+                                                  res[1] = tibiaError_.linear().norm() * 1000;
+                                                  return truncate(res);
+                                                }),
                         mc_rtc::gui::ArrayLabel("Femur Error",
                                                 {"Tangage [deg]", "Roulis [deg]", "Lacet [deg]", "Left (x) [mm]",
                                                  "Forward (y) [mm]", "Down (z) [mm]"},
@@ -340,7 +347,13 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                                                   res.head<3>() = femurError_.angular() * 180 / mc_rtc::constants::PI;
                                                   res.tail<3>() = femurError_.linear() * 1000;
                                                   return truncate(res);
-                                                }));
+                                                }),
+                        mc_rtc::gui::ArrayLabel("Femur Error (norm)", {"Rotation [deg]", "Translation [mm]"}, [this]() {
+                          Eigen::Vector2d res;
+                          res[0] = femurError_.angular().norm() * 180 / mc_rtc::constants::PI;
+                          res[1] = femurError_.linear().norm() * 1000;
+                          return truncate(res);
+                        }));
 
   tibia_task_ = mc_tasks::MetaTaskLoader::load<mc_tasks::TransformTask>(ctl.solver(), config_("TibiaTask"));
   tibia_task_->reset();
