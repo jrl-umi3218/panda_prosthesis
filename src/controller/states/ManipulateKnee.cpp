@@ -237,6 +237,11 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                               femurOffset_.rotation() = mc_rbdyn::rpyToMat(r * mc_rtc::constants::PI / 180);
                               updateAxes(ctl);
                             }));
+  ctl.gui()->addElement(this, {"ManipulateKnee", "Offsets"}, mc_rtc::gui::Button("Reset Offsets", [this, &ctl]() {
+                          tibiaOffset_ = tibiaOffsetInitial_;
+                          femurOffset_ = femurOffsetInitial_;
+                          updateAxes(ctl);
+                        }));
 
   // Load scenes from disk
   auto scene_files = get_all(trajectory_dir_, ".csv");
@@ -339,6 +344,8 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
   {
     ctl.config()("offsets")("femur", femurOffset_);
   }
+  tibiaOffsetInitial_ = tibiaOffset_;
+  femurOffsetInitial_ = femurOffset_;
   updateAxes(ctl);
 
   run(ctl);

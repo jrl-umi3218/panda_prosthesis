@@ -156,6 +156,8 @@ protected:
 
   sva::PTransformd tibiaOffset_ = sva::PTransformd::Identity(); // Tibia offset [m]
   sva::PTransformd femurOffset_ = sva::PTransformd::Identity(); // Femur offset [m]
+  sva::PTransformd tibiaOffsetInitial_ = sva::PTransformd::Identity(); // Initial Tibia offset (used when resetting) [m]
+  sva::PTransformd femurOffsetInitial_ = sva::PTransformd::Identity(); // Initial Femur offset (used when resetting) [m]
 
   std::shared_ptr<mc_tasks::TransformTask> tibia_task_;
   std::shared_ptr<mc_tasks::TransformTask> femur_task_;
