@@ -269,13 +269,26 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                           play();
                         }));
 
-  ctl.gui()->addElement(this, {"ManipulateKnee", "Trajectory"}, mc_rtc::gui::Label("Waypoints Remaining", [this]() {
-                          return std::to_string(file_.tibiaRotationVector.size());
-                        }));
+  ctl.gui()->addElement(
+      this, {"ManipulateKnee", "Trajectory"},
+      mc_rtc::gui::Label("Waypoints Remaining", [this]() { return std::to_string(file_.tibiaRotationVector.size()); }),
+      mc_rtc::gui::Label("Offsets", [this]() {
+        if(repeatWithOffset_)
+        {
+          return std::to_string(trajOffsets_.current()) + " / " + std::to_string(trajOffsets_.size());
+        }
+        else
+        {
+          return std::string{"none"};
+        }
+      }));
 
   ctl.gui()->addElement(this, {"ManipulateKnee", "Trajectory"}, mc_rtc::gui::ElementsStacking::Horizontal,
                         mc_rtc::gui::Checkbox(
                             "Continuous", [this]() { return continuous_; }, [this]() { continuous_ = !continuous_; }),
+                        mc_rtc::gui::Checkbox(
+                            "Repeat with offsets", [this]() { return repeatWithOffset_; },
+                            [this]() { repeatWithOffset_ = !repeatWithOffset_; }),
                         mc_rtc::gui::Checkbox(
                             "Pause", [this]() { return !play_; },
                             [this]() {
@@ -405,9 +418,20 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
   {
     if(play_)
     {
-      saveResults();
+      if(repeatWithOffset_ && !trajOffsets_.done())
+      {
+        trajOffsets_.next();
+        mc_rtc::log::info("Repeating trajectory with offset {} / {}", trajOffsets_.current(), trajOffsets_.size());
+        // Reload trajectory
+        file_.load(trajectory_dir_ + "/" + trajectory_file_);
+        // Replay trajectory with the new offset
+        play();
+      }
+      else
+      {
+        stop();
+      }
     }
-    play_ = false;
   }
 
   if(play_)
@@ -415,9 +439,9 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
     if(next_)
     {
       tibiaRotation_ = file_.tibiaRotationVector.front();
-      tibiaTranslation_ = file_.tibiaTranslationVector.front();
+      tibiaTranslation_ = file_.tibiaTranslationVector.front() + trajOffsets_.tibiaOffsetTranslation();
       femurRotation_ = file_.femurRotationVector.front();
-      femurTranslation_ = file_.femurTranslationVector.front();
+      femurTranslation_ = file_.femurTranslationVector.front() + trajOffsets_.femurOffsetTranslation();
       file_.tibiaRotationVector.pop_front();
       file_.tibiaTranslationVector.pop_front();
       file_.femurRotationVector.pop_front();

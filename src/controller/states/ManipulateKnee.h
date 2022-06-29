@@ -76,6 +76,7 @@ protected:
   {
     play_ = false;
     saveResults();
+    trajOffsets_.reset();
   }
 
   void saveResults()
@@ -126,6 +127,66 @@ protected:
   ResultHandler results_;
   std::string results_dir_ = "/tmp";
   std::string resultPath_ = "/tmp/BoneTagResults.csv";
+
+  // Replay trajectory with offsets
+  bool repeatWithOffset_ =
+      false; /// When true replay the trajectory from the start with an added offset from trajOffsets_
+  struct TrajectoryOffsets
+  {
+    TrajectoryOffsets()
+    {
+      reset();
+    }
+
+    void next()
+    {
+      tibiaOffsetTranslation_ = tibiaOffsetsTranslation_[offsetIndex_];
+      femurOffsetTranslation_ = femurOffsetsTranslation_[offsetIndex_];
+      offsetIndex_ = std::min(offsetIndex_ + 1, offsetsNum_);
+    }
+
+    bool done() const noexcept
+    {
+      return offsetIndex_ == offsetsNum_;
+    }
+
+    void reset()
+    {
+      offsetIndex_ = 0;
+      tibiaOffsetTranslation_ = Eigen::Vector3d::Zero();
+      femurOffsetTranslation_ = Eigen::Vector3d::Zero();
+    }
+
+    const Eigen::Vector3d & tibiaOffsetTranslation() const noexcept
+    {
+      return tibiaOffsetTranslation_;
+    }
+
+    const Eigen::Vector3d & femurOffsetTranslation() const noexcept
+    {
+      return femurOffsetTranslation_;
+    }
+
+    unsigned current() const noexcept
+    {
+      return offsetIndex_;
+    }
+
+    unsigned size() const noexcept
+    {
+      return offsetsNum_;
+    }
+
+  protected:
+    unsigned offsetIndex_ = 0;
+    std::vector<Eigen::Vector3d> tibiaOffsetsTranslation_{{10., 0., 0.},  {0., 10., 0.}, {-10., 0., 0.},
+                                                          {0., -10., 0.}, {0., 0., 10.}, {0., 0., -10.}};
+    std::vector<Eigen::Vector3d> femurOffsetsTranslation_ = tibiaOffsetsTranslation_;
+    unsigned offsetsNum_ = tibiaOffsetsTranslation_.size();
+    Eigen::Vector3d tibiaOffsetTranslation_ = Eigen::Vector3d::Zero();
+    Eigen::Vector3d femurOffsetTranslation_ = Eigen::Vector3d::Zero();
+
+  } trajOffsets_;
 
   sva::PTransformd X_0_femurAxis =
       sva::PTransformd::Identity(); ///< Axis around which the Femur frame rotates and translates
