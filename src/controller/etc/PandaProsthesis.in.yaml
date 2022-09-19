@@ -21,9 +21,9 @@ trajectory_dir: "@TRAJECTORY_DIR@"
 results_dir: "@RESULTS_DIR@"
 offsets:
   femur:
-    translation: [0, 0, 0.0]
-  tibia:
     translation: [0, 0, 0.02]
+  tibia:
+    translation: [0, 0, 0.04]
 # Additional robots to load
 robots:
   panda_femur:
