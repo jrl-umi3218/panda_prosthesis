@@ -97,8 +97,8 @@ PrepareTibia:
       robot: panda_tibia
       constraints:
         - frame: Tibia
-          lowerSpeed: [ -0.01, -0.01, -0.01, -0.01, -0.01, -0.01 ]
-          upperSpeed: [ 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 ]
+          lowerSpeed: [ -0.02, -0.02, -0.02, -0.02, -0.02, -0.02 ]
+          upperSpeed: [ 0.02, 0.02, 0.02, 0.02, 0.02, 0.02 ]
 
 PrepareFemur:
   base: PrepareTibia
@@ -112,8 +112,8 @@ PrepareFemur:
       robot: panda_femur
       constraints:
         - frame: Femur
-          lowerSpeed: [ -0.01, -0.01, -0.01, -0.01, -0.01, -0.01 ]
-          upperSpeed: [ 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 ]
+          lowerSpeed: [ -0.02, -0.02, -0.02, -0.02, -0.02, -0.02 ]
+          upperSpeed: [ 0.02, 0.02, 0.02, 0.02, 0.02, 0.02 ]
 
 PrepareJoint:
   base: Parallel

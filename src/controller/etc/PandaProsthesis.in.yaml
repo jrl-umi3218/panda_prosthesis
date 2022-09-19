@@ -23,7 +23,7 @@ offsets:
   femur:
     translation: [0, 0, 0.0]
   tibia:
-    translation: [0, 0, -0.01]
+    translation: [0, 0, 0.02]
 # Additional robots to load
 robots:
   panda_femur:
@@ -39,8 +39,10 @@ robots:
       # This should contain the desired offset distance between the femur and the joint center
       - name: Femur
         parent: support_femur
+        # plastic support 0.215
+        # metal prosthesis 0.1
         X_p_f:
-          translation: [0, 0, -0.19]
+          translation: [0, 0, -0.225]
           rotation: [3.14, 0, 0]
   panda_tibia:
     module: PandaProsthesis::Tibia
@@ -48,14 +50,16 @@ robots:
       - name: TibiaCalibration
         parent: panda_link8
         X_p_f:
-          translation: [0, 0.096, 0.225] # assuming 2cm height for the calibration tool
+          translation: [0, 0.095, 0.225] # assuming 2cm height for the calibration tool
           rotation: [1.57, 0, 0]
       # Frame above the surface of the Tibia
       # This should contain the desired offset distance between the tibia and the joint center
       - name: Tibia
         parent: panda_link8
+        # Plastic base height: 0.065
+        # Metal support: 0.01
         X_p_f:
-          translation: [0, 0.046, 0.23]
+          translation: [0, 0.075, 0.23]
           rotation: [1.57, 0, 0]
 # General constraints, always on
 constraints:
@@ -83,8 +87,8 @@ ObserverPipelines:
     - type: Encoder
       config:
         robot: panda_femur
-        position: encoderValues
-        velocity: encoderFiniteDifferences
+        position: control #encoderValues
+        velocity: control #encoderFiniteDifferences
   - name: PandaTibia
     observers:
     - type: BodySensor
@@ -94,8 +98,8 @@ ObserverPipelines:
     - type: Encoder
       config:
         robot: panda_tibia
-        position: encoderValues
-        velocity: encoderFiniteDifferences
+        position: control #encoderValues
+        velocity: control #encoderFiniteDifferences
 
 # Initial set of contacts
 contacts: []
