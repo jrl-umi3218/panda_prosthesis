@@ -17,6 +17,10 @@ StatesFiles:
 # If true, state factory will be more verbose
 VerboseStateFactory: false
 
+TrajectoryLoaders:
+  BoneTag:
+    directory: "@TRAJECTORY_DIR@"
+
 trajectory_dir: "@TRAJECTORY_DIR@"
 results_dir: "@RESULTS_DIR@"
 offsets:
@@ -83,8 +87,8 @@ ObserverPipelines:
     - type: Encoder
       config:
         robot: panda_femur
-        position: encoderValues
-        velocity: encoderFiniteDifferences
+        position: control #encoderValues
+        velocity: control #encoderFiniteDifferences
   - name: PandaTibia
     observers:
     - type: BodySensor
@@ -94,8 +98,8 @@ ObserverPipelines:
     - type: Encoder
       config:
         robot: panda_tibia
-        position: encoderValues
-        velocity: encoderFiniteDifferences
+        position: control #encoderValues
+        velocity: control #encoderFiniteDifferences
 
 # Initial set of contacts
 contacts: []
@@ -104,11 +108,14 @@ states: {}
 
 Plugins: [BoneTagSerialPlugin]
 
+# transitions:
+#   - [ChooseMode, Simulation, Simulation, Auto]
+#   - [ChooseMode, Real, Real, Auto]
+# 
+# # Initial state
+# init: InitialChoice
 transitions:
-  - [ChooseMode, Simulation, Simulation, Auto]
-  - [ChooseMode, Real, Real, Auto]
-
-# Initial state
-init: InitialChoice
+- [ChooseTrajectory, OK, ChooseTrajectory, Strict]
+init: ChooseTrajectory
 # Store the location of configuration files
 ETC_DIR: "@CMAKE_CURRENT_SOURCE_DIR@/etc"

@@ -1,9 +1,11 @@
 add_fsm_state_simple(Initial)
+add_fsm_state_simple(ChooseTrajectory)
+target_link_libraries(ChooseTrajectory PUBLIC PandaProsthesisCommon)
 add_fsm_state_simple(GoRelative)
 add_fsm_state_simple(ChooseMode)
 add_fsm_state_simple(Choice)
 add_fsm_state_simple(Calibrate)
 add_fsm_state_simple(TransformDatastore)
-add_fsm_state_simple(ManipulateKnee)
+#add_fsm_state_simple(ManipulateKnee)
 
 add_fsm_data_directory(data)

@@ -4,18 +4,8 @@
 #include <mc_control/fsm/State.h>
 #include <mc_tasks/TransformTask.h>
 #include "../../bonetag/BoneTagSerial.h"
+#include "../include/TrajectoryLoader.h"
 #include <deque>
-
-struct ReadCSV
-{
-  void clear();
-  void load(const std::string & path);
-
-  std::deque<Eigen::Vector3d> femurTranslationVector;
-  std::deque<Eigen::Vector3d> femurRotationVector;
-  std::deque<Eigen::Vector3d> tibiaTranslationVector;
-  std::deque<Eigen::Vector3d> tibiaRotationVector;
-};
 
 struct Result
 {
@@ -58,6 +48,7 @@ struct ManipulateKnee : mc_control::fsm::State
   void teardown(mc_control::fsm::Controller & ctl) override;
 
 protected:
+  TrajectoryLoaders trajectoryLoaders;
   void resetToZero();
 
   void play()
