@@ -20,7 +20,8 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
     for(auto & traj : trajectories)
     {
       traj.update();
-      trajPlayers_.emplace_back(ctl.solver(), traj);
+      mc_rtc::log::info("TRAJECTORY PLAYER CREATED FOR {}", traj.frame().name());
+      trajPlayers_.push_back(std::make_shared<TrajectoryPlayer>(ctl.solver(), traj));
     }
   }
   output("OK");
@@ -30,7 +31,7 @@ bool PlayTrajectory::run(mc_control::fsm::Controller & ctl)
 {
   for(auto & trajPlayer : trajPlayers_)
   {
-    trajPlayer.update(ctl.timeStep);
+    trajPlayer->update(ctl.timeStep);
   }
   mc_rtc::log::info("Finished: {}", finished());
   return finished();

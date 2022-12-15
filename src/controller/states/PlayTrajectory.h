@@ -17,7 +17,7 @@ struct TrajectoryPlayer
 
   ~TrajectoryPlayer()
   {
-    mc_rtc::log::error("TrajectoryPlayer::~TrajectoryPlayer");
+    mc_rtc::log::error("TrajectoryPlayer::~TrajectoryPlayer for frame {}", task_->frame().name());
     solver_.removeTask(task_);
   }
 
@@ -63,12 +63,12 @@ struct PlayTrajectory : mc_control::fsm::State
   {
     for(const auto & player : trajPlayers_)
     {
-      if(!player.finished())
+      if(!player->finished())
       {
         return false;
       }
     }
     return true;
   }
-  std::vector<TrajectoryPlayer> trajPlayers_;
+  std::vector<std::shared_ptr<TrajectoryPlayer>> trajPlayers_;
 };
