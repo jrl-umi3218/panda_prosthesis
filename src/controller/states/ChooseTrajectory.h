@@ -14,6 +14,6 @@ struct ChooseTrajectory : mc_control::fsm::State
   void load(mc_control::fsm::Controller & ctl);
 
 private:
-  std::map<std::string, TrajectoryLoaders> loaders_;
+  std::map<std::string, std::unique_ptr<TrajectoryLoader>> loaders_;
   std::string loader_;
 };

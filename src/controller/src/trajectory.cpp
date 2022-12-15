@@ -16,36 +16,36 @@ void Trajectory::loadPoseFromCSV(const std::string & csv,
   in.read_header(io::ignore_extra_column, tangage, roulis, lacet, tx, ty, tz);
   while(in.read_row(rotation[0], rotation[1], rotation[2], translation[0], translation[1], translation[2]))
   {
-    poses_.emplace_back(mc_rbdyn::rpyToMat(rotation).inverse(), translation);
+    poses_.emplace_back(mc_rbdyn::rpyToMat(mc_rtc::constants::PI / 180. * rotation), translation / 1000.);
   }
 }
 
 void Trajectory::update()
 {
-  if(poses_.empty())
+  if(needUpdate_)
   {
-    mc_rtc::log::error_and_throw("[Trajectory::update] Must have at least one pose, none provided");
+    if(poses_.empty())
+    {
+      mc_rtc::log::error_and_throw("[Trajectory::update] Must have at least one pose, none provided");
+    }
+    dt_ = duration_ / poses_.size();
+    computeVelocity();
+    needUpdate_ = false;
   }
-  dt_ = duration_ / poses_.size();
-  computeVelocity();
 }
 
 void Trajectory::computeVelocity()
 {
-  if(velocities_)
+  if(velocities_.size())
   {
-    velocities_->clear();
+    velocities_.clear();
   }
-  else
-  {
-    velocities_ = {};
-  }
-  velocities_->push_back(sva::MotionVecd::Zero());
+  velocities_.emplace_back(sva::MotionVecd::Zero());
   for(int i = 0; i < poses_.size() - 1; ++i)
   {
     const auto & X_a = poses_[i];
     const auto & X_b = poses_[i + 1];
     auto X_a_b = X_b * X_a.inv();
-    velocities_->push_back(sva::transformVelocity(X_a_b) * dt_);
+    velocities_.push_back(sva::transformVelocity(X_a_b) * dt_);
   }
 }

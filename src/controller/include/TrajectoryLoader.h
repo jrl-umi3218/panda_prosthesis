@@ -2,6 +2,7 @@
 #include <mc_rtc/gui/ComboInput.h>
 #include <mc_rtc/gui/StateBuilder.h>
 #include <mc_rtc/io_utils.h>
+#include <mc_rbdyn/Robots.h>
 #include <boost/filesystem.hpp>
 #include "trajectory.h"
 #include <string>
@@ -27,10 +28,8 @@ inline std::vector<std::string> get_all_filenames(boost::filesystem::path const 
   return paths;
 }
 
-template<typename Derived>
 struct TrajectoryLoader
 {
-  using TrajectoryLoaderBase = TrajectoryLoader<Derived>;
   TrajectoryLoader() {}
 
   void directory(const std::string & directory)
@@ -39,13 +38,13 @@ struct TrajectoryLoader
     loadDirectory();
   }
 
-  void load(const std::string & directory, const std::string & csv)
+  virtual void load(const std::string & directory, const std::string & csv)
   {
     selectedFile_ = csv;
-    static_cast<Derived *>(this)->load(directory, csv);
+    // static_cast<Derived *>(this)->load(directory, csv);
   }
 
-  void addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
+  virtual void addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
   {
     category.push_back(name_);
     using namespace mc_rtc::gui;
@@ -58,7 +57,7 @@ struct TrajectoryLoader
                        }));
   }
 
-  void removeFromGUI(mc_rtc::gui::StateBuilder & gui)
+  virtual void removeFromGUI(mc_rtc::gui::StateBuilder & gui)
   {
     using namespace mc_rtc::gui;
     gui.removeElements(this);
@@ -69,10 +68,7 @@ struct TrajectoryLoader
     return name_;
   }
 
-  std::vector<Trajectory> trajectories() const
-  {
-    return static_cast<Derived *>(this)->trajectories();
-  }
+  virtual std::vector<Trajectory> trajectories() const = 0;
 
 protected:
   void loadDirectory()
@@ -96,34 +92,32 @@ protected:
   std::string name_{"TrajectoryLoader"};
 };
 
-struct BoneTagTrajectoryLoader : public TrajectoryLoader<BoneTagTrajectoryLoader>
+struct BoneTagTrajectoryLoader : public TrajectoryLoader
 {
-  BoneTagTrajectoryLoader()
+  BoneTagTrajectoryLoader(const mc_rbdyn::RobotFrame & tibiaFrame, const mc_rbdyn::RobotFrame & femurFrame)
+      : trajTibia("Tibia Trajectory", tibiaFrame), trajFemur("Femur Trajectory", femurFrame)
   {
     name_ = "BoneTagTrajectoryLoader";
-    trajFemur.name("Femur Trajectory");
-    trajFemur.robot("panda_femur");
-    trajFemur.robotFrame("Femur");
-    trajTibia.name("Tibia Trajectory");
-    trajTibia.robot("panda_tibia");
-    trajTibia.robotFrame("Tibia");
   }
 
-  void load(const std::string & directory, const std::string & csv)
+  void load(const std::string & directory, const std::string & csv) override
   {
+    TrajectoryLoader::load(directory, csv);
     trajFemur.clear();
     trajTibia.clear();
     trajFemur.loadPoseFromCSV(directory + "/" + csv, "femur_tangage", "femur_roulis", "femur_lacet", "femur_x",
                               "femur_y", "femur_z");
     trajTibia.loadPoseFromCSV(directory + "/" + csv, "tibia_tangage", "tibia_roulis", "tibia_lacet", "tibia_x",
                               "tibia_y", "tibia_z");
+    trajTibia.update();
+    trajFemur.update();
     mc_rtc::log::info("Loaded BoneTag trajectory {} with {} poses", csv, trajFemur.poses().size());
   }
 
-  void addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
+  void addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category) override
   {
     using namespace mc_rtc::gui;
-    TrajectoryLoaderBase::addToGUI(gui, category);
+    TrajectoryLoader::addToGUI(gui, category);
     category.push_back(name_);
     trajTibia.addToGUI(gui, category);
     trajFemur.addToGUI(gui, category);
@@ -139,7 +133,7 @@ struct BoneTagTrajectoryLoader : public TrajectoryLoader<BoneTagTrajectoryLoader
     return trajFemur;
   }
 
-  std::vector<Trajectory> trajectories() const
+  std::vector<Trajectory> trajectories() const override
   {
     return {trajTibia, trajFemur};
   }
@@ -148,5 +142,3 @@ protected:
   Trajectory trajTibia;
   Trajectory trajFemur;
 };
-
-using TrajectoryLoaders = std::variant<BoneTagTrajectoryLoader>;

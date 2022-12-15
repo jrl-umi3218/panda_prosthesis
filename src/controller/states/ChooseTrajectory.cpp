@@ -6,10 +6,10 @@ void ChooseTrajectory::start(mc_control::fsm::Controller & ctl)
   mc_rtc::log::success("[{}] started", name());
   if(ctl.hasRobot("panda_femur") && ctl.hasRobot("panda_tibia"))
   { // If we have two robots allow loading bonetag trajectories
-    auto boneTag = BoneTagTrajectoryLoader{};
-    boneTag.directory(ctl.config()("TrajectoryLoaders")("BoneTag")("directory"));
-    loaders_["BoneTagTrajectory"] = boneTag;
+    // auto boneTag = std::make_unique<BoneTagTrajectoryLoader>();
+    loaders_["BoneTagTrajectory"] = std::make_unique<BoneTagTrajectoryLoader>(ctl.robot("panda_tibia").frame("Tibia"), ctl.robot("panda_femur").frame("Femur"));
     loader_ = "BoneTagTrajectory";
+    loaders_[loader_]->directory(ctl.config()("TrajectoryLoaders")("BoneTag")("directory"));
   }
   else
   { // Only one robot
@@ -27,33 +27,24 @@ void ChooseTrajectory::start(mc_control::fsm::Controller & ctl)
   }
 
   auto keys = std::vector<std::string>{};
-  for(auto & loader : loaders_)
+  for(auto & [name, loader] : loaders_)
   {
-    keys.push_back(loader.first);
-    std::visit(
-        [&ctl](auto & l) {
-          mc_rtc::log::info("Adding to GUI {}", l.name());
-          l.addToGUI(*ctl.gui(), {"ChooseTrajectory"});
-        },
-        loader.second);
+    keys.push_back(name);
+    mc_rtc::log::info("Adding to GUI {}", name);
+    loader->addToGUI(*ctl.gui(), {"ChooseTrajectory"});
   }
 
   ctl.gui()->addElement({"ChooseTrajectory"},
                         mc_rtc::gui::ComboInput(
                             "Trajectory Loader", keys, [this]() { return loader_; },
                             [this, &ctl](const std::string & name) {
-                              loader_ = name;
-                              std::visit(
-                                  [&ctl](auto & l) {
-                                    mc_rtc::log::info("Adding to GUI {}", l.name());
-                                    l.addToGUI(*ctl.gui(), {"ChooseTrajectory"});
-                                  },
-                                  loaders_[loader_]);
+                              auto & l = *loaders_[loader_];
+                              mc_rtc::log::info("Adding to GUI {}", l.name());
+                              l.addToGUI(*ctl.gui(), {"ChooseTrajectory"});
                             }),
                         mc_rtc::gui::Button("Play Trajectory", [this, &ctl]() {
-                          std::visit(
-                              [this, &ctl](auto & l) {
                                 bool valid = true;
+                              auto & l = *loaders_[loader_];
                                 for(const auto & traj : l.trajectories())
                                 {
                                   valid = traj.poses().size();
@@ -64,8 +55,6 @@ void ChooseTrajectory::start(mc_control::fsm::Controller & ctl)
                                   }
                                 }
                                 ctl.datastore().assign("Trajectories", l.trajectories());
-                              },
-                              loaders_[loader_]);
                         }));
   output("OK");
 };

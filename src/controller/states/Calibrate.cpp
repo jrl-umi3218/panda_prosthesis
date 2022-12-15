@@ -50,6 +50,7 @@ bool Calibrate::run(mc_control::fsm::Controller & ctl)
   ctl.realRobot("panda_femur").posW(X_0_pf);
   ctl.robot("panda_femur").posW(X_0_pf);
 
+
   // X_0_tibiaCalib = X_0_femurCalib
   // Axis of rotation: X_0_tibia
   ctl.datastore().assign("Tibia", ctl.robot("panda_tibia").frame("Tibia").position());

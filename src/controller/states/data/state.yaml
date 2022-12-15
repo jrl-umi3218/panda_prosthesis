@@ -150,13 +150,6 @@ ManipulateKnee::Rotation:
     minTranslation: [-30, -50, -10]
     maxTranslation: [30, 50, 50]
 
-InitialChoice:
-  base: Choice
-  category: []
-  choices:
-    - ["Load Saved Calibration", "LoadSavedCalibration"]
-    - ["Start from current configuration", "StartFromCurrent"]
-
 Simulation:
   base: Meta
   transitions:
@@ -168,5 +161,7 @@ Simulation:
   - [InitializeRobots::NoLoad, SkipCalibration, PrepareJoint, Auto]
   - [Calibrate, ChangeTool, ChangeTool, Auto]
   - [ChangeTool, ToolChanged, PrepareJoint, Auto]
-  - [PrepareJoint, "PrepareTibia(OK), PrepareFemur(OK)", ManipulateKnee::Rotation, Auto]
+    #- [PrepareJoint, "PrepareTibia(OK), PrepareFemur(OK)", ManipulateKnee::Rotation, Auto]
+  - [PrepareJoint, "PrepareTibia(OK), PrepareFemur(OK)", ChooseTrajectory , Auto]
+  - [ChooseTrajectory, "OK", PlayTrajectory , Auto]
 
