@@ -1,8 +1,8 @@
 #include "PlayTrajectory.h"
 
 #include <mc_control/fsm/Controller.h>
-#include <boost/filesystem.hpp>
 #include <mc_rtc/io_utils.h>
+#include <boost/filesystem.hpp>
 
 void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
 {
@@ -20,7 +20,6 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
     for(auto & traj : trajectories)
     {
       traj.update();
-      mc_rtc::log::info("TRAJECTORY PLAYER CREATED FOR {}", traj.frame().name());
       trajPlayers_.push_back(std::make_shared<TrajectoryPlayer>(ctl.solver(), traj));
     }
   }

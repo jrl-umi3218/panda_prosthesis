@@ -23,13 +23,14 @@ struct TrajectoryPlayer
 
   void update(double dt)
   {
-    const auto & pose = trajectory_.pose(t_);
-    const auto & velocity = trajectory_.velocity(t_);
+    const auto & pose = trajectory_.worldPose(t_);
+    const auto & velocity = trajectory_.worldVelocity(t_);
 
-    mc_rtc::log::info("Update for frame {}", trajectory_.frame().name());
     // XXX define w.r.t the right frame?
     task_->targetPose(pose);
-    // task_->targetVel(velocity);
+    task_->targetVel(velocity);
+    mc_rtc::log::info("Update for frame {}\nRPY: {}\nVel: {}", trajectory_.frame().name(),
+                      pose.translation().transpose(), velocity.angular().transpose());
 
     if(t_ < trajectory_.duration())
     {
@@ -42,7 +43,7 @@ struct TrajectoryPlayer
     return t_ >= trajectory_.duration();
   }
 
- protected:
+protected:
   mc_solver::QPSolver & solver_;
   const Trajectory & trajectory_;
   std::shared_ptr<mc_tasks::force::ImpedanceTask> task_;
@@ -58,7 +59,8 @@ struct PlayTrajectory : mc_control::fsm::State
   bool run(mc_control::fsm::Controller & ctl) override;
 
   void teardown(mc_control::fsm::Controller & ctl) override;
- protected:
+
+protected:
   inline bool finished() const noexcept
   {
     for(const auto & player : trajPlayers_)

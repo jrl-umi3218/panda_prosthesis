@@ -164,4 +164,5 @@ Simulation:
     #- [PrepareJoint, "PrepareTibia(OK), PrepareFemur(OK)", ManipulateKnee::Rotation, Auto]
   - [PrepareJoint, "PrepareTibia(OK), PrepareFemur(OK)", ChooseTrajectory , Auto]
   - [ChooseTrajectory, "OK", PlayTrajectory , Auto]
+  - [PlayTrajectory, "OK", InitialChoice , Auto]
 

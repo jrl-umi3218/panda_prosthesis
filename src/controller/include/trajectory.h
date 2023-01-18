@@ -7,6 +7,8 @@ struct Trajectory
 {
   Trajectory(const std::string & name, const mc_rbdyn::RobotFrame & frame) : name_(name), frame_(frame)
   {
+    // By default rotate around the robot frame where the trajectory was created
+    refAxis_ = frame_->position();
   }
 
   /**
@@ -52,13 +54,14 @@ struct Trajectory
   {
     category.push_back(name_);
     using namespace mc_rtc::gui;
-    gui.addElement(this, category, mc_rtc::gui::Label("Robot", [this]() { return frame_->robot().name(); }),
-                   mc_rtc::gui::Label("Frame", [this]() { return frame_->name(); }),
-                   mc_rtc::gui::Label("Poses", [this]() { return poses_.size(); }),
-                   mc_rtc::gui::Label("Velocities", [this]() { return velocities_.size(); }),
-                   mc_rtc::gui::Label("Forces", [this]() { return forces_ ? forces_->size() : 0; }),
-                   mc_rtc::gui::NumberInput(
-                       "Duration", [this]() { return duration_; }, [this](double duration) { this->duration(duration); }));
+    gui.addElement(
+        this, category, mc_rtc::gui::Label("Robot", [this]() { return frame_->robot().name(); }),
+        mc_rtc::gui::Label("Frame", [this]() { return frame_->name(); }),
+        mc_rtc::gui::Label("Poses", [this]() { return poses_.size(); }),
+        mc_rtc::gui::Label("Velocities", [this]() { return velocities_.size(); }),
+        mc_rtc::gui::Label("Forces", [this]() { return forces_ ? forces_->size() : 0; }),
+        mc_rtc::gui::NumberInput(
+            "Duration", [this]() { return duration_; }, [this](double duration) { this->duration(duration); }));
   }
 
   void update();
@@ -77,10 +80,10 @@ struct Trajectory
    */
   void computeVelocity();
 
-  inline const sva::PTransformd & pose(double t) const
+  inline const sva::PTransformd worldPose(double t) const
   {
     mc_rtc::log::info("pose time: {}, index: {}", t, indexFromTime(t));
-    return poses_[indexFromTime(t)];
+    return poses_[indexFromTime(t)] * refAxis_;
   }
 
   inline const std::vector<sva::PTransformd> & poses() const noexcept
@@ -88,9 +91,9 @@ struct Trajectory
     return poses_;
   }
 
-  inline const sva::MotionVecd & velocity(double t) const
+  inline const sva::MotionVecd worldVelocity(double t) const
   {
-    return velocities_[indexFromTime(t)];
+    return refAxis_ * velocities_[indexFromTime(t)];
   }
 
   inline const std::vector<sva::MotionVecd> & velocities() const noexcept
@@ -130,11 +133,11 @@ struct Trajectory
     return duration_;
   }
 
- protected:
+protected:
   unsigned indexFromTime(double t) const noexcept
   {
     if(poses_.empty()) return 0;
-    return std::min(static_cast<unsigned>(floor(t / dt_)), static_cast<unsigned>(poses_.size() - 1)) ;
+    return std::min(static_cast<unsigned>(floor(t / dt_)), static_cast<unsigned>(poses_.size() - 1));
   }
 
 private:

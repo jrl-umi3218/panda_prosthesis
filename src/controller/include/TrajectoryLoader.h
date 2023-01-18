@@ -1,8 +1,8 @@
 #pragma once
+#include <mc_rbdyn/Robots.h>
 #include <mc_rtc/gui/ComboInput.h>
 #include <mc_rtc/gui/StateBuilder.h>
 #include <mc_rtc/io_utils.h>
-#include <mc_rbdyn/Robots.h>
 #include <boost/filesystem.hpp>
 #include "trajectory.h"
 #include <string>
@@ -95,7 +95,7 @@ protected:
 struct BoneTagTrajectoryLoader : public TrajectoryLoader
 {
   BoneTagTrajectoryLoader(const mc_rbdyn::RobotFrame & tibiaFrame, const mc_rbdyn::RobotFrame & femurFrame)
-      : trajTibia("Tibia Trajectory", tibiaFrame), trajFemur("Femur Trajectory", femurFrame)
+  : trajTibia("Tibia Trajectory", tibiaFrame), trajFemur("Femur Trajectory", femurFrame)
   {
     name_ = "BoneTagTrajectoryLoader";
   }
