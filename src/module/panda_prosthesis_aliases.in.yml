@@ -1,0 +1,1 @@
+panda_prosthesis/bottom10: [env, @bottom10_DIR@, bottom10]

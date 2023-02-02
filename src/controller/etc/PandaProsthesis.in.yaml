@@ -61,6 +61,8 @@ robots:
         X_p_f:
           translation: [0, 0.046, 0.23]
           rotation: [1.57, 0, 0]
+  bottom10:
+    module: panda_prosthesis/bottom10
 # General constraints, always on
 constraints:
 - type: contact
