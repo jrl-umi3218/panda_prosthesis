@@ -14,13 +14,23 @@ public:
   PandaProsthesisRobotModule(const std::string & prosthesis);
 };
 
+/**
+ * Robot module for the Panda femur with the top brace (brace_top_setup)
+ * attached
+ **/
+struct ROBOT_MODULE_API PandaBraceRobotModule : public mc_robots::PandaRobotModule
+{
+public:
+  PandaBraceRobotModule();
+};
+
 } // namespace mc_robots
 
 extern "C"
 {
   ROBOT_MODULE_API void MC_RTC_ROBOT_MODULE(std::vector<std::string> & names)
   {
-    names = {"PandaProsthesis::Femur", "PandaProsthesis::Tibia"};
+    names = {"PandaProsthesis::Femur", "PandaProsthesis::Tibia", "PandaBrace::Femur"};
   }
   ROBOT_MODULE_API void destroy(mc_rbdyn::RobotModule * ptr)
   {
@@ -36,6 +46,10 @@ extern "C"
     else if(n == "PandaProsthesis::Tibia")
     {
       return new mc_robots::PandaProsthesisRobotModule("tibia");
+    }
+    else if(n == "PandaBrace::Femur")
+    {
+      return new mc_robots::PandaBraceRobotModule();
     }
     else
     {
