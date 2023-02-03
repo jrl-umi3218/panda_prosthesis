@@ -106,7 +106,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
 
   // Merge with brace_top_setup urdf here
   auto merge_urdf = [this](const std::string & urdf_file, const std::string & merge_root,
-                           const std::string & merge_with_link) {
+                           const std::string & merge_with_link, const sva::PTransformd & X_root_link) {
     auto brace_urdf = rbd::parsers::from_urdf_file(urdf_file);
     const auto & brace_mb = brace_urdf.mb;
     const auto & bodies = brace_mb.bodies();
@@ -167,15 +167,26 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
     auto merge_fixed_joint = merge_root + "_" + merge_with_link + "_joint";
     mc_rtc::log::info("Add fixed joint {} between {} and {}", merge_fixed_joint, merge_root, merge_with_link);
     mbg.addJoint({rbd::Joint::Type::Fixed, true, merge_fixed_joint});
-    mbg.linkBodies(merge_root, sva::PTransformd::Identity(), merge_with_link, sva::PTransformd::Identity(),
+    mbg.linkBodies(merge_root, X_root_link, merge_with_link, sva::PTransformd::Identity(),
                    merge_fixed_joint);
 
     mb = mbg.makeMultiBody(mb.body(0).name(), true);
     mbc = rbd::MultiBodyConfig(mb);
     mbc.zero(mb);
   };
+
+  auto prosthesis = std::string{"panda_brace_femur"};
+  auto transforms = bfs::path(panda_prosthesis::transforms_DIR);
+  auto transform = transforms / (prosthesis + ".yml");
+  if(!bfs::exists(transform))
+  {
+    mc_rtc::log::error_and_throw<std::runtime_error>("Invalid prosthesis {}, no transform found {}", prosthesis,
+                                                     transform.string());
+  }
+  auto transformC = mc_rtc::Configuration(transform.string());
+
   merge_urdf(panda_prosthesis::brace_top_setup_DIR + std::string{"/urdf/brace_top_setup.urdf"}, "panda_link8",
-             "base_link");
+             "base_link", transformC("panda_link8_to_base_link"));
 
   // Save new URDF
   auto urdf_path = bfs::temp_directory_path() / ("panda_brace_femur.urdf");
