@@ -22,5 +22,4 @@ private:
   std::string frame_;
   double saved_stiffness_ = 1.0;
   sva::PTransformd initial_pose_ = sva::PTransformd::Identity();
-  sva::PTransformd default_pose_ = sva::PTransformd::Identity();
 };

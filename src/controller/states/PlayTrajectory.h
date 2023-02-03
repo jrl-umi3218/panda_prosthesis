@@ -11,6 +11,7 @@ struct TrajectoryPlayer
     // XXX fixme allow frames in ImpedanceTask
     mc_rtc::log::info("Make task for robot {}", traj.frame().robot().name());
     task_ = std::make_shared<mc_tasks::force::ImpedanceTask>(traj.frame());
+    task_->stiffness(1000);
     task_->reset();
     solver.addTask(task_);
   }
@@ -28,7 +29,8 @@ struct TrajectoryPlayer
 
     // XXX define w.r.t the right frame?
     task_->targetPose(pose);
-    task_->targetVel(velocity);
+    // XXX disable for now until the velocity has been verified
+    // task_->targetVel(velocity);
     mc_rtc::log::info("Update for frame {}\nRPY: {}\nVel: {}", trajectory_.frame().name(),
                       pose.translation().transpose(), velocity.angular().transpose());
 

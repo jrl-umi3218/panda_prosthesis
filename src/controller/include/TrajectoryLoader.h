@@ -142,3 +142,44 @@ protected:
   Trajectory trajTibia;
   Trajectory trajFemur;
 };
+
+struct BraceTrajectoryLoader : public TrajectoryLoader
+{
+  BraceTrajectoryLoader(const mc_rbdyn::RobotFrame & femurFrame) : trajFemur("Femur Trajectory", femurFrame)
+  {
+    name_ = "BraceTrajectoryLoader";
+  }
+
+  void load(const std::string & directory, const std::string & csv) override
+  {
+    TrajectoryLoader::load(directory, csv);
+    trajFemur.clear();
+
+    trajFemur.loadPoseFromCSV(directory + "/" + csv, "FE Rotation (°)", "IE Rotation (°)", "VV Rotation (°)",
+                              "AP Translation (mm)", "ML Translation (mm)", "SI Translation (mm)");
+    trajFemur.loadForceFromCSV(directory + "/" + csv, "Mx (Nm)", "My (Nm)", "Mz (Nm)", "Fx (N)", "Fy (N)", "Fz (N)");
+    trajFemur.update();
+    mc_rtc::log::info("Loaded Brace trajectory {} with {} poses", csv, trajFemur.poses().size());
+  }
+
+  void addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category) override
+  {
+    using namespace mc_rtc::gui;
+    TrajectoryLoader::addToGUI(gui, category);
+    category.push_back(name_);
+    trajFemur.addToGUI(gui, category);
+  }
+
+  const Trajectory & femurTrajectory() const
+  {
+    return trajFemur;
+  }
+
+  std::vector<Trajectory> trajectories() const override
+  {
+    return {trajFemur};
+  }
+
+protected:
+  Trajectory trajFemur;
+};

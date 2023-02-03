@@ -6,8 +6,9 @@
 void Initial::load(mc_control::fsm::Controller & ctl)
 {
   mc_rtc::log::info("[{}] Loading configuration from {}", name(), etc_file_);
-  initial_pose_ = default_pose_;
-  auto initial_joints = ctl.robot().mbc().q;
+  auto & robot = ctl.robot(robot_);
+  initial_pose_ = robot.posW();
+  auto initial_joints = robot.mbc().q;
   if(boost::filesystem::exists(etc_file_))
   {
     mc_rtc::Configuration initial(etc_file_);
@@ -30,7 +31,6 @@ void Initial::load(mc_control::fsm::Controller & ctl)
     }
   }
   ctl.getPostureTask(robot_)->posture(initial_joints);
-  auto & robot = ctl.robot(robot_);
   auto qActual = robot.mbc().q;
   robot.mbc().q = initial_joints;
   robot.posW(initial_pose_);
@@ -52,12 +52,12 @@ void Initial::load(mc_control::fsm::Controller & ctl)
 
 void Initial::start(mc_control::fsm::Controller & ctl)
 {
-  config_("robot", robot_);
+  robot_ = config_("robot", ctl.robot().name());
+  initial_pose_ = ctl.robot(robot_).posW();
   config_("load", load_);
   config_("frame", frame_);
   config_("reset_mbc", reset_mbc_);
   config_("category", category_);
-  config_("default_pose", default_pose_);
   if(!ctl.hasRobot(robot_))
   {
     mc_rtc::log::error_and_throw("[{}] No robot named \"{}\" in this controller", name(), robot_);

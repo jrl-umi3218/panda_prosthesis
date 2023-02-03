@@ -19,6 +19,4 @@ install(DIRECTORY inertia DESTINATION "${DATA_DIR}" FILES_MATCHING PATTERN "*.ym
 install(DIRECTORY transforms DESTINATION "${DATA_DIR}" FILES_MATCHING PATTERN "*.yml")
 install(DIRECTORY rsdf DESTINATION "${DATA_DIR}" FILES_MATCHING PATTERN "*.rsdf")
 
-set(TRAJECTORY_DIR "${PROJECT_SOURCE_DIR}/data/trajectories")
-set(RESULTS_DIR "${PROJECT_SOURCE_DIR}/data/results")
 add_subdirectory(src)

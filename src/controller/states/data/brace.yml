@@ -1,0 +1,40 @@
+Brace::Initialize:
+  base: Initial
+  frame: Femur
+  stiffness: 10
+  category: ["Initial Configuration"]
+
+Brace::InitializeRobots:
+  base: Parallel
+  states: [Brace::Initialize, Choice]
+  configs:
+    Choice:
+      category: []
+      choices:
+        - ["Calibrate", "Calibrate"]
+        - ["Skip Calibration", "SkipCalibration"]
+
+Brace::InitializeRobots::Load:
+  base: Brace::InitializeRobots
+  configs:
+    Brace::Initialize:
+      load: true
+
+Brace::InitializeRobots::NoLoad:
+  base: Brace::InitializeRobots
+  configs:
+    Brace::Initialize:
+      load: false
+
+Brace::Simulation:
+  base: Meta
+  transitions:
+    - [InitialChoice, LoadSavedCalibration, Brace::InitializeRobots::Load, Auto]
+    - [InitialChoice, StartFromCurrent, Brace::InitializeRobots::NoLoad, Auto]
+      #- [Brace::InitializeRobots::Load, Calibrate, Calibrate, Auto]
+      #- [Brace::InitializeRobots::NoLoad, Calibrate, Calibrate, Auto]
+    - [Brace::InitializeRobots::Load, SkipCalibration, ChooseTrajectory, Auto]
+    - [Brace::InitializeRobots::NoLoad, SkipCalibration, ChooseTrajectory, Auto]
+    - [ChooseTrajectory, OK, PlayTrajectory , Auto]
+  # - [PlayTrajectory, OK, InitialChoice , Auto]
+

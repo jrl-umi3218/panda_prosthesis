@@ -164,11 +164,11 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
         mbg.linkBodies(predBName, trans[ji], succBName, sva::PTransformd::Identity(), j.name());
       }
     }
+
     auto merge_fixed_joint = merge_root + "_" + merge_with_link + "_joint";
     mc_rtc::log::info("Add fixed joint {} between {} and {}", merge_fixed_joint, merge_root, merge_with_link);
     mbg.addJoint({rbd::Joint::Type::Fixed, true, merge_fixed_joint});
-    mbg.linkBodies(merge_root, X_root_link, merge_with_link, sva::PTransformd::Identity(),
-                   merge_fixed_joint);
+    mbg.linkBodies(merge_root, X_root_link, merge_with_link, sva::PTransformd::Identity(), merge_fixed_joint);
 
     mb = mbg.makeMultiBody(mb.body(0).name(), true);
     mbc = rbd::MultiBodyConfig(mb);
@@ -200,6 +200,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
     ofs << rbd::parsers::to_urdf({mb, mbc, mbg, limits, _visual, _collision, "panda_brace_femur"});
   }
   this->urdf_path = urdf_path.string();
+  // this->name = "panda_brace_femur";
   this->name = "panda_brace_femur";
   mc_rtc::log::info("Wrote URDF to {}", urdf_path.string());
 }

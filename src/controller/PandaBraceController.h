@@ -6,9 +6,9 @@
 namespace panda_prosthetics
 {
 
-struct PandaProsthetics : public mc_control::fsm::Controller
+struct PandaBraceController : public mc_control::fsm::Controller
 {
-  PandaProsthetics(mc_rbdyn::RobotModulePtr rm, double dt, const mc_rtc::Configuration & config);
+  PandaBraceController(mc_rbdyn::RobotModulePtr rm, double dt, const mc_rtc::Configuration & config);
 
   bool run() override;
 
@@ -19,5 +19,3 @@ private:
 };
 
 } // namespace panda_prosthetics
-
-CONTROLLER_CONSTRUCTOR("PandaProsthesis", panda_prosthetics::PandaProsthetics)

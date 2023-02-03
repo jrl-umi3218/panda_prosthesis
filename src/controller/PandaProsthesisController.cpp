@@ -1,4 +1,4 @@
-#include "controller.h"
+#include "PandaProsthesisController.h"
 #include "config.h"
 
 namespace panda_prosthetics
@@ -26,5 +26,7 @@ void PandaProsthetics::reset(const mc_control::ControllerResetData & reset_data)
 {
   mc_control::fsm::Controller::reset(reset_data);
 }
+
+CONTROLLER_CONSTRUCTOR("PandaProsthesis", panda_prosthetics::PandaProsthetics)
 
 } // namespace panda_prosthetics
