@@ -39,16 +39,16 @@ robots:
       rotation: [0.0, 0.0, 0.0]
     frames:
       - name: TibiaCalibration
-        parent: Link4
+        parent: Link6
         X_p_f:
-          translation: [0, 0.096, 0.225] # assuming 2cm height for the calibration tool
+          translation: [0, 0.0, 0.03] # assuming 2cm height for the calibration tool
           rotation: [1.57, 0, 0]
       # Frame above the surface of the Tibia
       # This should contain the desired offset distance between the tibia and the joint center
       - name: Tibia
-        parent: Link4
+        parent: Link6
         X_p_f:
-          translation: [0, 0.046, 0.23]
+          translation: [0, 0.0, 0.03]
           rotation: [1.57, 0, 0]
   panda_brace_femur:
     init_pos:

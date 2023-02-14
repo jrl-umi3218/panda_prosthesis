@@ -9,7 +9,6 @@ namespace mc_robots
 {
 PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(false, false, false)
 {
-
   // Merge with brace_top_setup urdf here
   auto merge_urdf = [this](const std::string & urdf_file, const std::string & merge_root,
                            const std::string & merge_with_link, const sva::PTransformd & X_root_link) {
