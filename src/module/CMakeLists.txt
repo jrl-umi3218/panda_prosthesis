@@ -22,9 +22,15 @@ if(${catkin_FOUND})
   endif()
 endif()
 
-
 configure_file(config.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
-
 add_robot(PandaProsthesisModule module.cpp module.h)
 target_link_libraries(PandaProsthesisModule PUBLIC mc_panda::panda)
 target_include_directories(PandaProsthesisModule PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+
+if(${brace_bottom_setup_FOUND})
+  configure_file(config_panda_brace.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/config_panda_brace.h")
+  message(STATUS "Found brace_top_setup, building PandaBrace robot module")
+  add_robot(PandaBraceModule panda_brace_module.cpp panda_brace_module.h)
+  target_link_libraries(PandaBraceModule PUBLIC mc_panda::panda)
+  target_include_directories(PandaBraceModule PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+endif()

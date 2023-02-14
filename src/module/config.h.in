@@ -9,8 +9,4 @@ static constexpr auto inertia_DIR = "@inertia_DIR@";
 static constexpr auto transforms_DIR = "@transforms_DIR@";
 static constexpr auto rsdf_DIR = "@rsdf_DIR@";
 
-// Fixed Leg attachement for the robot
-static constexpr auto brace_bottom_setup_DIR = "@brace_bottom_setup_DIR@";
-static constexpr auto brace_top_setup_DIR = "@brace_top_setup_DIR@";
-
 }

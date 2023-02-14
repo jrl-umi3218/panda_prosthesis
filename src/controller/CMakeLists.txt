@@ -24,15 +24,19 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaProsthesis.yaml" DESTINATION
 
 
 # PandaBrace controller (Lea's orthesis)
-add_controller(PandaBraceController PandaBraceController.cpp PandaBraceController.h)
-target_link_libraries(PandaBraceController PUBLIC PandaProsthesisCommon)
-target_link_libraries(PandaBraceController PUBLIC mc_rtc::mc_control_fsm)
-target_include_directories(PandaBraceController PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../module/include>)
+if(TARGET PandaBraceModule)
+  message(STATUS "Will build PandaBraceController as the PandaBraceModule is available")
+  add_controller(PandaBraceController PandaBraceController.cpp PandaBraceController.h)
+  target_link_libraries(PandaBraceController PUBLIC PandaProsthesisCommon)
+  target_link_libraries(PandaBraceController PUBLIC mc_rtc::mc_control_fsm)
+  target_include_directories(PandaBraceController PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../module/include>)
 
-set(TRAJECTORY_DIR "${PROJECT_SOURCE_DIR}/data/trajectories/brace")
-set(RESULTS_DIR "${PROJECT_SOURCE_DIR}/data/results/brace")
-configure_file(etc/PandaBrace.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaBrace.yaml")
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaBrace.yaml" DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc")
+  set(TRAJECTORY_DIR "${PROJECT_SOURCE_DIR}/data/trajectories/brace")
+  set(RESULTS_DIR "${PROJECT_SOURCE_DIR}/data/results/brace")
+  configure_file(etc/PandaBrace.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaBrace.yaml")
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaBrace.yaml" DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc")
+endif()
+
 
 
 add_subdirectory(states)
