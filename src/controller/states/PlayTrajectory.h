@@ -28,9 +28,9 @@ struct TrajectoryPlayer
     const auto & velocity = trajectory_.worldVelocity(t_);
 
     // XXX define w.r.t the right frame?
-    task_->targetPose(pose);
+    // task_->targetPose(pose);
     // XXX disable for now until the velocity has been verified
-    // task_->targetVel(velocity);
+    task_->targetVel(velocity);
     mc_rtc::log::info("Update for frame {}\nRPY: {}\nVel: {}", trajectory_.frame().name(),
                       pose.translation().transpose(), velocity.angular().transpose());
 
