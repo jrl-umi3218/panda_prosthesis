@@ -48,7 +48,7 @@ robots:
       - name: Tibia
         parent: Link6
         X_p_f:
-          translation: [0, 0.0, 0.03]
+          translation: [0, 0.0, 0.02]
           rotation: [1.57, 0, 0]
   panda_brace_femur:
     init_pos:

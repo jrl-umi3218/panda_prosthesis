@@ -93,6 +93,8 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
   merge_urdf(panda_prosthesis::brace_top_setup_DIR + std::string{"/urdf/brace_top_setup.urdf"}, "panda_link8",
              "base_link", transformC("panda_link8_to_base_link"));
 
+  _forceSensors.emplace_back("BraceTopForceSensor", "Link1", sva::PTransformd::Identity());
+
   // Save new URDF
   auto urdf_path = bfs::temp_directory_path() / ("panda_brace_femur.urdf");
   {

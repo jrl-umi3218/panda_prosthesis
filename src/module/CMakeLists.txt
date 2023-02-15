@@ -1,3 +1,8 @@
+configure_file(config.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
+add_robot(PandaProsthesisModule module.cpp module.h)
+target_link_libraries(PandaProsthesisModule PUBLIC mc_panda::panda)
+target_include_directories(PandaProsthesisModule PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+
 # Attempt to find extra urdf for extra robot modules
 find_package(catkin QUIET)
 if(${catkin_FOUND})
@@ -8,8 +13,18 @@ if(${catkin_FOUND})
     message(STATUS "Found brace_bottom_setup sources in ${brace_bottom_setup_SOURCE_PREFIX}")
     set(brace_bottom_setup_DIR ${brace_bottom_setup_SOURCE_PREFIX})
 
-    configure_file(brace_bottom_setup.in.yml ${CMAKE_CURRENT_BINARY_DIR}/brace_bottom_setup.yml)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/brace_bottom_setup.yml DESTINATION ${MC_ROBOTS_ALIASES_DIRECTORY})
+    # Generate the robot module YAML description using this value
+    configure_file(yaml/brace_bottom_setup.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/yaml/brace_bottom_setup.yaml")
+
+    # Install the YAML file
+    set(MODULE_INSTALL_LOCATION "${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/")
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/yaml/brace_bottom_setup.yaml" DESTINATION "${MODULE_INSTALL_LOCATION}")
+
+    # Configure the alias accordingly
+    configure_file(alias/brace_bottom_setup.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/alias/brace_bottom_setup.yaml")
+
+    # Install the alias
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/alias/brace_bottom_setup.yaml" DESTINATION "${MC_ROBOTS_ALIASES_DIRECTORY}")
   endif()
 
   if(${brace_top_setup_FOUND})
@@ -17,20 +32,13 @@ if(${catkin_FOUND})
     message(STATUS "Found brace_top_setup sources in ${brace_top_setup_SOURCE_PREFIX}")
     set(brace_top_setup_DIR ${brace_top_setup_SOURCE_PREFIX})
 
-    configure_file(brace_top_setup.in.yml ${CMAKE_CURRENT_BINARY_DIR}/brace_top_setup.yml)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/brace_top_setup.yml DESTINATION ${MC_ROBOTS_ALIASES_DIRECTORY})
+    configure_file(alias/brace_top_setup.in.yaml ${CMAKE_CURRENT_BINARY_DIR}/alias/brace_top_setup.yaml)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/alias/brace_top_setup.yaml DESTINATION ${MC_ROBOTS_ALIASES_DIRECTORY})
+
+    configure_file(config_panda_brace.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/config_panda_brace.h")
+    message(STATUS "Found brace_top_setup, building PandaBrace robot module")
+    add_robot(PandaBraceModule panda_brace_module.cpp panda_brace_module.h)
+    target_link_libraries(PandaBraceModule PUBLIC mc_panda::panda)
+    target_include_directories(PandaBraceModule PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
   endif()
-endif()
-
-configure_file(config.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/config.h")
-add_robot(PandaProsthesisModule module.cpp module.h)
-target_link_libraries(PandaProsthesisModule PUBLIC mc_panda::panda)
-target_include_directories(PandaProsthesisModule PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
-
-if(${brace_bottom_setup_FOUND})
-  configure_file(config_panda_brace.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/config_panda_brace.h")
-  message(STATUS "Found brace_top_setup, building PandaBrace robot module")
-  add_robot(PandaBraceModule panda_brace_module.cpp panda_brace_module.h)
-  target_link_libraries(PandaBraceModule PUBLIC mc_panda::panda)
-  target_include_directories(PandaBraceModule PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
 endif()
