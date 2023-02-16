@@ -105,8 +105,7 @@ states:
       - ["Load Saved Calibration", "LoadSavedCalibration"]
       - ["Start from current configuration", "StartFromCurrent"]
 
-# TODO use force sensor plugin or implement them as devices 
-# Plugins: [BoneTagSerialPlugin]
+Plugins: [AtiDaq]
 
 transitions:
   - [Brace::Simulation, Auto, Brace::Simulation, Strict]
