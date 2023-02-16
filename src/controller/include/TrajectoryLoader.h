@@ -95,7 +95,7 @@ protected:
 struct BoneTagTrajectoryLoader : public TrajectoryLoader
 {
   BoneTagTrajectoryLoader(const mc_rbdyn::RobotFrame & tibiaFrame, const mc_rbdyn::RobotFrame & femurFrame)
-  : trajTibia("Tibia Trajectory", tibiaFrame), trajFemur("Femur Trajectory", femurFrame)
+  : trajTibia("Tibia Trajectory", tibiaFrame, tibiaFrame), trajFemur("Femur Trajectory", femurFrame, femurFrame)
   {
     name_ = "BoneTagTrajectoryLoader";
   }
@@ -145,7 +145,7 @@ protected:
 
 struct BraceTrajectoryLoader : public TrajectoryLoader
 {
-  BraceTrajectoryLoader(const mc_rbdyn::RobotFrame & femurFrame) : trajFemur("Femur Trajectory", femurFrame)
+  BraceTrajectoryLoader(const mc_rbdyn::RobotFrame & femurFrame, const mc_rbdyn::RobotFrame & tibiaFrame) : trajFemur("Femur Trajectory", femurFrame, tibiaFrame)
   {
     name_ = "BraceTrajectoryLoader";
   }

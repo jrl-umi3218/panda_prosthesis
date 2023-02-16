@@ -5,10 +5,11 @@
 
 struct Trajectory
 {
-  Trajectory(const std::string & name, const mc_rbdyn::RobotFrame & frame) : name_(name), frame_(frame)
+  Trajectory(const std::string & name, const mc_rbdyn::RobotFrame & frame, const mc_rbdyn::RobotFrame & forceFrame) : name_(name), frame_(frame), forceFrame_(forceFrame)
   {
     // By default rotate around the robot frame where the trajectory was created
     refAxis_ = frame_->position();
+    refForceAxis_ = forceFrame_->position();
   }
 
   /**
@@ -144,13 +145,15 @@ private:
   bool needUpdate_ = true;
   std::string name_{};
   mc_rbdyn::ConstRobotFramePtr frame_;
+  mc_rbdyn::ConstRobotFramePtr forceFrame_;
   // std::string robot_{""};
   // std::string robotFrame_{""};
-  sva::PTransformd refAxis_{sva::PTransformd::Identity()}; ///< Reference axis expressed w.r.t refFrame_
+  sva::PTransformd refAxis_{sva::PTransformd::Identity()}; ///< Reference axis in world frame
+  sva::PTransformd refForceAxis_{sva::PTransformd::Identity()}; ///< Reference force axis in world frame
   double duration_ = 5; ///< Duration of the trajectory
   double dt_ = 0;
   std::vector<sva::PTransformd> poses_; ///< Desired pose defined w.r.t refAxis_
   std::vector<sva::MotionVecd> velocities_; ///< Desired velocity defined w.r.t refAxis_
   std::optional<std::vector<sva::ForceVecd>>
-      forces_; ///< Desired force defined w.r.t the pose frame along the trajectory
+      forces_; ///< Desired force defined w.r.t refForceAxis_
 };

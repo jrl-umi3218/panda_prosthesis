@@ -8,12 +8,11 @@ struct TrajectoryPlayer
 {
   TrajectoryPlayer(mc_solver::QPSolver & solver, const Trajectory & traj) : solver_(solver), trajectory_(traj)
   {
-    // XXX fixme allow frames in ImpedanceTask
-    mc_rtc::log::info("Make task for robot {}", traj.frame().robot().name());
     task_ = std::make_shared<mc_tasks::force::ImpedanceTask>(traj.frame());
     task_->stiffness(1000);
     task_->reset();
     solver.addTask(task_);
+    mc_rtc::log::info("Add impedance task for robot {}", traj.frame().robot().name());
   }
 
   ~TrajectoryPlayer()
@@ -24,19 +23,21 @@ struct TrajectoryPlayer
 
   void update(double dt)
   {
-    const auto & pose = trajectory_.worldPose(t_);
-    const auto & velocity = trajectory_.worldVelocity(t_);
-
-    // XXX define w.r.t the right frame?
-    task_->targetPose(pose);
-    // XXX disable for now until the velocity has been verified
-    // task_->targetVel(velocity);
-    mc_rtc::log::info("Update for frame {}\nRPY: {}\nVel: {}", trajectory_.frame().name(),
-                      pose.translation().transpose(), velocity.angular().transpose());
-
     if(t_ < trajectory_.duration())
     {
+      const auto & pose = trajectory_.worldPose(t_);
+      const auto & velocity = trajectory_.worldVelocity(t_);
+
+      task_->targetPose(pose);
+      task_->targetVel(velocity);
+      mc_rtc::log::info("Update for frame {}\nRPY: {}\nVel: {}", trajectory_.frame().name(),
+                        pose.translation().transpose(), velocity.angular().transpose());
+
       t_ = ++n_ * dt;
+    }
+    else
+    {
+      task_->targetVel(sva::MotionVecd::Zero());
     }
   }
 
