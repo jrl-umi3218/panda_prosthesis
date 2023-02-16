@@ -5,12 +5,12 @@ name: brace_bottom_setup
 urdf_path: urdf/brace_bottom_setup.urdf
 # Force sensors attached to this robot
 forceSensors:
-  - name: TopForceSensor 
+  - name: BraceTopForceSensor
     parentBody: Link5
     X_p_f:
       rotation: [0, 0, 0]
       translation: [0, 0, 0]
-  - name: BottomForceSensor
+  - name: BraceBottomForceSensor
     parentBody: Link3
     X_p_f:
       translation: [0, 0, 0]

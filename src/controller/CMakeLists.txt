@@ -35,6 +35,8 @@ if(TARGET PandaBraceModule)
   set(RESULTS_DIR "${PROJECT_SOURCE_DIR}/data/results/brace")
   configure_file(etc/PandaBrace.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaBrace.yaml")
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaBrace.yaml" DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc")
+
+  install(FILES etc/AtiDaq.yaml DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc/PandaBrace/plugins/")
 endif()
 
 
