@@ -20,6 +20,24 @@ void Trajectory::loadPoseFromCSV(const std::string & csv,
   }
 }
 
+void Trajectory::loadForceFromCSV(const std::string & csv,
+                      const std::string & cx,
+                      const std::string & cy,
+                      const std::string & cz,
+                      const std::string & fx,
+                      const std::string & fy,
+                      const std::string & fz)
+{
+  io::CSVReader<6> in(csv);
+  sva::ForceVecd wrench = sva::ForceVecd::Zero();
+  forces_ = std::vector<sva::ForceVecd>{};
+  in.read_header(io::ignore_extra_column, cx, cy, cz, fx, fy, fz);
+  while(in.read_row(wrench.couple().x(), wrench.couple().y(), wrench.couple().z(), wrench.force().x(), wrench.force().y(), wrench.force().z()))
+  {
+    forces_->push_back(wrench);
+  }
+}
+
 void Trajectory::update()
 {
   if(needUpdate_)
@@ -33,6 +51,7 @@ void Trajectory::update()
     needUpdate_ = false;
   }
 }
+
 
 void Trajectory::computeVelocity()
 {

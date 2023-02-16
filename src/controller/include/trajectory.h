@@ -47,9 +47,7 @@ struct Trajectory
                         const std::string & cz,
                         const std::string & fx,
                         const std::string & fy,
-                        const std::string & fz)
-  {
-  }
+                        const std::string & fz);
 
   void addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
   {
@@ -100,6 +98,15 @@ struct Trajectory
   inline const std::vector<sva::MotionVecd> & velocities() const noexcept
   {
     return velocities_;
+  }
+
+  inline const sva::ForceVecd worldWrench(double t) const
+  {
+    if(forces_)
+    {
+      return refForceAxis_.dualMul((*forces_)[indexFromTime(t)]);
+    }
+    return sva::ForceVecd::Zero();
   }
 
   inline void name(const std::string & name)

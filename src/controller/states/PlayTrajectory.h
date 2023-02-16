@@ -10,6 +10,7 @@ struct TrajectoryPlayer
   {
     task_ = std::make_shared<mc_tasks::force::ImpedanceTask>(traj.frame());
     task_->stiffness(1000);
+    task_->gains().wrench().linear({0,0,0.1});
     task_->reset();
     solver.addTask(task_);
     mc_rtc::log::info("Add impedance task for robot {}", traj.frame().robot().name());
@@ -27,17 +28,20 @@ struct TrajectoryPlayer
     {
       const auto & pose = trajectory_.worldPose(t_);
       const auto & velocity = trajectory_.worldVelocity(t_);
+      const auto & wrench = trajectory_.worldWrench(t_);
 
       task_->targetPose(pose);
       task_->targetVel(velocity);
-      mc_rtc::log::info("Update for frame {}\nRPY: {}\nVel: {}", trajectory_.frame().name(),
-                        pose.translation().transpose(), velocity.angular().transpose());
+      task_->targetWrenchW(wrench);
+      mc_rtc::log::info("Update for frame {}\nRPY : {}\nVel : {}\nForce: {}", trajectory_.frame().name(),
+                        pose.translation().transpose(), velocity.angular().transpose(), wrench.force().transpose());
 
       t_ = ++n_ * dt;
     }
     else
     {
       task_->targetVel(sva::MotionVecd::Zero());
+      task_->targetWrench(sva::ForceVecd::Zero());
     }
   }
 
