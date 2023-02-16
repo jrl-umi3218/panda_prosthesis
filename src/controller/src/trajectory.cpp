@@ -20,6 +20,19 @@ void Trajectory::loadPoseFromCSV(const std::string & csv,
   }
 }
 
+void Trajectory::postProcessPose()
+{
+  sva::PTransformd X_0_init;
+  if(poses_.size())
+  {
+    X_0_init = poses_.front();
+  }
+  for(auto & pose : poses_)
+  {
+    pose = pose * X_0_init.inv();
+  }
+}
+
 void Trajectory::loadForceFromCSV(const std::string & csv,
                       const std::string & cx,
                       const std::string & cy,

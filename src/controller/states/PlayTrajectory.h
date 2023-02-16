@@ -10,7 +10,7 @@ struct TrajectoryPlayer
   {
     task_ = std::make_shared<mc_tasks::force::ImpedanceTask>(traj.frame());
     task_->stiffness(1000);
-    task_->gains().wrench().linear({0,0,0.1});
+    task_->gains().wrench().linear({0,0,0});
     task_->reset();
     solver.addTask(task_);
     mc_rtc::log::info("Add impedance task for robot {}", traj.frame().robot().name());

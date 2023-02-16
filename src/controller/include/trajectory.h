@@ -31,6 +31,9 @@ struct Trajectory
                        const std::string & ty,
                        const std::string & tz);
 
+  /* Remove initial offset from loaded poses */
+  void postProcessPose();
+
   void loadVelocityFromCSV(const std::string & csv,
                            const std::string & cx,
                            const std::string & cy,

@@ -52,7 +52,7 @@ robots:
           rotation: [1.57, 0, 0]
   panda_brace_femur:
     init_pos:
-      translation: [0,0,0.685]
+      translation: [0,0,0.655]
       rotation: [0.0, 0.0, 0.0]
     frames:
       - name: FemurCalibration
@@ -70,13 +70,10 @@ robots:
 # General constraints, always on
 constraints:
 - type: contact
-#- type: kinematics
-#  robot: panda_femur
-#  damper: [0.1, 0.01, 0.5]
-#  velocityPercent: 0.9
-#- type: kinematics
-#  robot: panda_tibia
-#  damper: [0.1, 0.01, 0.5]
+- type: kinematics
+  robot: panda_brace_femur
+  damper: [0.1, 0.01, 0.5]
+  velocityPercent: 0.8
 # Collision constraint
 collisions:
 - type: collision
