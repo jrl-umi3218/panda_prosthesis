@@ -155,9 +155,8 @@ struct BraceTrajectoryLoader : public TrajectoryLoader
     TrajectoryLoader::load(directory, csv);
     trajFemur.clear();
 
-    trajFemur.loadPoseFromCSV(directory + "/" + csv, "FE Rotation (°)", "IE Rotation (°)", "VV Rotation (°)",
-                              "AP Translation (mm)", "ML Translation (mm)", "SI Translation (mm)");
-    trajFemur.postProcessPose(); // remove initial offset
+    trajFemur.loadPoseFromCSV(directory + "/" + csv, "FE Rotation (°)", "VV Rotation (°)", "IE Rotation (°)",
+                              "ML Translation (mm)", "AP Translation (mm)", "SI Translation (mm)");
     trajFemur.loadForceFromCSV(directory + "/" + csv, "Mx (Nm)", "My (Nm)", "Mz (Nm)", "Fx (N)", "Fy (N)", "Fz (N)");
     trajFemur.update();
     mc_rtc::log::info("Loaded Brace trajectory {} with {} poses", csv, trajFemur.poses().size());
