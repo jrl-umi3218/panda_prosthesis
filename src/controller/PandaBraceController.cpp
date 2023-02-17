@@ -11,6 +11,9 @@ PandaBraceController::PandaBraceController(mc_rbdyn::RobotModulePtr rm, double d
   gui()->addElement(
       {"Frames"}, mc_rtc::gui::Transform("Femur", [this]() { return robot().frame("Femur").position(); }),
       mc_rtc::gui::Transform("FemurCalibration", [this]() { return robot().frame("FemurCalibration").position(); }));
+  gui()->addElement(
+      {"Frames"}, mc_rtc::gui::Transform("Tibia", [this]() { return robot("brace_bottom_setup").frame("Tibia").position(); }),
+      mc_rtc::gui::Transform("TibiaCalibration", [this]() { return robot("brace_bottom_setup").frame("TibiaCalibration").position(); }));
 }
 
 bool PandaBraceController::run()
