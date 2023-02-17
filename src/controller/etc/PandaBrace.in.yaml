@@ -38,42 +38,32 @@ robots:
       translation: [0.55,0,0.0]
       rotation: [0.0, 0.0, 0.0]
     frames:
-      - name: TibiaCalibration
-        parent: Link6
-        X_p_f:
-          translation: [0, 0.0, 0.03] # assuming 2cm height for the calibration tool
-          rotation: [1.57, 0, 0]
       # Frame above the surface of the Tibia
       # This should contain the desired offset distance between the tibia and the joint center
       - name: Tibia
         parent: Link6
         X_p_f:
           translation: [0, 0.0, 0.02]
-          rotation: [1.57, 0, 0]
+          rotation: [0, 0, 0]
   panda_brace_femur:
     init_pos:
       translation: [0,0,0.655]
       rotation: [0.0, 0.0, 0.0]
     frames:
-      - name: FemurCalibration
-        parent: Link2
-        X_p_f:
-          translation: [0, 0, -0.05]
-          rotation: [3.14, 0, 0.0]
       # Frame above the surface of the Femur
       # This should contain the desired offset distance between the femur and the joint center
       - name: Femur
         parent: Link2
         X_p_f:
           translation: [0, 0, -0.05]
-          rotation: [3.14, 0, 0]
+          rotation: [0, 0, 0]
 # General constraints, always on
 constraints:
 - type: contact
-- type: kinematics
-  robot: panda_brace_femur
-  damper: [0.1, 0.01, 0.5]
-  velocityPercent: 0.8
+#- type: kinematics
+#  robot: panda_brace_femur
+#  damper: [0.1, 0.01, 0.5]
+#  velocityPercent: 0.8
 # Collision constraint
 collisions:
 - type: collision

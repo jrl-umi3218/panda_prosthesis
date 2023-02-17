@@ -9,11 +9,9 @@ PandaBraceController::PandaBraceController(mc_rbdyn::RobotModulePtr rm, double d
 : mc_control::fsm::Controller(rm, dt, config), config_(config)
 {
   gui()->addElement(
-      {"Frames"}, mc_rtc::gui::Transform("Femur", [this]() { return robot().frame("Femur").position(); }),
-      mc_rtc::gui::Transform("FemurCalibration", [this]() { return robot().frame("FemurCalibration").position(); }));
+      {"Frames"}, mc_rtc::gui::Transform("Femur", [this]() { return robot().frame("Femur").position(); }));
   gui()->addElement(
-      {"Frames"}, mc_rtc::gui::Transform("Tibia", [this]() { return robot("brace_bottom_setup").frame("Tibia").position(); }),
-      mc_rtc::gui::Transform("TibiaCalibration", [this]() { return robot("brace_bottom_setup").frame("TibiaCalibration").position(); }));
+      {"Frames"}, mc_rtc::gui::Transform("Tibia", [this]() { return robot("brace_bottom_setup").frame("Tibia").position(); }));
 }
 
 bool PandaBraceController::run()

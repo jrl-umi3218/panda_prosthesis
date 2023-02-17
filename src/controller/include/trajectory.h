@@ -8,7 +8,8 @@ struct Trajectory
   Trajectory(const std::string & name, const mc_rbdyn::RobotFrame & frame, const mc_rbdyn::RobotFrame & forceFrame) : name_(name), frame_(frame), forceFrame_(forceFrame)
   {
     // By default rotate around the robot frame where the trajectory was created
-    refAxis_ = frame_->position();
+    // refAxis_ = frame_->position();
+    refAxis_ = forceFrame_->position();
     refForceAxis_ = forceFrame_->position();
   }
 
