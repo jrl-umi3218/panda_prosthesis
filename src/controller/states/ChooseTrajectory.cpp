@@ -30,6 +30,8 @@ void ChooseTrajectory::start(mc_control::fsm::Controller & ctl)
             std::make_unique<BraceTrajectoryLoader>(ctl.robot("panda_brace_femur").frame("Femur"), ctl.robot("brace_bottom_setup").frame("Tibia"));
         loader_ = "BraceTrajectory";
         loaders_[loader_]->directory(config("directory"));
+        mc_rtc::log::info("[AtiDaq] Removing force sensor offsets");
+        ctl.datastore().call<void>("AtiDaq::removeForceSensorOffsets");
       }
       else
       {
