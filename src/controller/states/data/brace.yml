@@ -19,6 +19,7 @@ Brace::InitializeRobots::Load:
   configs:
     Brace::Initialize:
       load: true
+      reset_mbc: false
 
 Brace::InitializeRobots::NoLoad:
   base: Brace::InitializeRobots
