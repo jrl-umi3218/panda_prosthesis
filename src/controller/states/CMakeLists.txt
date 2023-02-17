@@ -8,6 +8,7 @@ add_fsm_state_simple(ChooseMode)
 add_fsm_state_simple(Choice)
 add_fsm_state_simple(Calibrate)
 add_fsm_state_simple(TransformDatastore)
+add_fsm_state_simple(SaveCalibration)
 #add_fsm_state_simple(ManipulateKnee)
 
 add_fsm_data_directory(data)

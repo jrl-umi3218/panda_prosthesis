@@ -35,7 +35,7 @@ robots:
   brace_bottom_setup:
     module: brace_bottom_setup 
     init_pos:
-      translation: [0.55,0,0.0]
+      translation: [0.55,0.2,0.0]
       rotation: [0.0, 0.0, 0.0]
     frames:
       # Frame above the surface of the Tibia
