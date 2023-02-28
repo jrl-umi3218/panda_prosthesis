@@ -47,12 +47,24 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
       if(add)
       {
         static bool first_add = true;
+        auto addBody =
+            [this, &bodies, &brace_urdf](const std::string & name, int bodyIdx)
+            {
+              mc_rtc::log::info("[PandaBrace] Add body {}", name);
+              mbg.addBody(bodies[bodyIdx]);
+              auto convex = bfs::path(panda_prosthesis::brace_top_setup_DIR) / "convex" / (name + "-ch.txt");
+              if(!bfs::exists(convex))
+              {
+                mc_rtc::log::error_and_throw<std::runtime_error>("Invalid brace_top_setup, no convex found {}", convex.string());
+              }
+              _visual[name] = brace_urdf.visual[name];
+              _collision[name] = brace_urdf.collision[name];
+              _convexHull[name] = {name, convex.string()};
+            };
+
         if(first_add)
         {
-          mc_rtc::log::info("[PandaBrace] Add body {}", predBName);
-          mbg.addBody(bodies[predBi]);
-          _visual[predBName] = brace_urdf.visual[predBName];
-          _collision[predBName] = brace_urdf.collision[predBName];
+          addBody(predBName, predBi);
           first_add = false;
         }
 
@@ -60,9 +72,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
         mbg.addJoint(j);
 
         mc_rtc::log::info("[PandaBrace] Add body {}", succBName);
-        mbg.addBody(bodies[succBi]);
-        _visual[succBName] = brace_urdf.visual[succBName];
-        _collision[succBName] = brace_urdf.collision[succBName];
+        addBody(succBName, succBi);
 
         mc_rtc::log::info("[PandaBrace] Link body {} to joint {} with transform {}", predBName, j.name(),
                           trans[ji].translation().transpose());
