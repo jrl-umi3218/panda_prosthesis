@@ -6,14 +6,17 @@
 
 struct TrajectoryPlayer
 {
-  TrajectoryPlayer(mc_solver::QPSolver & solver, const Trajectory & traj) : solver_(solver), trajectory_(traj)
+  TrajectoryPlayer(mc_solver::QPSolver & solver, const Trajectory & traj, const mc_rtc::Configuration & config = mc_rtc::Configuration{}) : solver_(solver), trajectory_(traj)
   {
     task_ = std::make_shared<mc_tasks::force::ImpedanceTask>(traj.frame());
-    task_->stiffness(1000);
-    task_->gains().wrench().linear({0,0,0});
+    if(config.has("impedanceTask"))
+    {
+      task_->load(solver, config("impedanceTask"));
+    }
     task_->reset();
     solver.addTask(task_);
-    mc_rtc::log::info("Add impedance task for robot {}", traj.frame().robot().name());
+    mc_rtc::log::info("[TrajectoryPlayer::{}] Created TrajectoryPlayer for trajectory {}", traj.name(), traj.name());
+    mc_rtc::log::info("[TrajectoryPlayer::{}] Controlling frame {} of robot {} with an impedance task configured as follows:\n{}", traj.name(), traj.frame().name(), traj.frame().robot().name(), config.dump(true));
   }
 
   ~TrajectoryPlayer()
@@ -33,8 +36,8 @@ struct TrajectoryPlayer
       task_->targetPose(pose);
       task_->targetVel(velocity);
       task_->targetWrenchW(wrench);
-      mc_rtc::log::info("Update for frame {}\nRPY : {}\nVel : {}\nForce: {}", trajectory_.frame().name(),
-                        pose.translation().transpose(), velocity.angular().transpose(), wrench.force().transpose());
+      // mc_rtc::log::info("Update for frame {}\nRPY : {}\nVel : {}\nForce: {}", trajectory_.frame().name(),
+      //                   pose.translation().transpose(), velocity.angular().transpose(), wrench.force().transpose());
 
       t_ = ++n_ * dt;
     }

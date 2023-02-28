@@ -31,6 +31,27 @@ Brace::SaveCalibration:
   base: SaveCalibration
   robot: panda_brace_femur
 
+Brace::PlayTrajectory:
+  base: PlayTrajectory
+  TrajectoryPlayer:
+    FemurTrajectory:
+      impedanceTask:
+        dimWeight: [100, 100, 100, 1000, 1000, 1000]
+        stiffness: [10, 10, 10, 500, 500, 500]
+        gains:
+          mass:
+            angular: [10, 10, 10]
+            linear: [10, 10, 10]
+          damper:
+            angular: [1000, 1000, 1000]
+            linear: [1000, 1000, 1000]
+          spring:
+            angular: [1000, 1000, 1000]
+            linear: [1000, 1000, 1000]
+          wrench: # no force tracking for now
+            angular: [0, 0, 0]
+            linear: [0, 0, 0]
+
 Brace::Simulation:
   base: Meta
   transitions:
@@ -41,6 +62,6 @@ Brace::Simulation:
     - [Brace::InitializeRobots::Load, SkipCalibration, ChooseTrajectory, Auto]
     - [Brace::InitializeRobots::NoLoad, SkipCalibration, ChooseTrajectory, Auto]
     - [Brace::SaveCalibration, OK, ChooseTrajectory, Auto]
-    - [ChooseTrajectory, OK, PlayTrajectory , Auto]
+    - [ChooseTrajectory, OK, Brace::PlayTrajectory , Auto]
   # - [PlayTrajectory, OK, InitialChoice , Auto]
 

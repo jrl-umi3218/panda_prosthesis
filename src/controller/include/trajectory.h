@@ -5,12 +5,12 @@
 
 struct Trajectory
 {
-  Trajectory(const std::string & name, const mc_rbdyn::RobotFrame & frame, const mc_rbdyn::RobotFrame & forceFrame) : name_(name), frame_(frame), forceFrame_(forceFrame)
+  Trajectory(const std::string & name, const mc_rbdyn::RobotFrame & frame, const mc_rbdyn::RobotFrame & refAxisFrame) : name_(name), frame_(frame), refAxisFrame_(refAxisFrame)
   {
     // By default rotate around the robot frame where the trajectory was created
     // refAxis_ = frame_->position();
-    refAxis_ = forceFrame_->position();
-    refForceAxis_ = forceFrame_->position();
+    refAxis_ = refAxisFrame_->position();
+    refForceAxis_ = refAxisFrame_->position();
   }
 
   /**
@@ -85,7 +85,7 @@ struct Trajectory
 
   inline const sva::PTransformd worldPose(double t) const
   {
-    mc_rtc::log::info("pose time: {}, index: {}", t, indexFromTime(t));
+    // mc_rtc::log::info("pose time: {}, index: {}", t, indexFromTime(t));
     return poses_[indexFromTime(t)] * refAxis_;
   }
 
@@ -156,7 +156,7 @@ private:
   bool needUpdate_ = true;
   std::string name_{};
   mc_rbdyn::ConstRobotFramePtr frame_;
-  mc_rbdyn::ConstRobotFramePtr forceFrame_;
+  mc_rbdyn::ConstRobotFramePtr refAxisFrame_;
   // std::string robot_{""};
   // std::string robotFrame_{""};
   sva::PTransformd refAxis_{sva::PTransformd::Identity()}; ///< Reference axis in world frame
