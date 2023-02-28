@@ -20,19 +20,6 @@ void Trajectory::loadPoseFromCSV(const std::string & csv,
   }
 }
 
-void Trajectory::postProcessPose()
-{
-  sva::PTransformd X_0_init;
-  if(poses_.size())
-  {
-    X_0_init = poses_.front();
-  }
-  for(auto & pose : poses_)
-  {
-    pose = pose * X_0_init.inv();
-  }
-}
-
 void Trajectory::loadForceFromCSV(const std::string & csv,
                       const std::string & cx,
                       const std::string & cy,
@@ -60,7 +47,19 @@ void Trajectory::update()
       mc_rtc::log::error_and_throw("[Trajectory::update] Must have at least one pose, none provided");
     }
     dt_ = duration_ / poses_.size();
+    PoseInterpolator::TimedValueVector posesInterp;
+    for (int i = 0; i < poses_.size(); ++i) {
+     const auto & pose = poses_[i];
+     posesInterp.emplace_back(dt_*i, pose);
+    }
+    poseInterpolation_.values(posesInterp);
     computeVelocity();
+    VelocityInterpolator::TimedValueVector velInterp;
+    for (int i = 0; i < velocities_.size(); ++i) {
+     const auto & vel = velocities_[i];
+     velInterp.emplace_back(dt_*i, vel);
+    }
+    velocityInterpolation_.values(velInterp);
     needUpdate_ = false;
   }
 }

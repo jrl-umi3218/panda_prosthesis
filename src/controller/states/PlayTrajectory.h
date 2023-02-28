@@ -29,8 +29,8 @@ struct TrajectoryPlayer
   {
     if(t_ < trajectory_.duration())
     {
-      const auto & pose = trajectory_.worldPose(t_);
-      const auto & velocity = trajectory_.worldVelocity(t_);
+      const auto pose = trajectory_.worldPose(t_);
+      const auto velocity = trajectory_.worldVelocity(t_);
       const auto & wrench = trajectory_.worldWrench(t_);
 
       task_->targetPose(pose);
@@ -55,7 +55,7 @@ struct TrajectoryPlayer
 
 protected:
   mc_solver::QPSolver & solver_;
-  const Trajectory & trajectory_;
+  Trajectory trajectory_;
   std::shared_ptr<mc_tasks::force::ImpedanceTask> task_;
   unsigned n_ = 0;
   double t_ = 0;

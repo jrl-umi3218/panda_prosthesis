@@ -2,13 +2,24 @@
 #include <mc_rtc/gui.h>
 #include <SpaceVecAlg/SpaceVecAlg>
 #include <optional>
+#include <mc_trajectory/SequenceInterpolator.h>
+
+/**
+ * Functor to interpolate values in-between two poses expressed as sva::PTransformd
+ */
+struct PoseInterpolation
+{
+  sva::PTransformd operator() (const sva::PTransformd & p1, const sva::PTransformd & p2, double t) const
+  {
+    return sva::interpolate(p1, p2, t);
+  }
+};
 
 struct Trajectory
 {
   Trajectory(const std::string & name, const mc_rbdyn::RobotFrame & frame, const mc_rbdyn::RobotFrame & refAxisFrame) : name_(name), frame_(frame), refAxisFrame_(refAxisFrame)
   {
     // By default rotate around the robot frame where the trajectory was created
-    // refAxis_ = frame_->position();
     refAxis_ = refAxisFrame_->position();
     refForceAxis_ = refAxisFrame_->position();
   }
@@ -31,9 +42,6 @@ struct Trajectory
                        const std::string & tx,
                        const std::string & ty,
                        const std::string & tz);
-
-  /* Remove initial offset from loaded poses */
-  void postProcessPose();
 
   void loadVelocityFromCSV(const std::string & csv,
                            const std::string & cx,
@@ -83,10 +91,12 @@ struct Trajectory
    */
   void computeVelocity();
 
-  inline const sva::PTransformd worldPose(double t) const
+  /*
+   * Returns the interpolated world pose at time t
+   */
+  inline const sva::PTransformd worldPose(double t)
   {
-    // mc_rtc::log::info("pose time: {}, index: {}", t, indexFromTime(t));
-    return poses_[indexFromTime(t)] * refAxis_;
+    return poseInterpolation_.compute(t) * refAxis_;
   }
 
   inline const std::vector<sva::PTransformd> & poses() const noexcept
@@ -94,9 +104,12 @@ struct Trajectory
     return poses_;
   }
 
-  inline const sva::MotionVecd worldVelocity(double t) const
+  /*
+   * Returns the interpolated world velocity at time t
+   */
+  inline const sva::MotionVecd worldVelocity(double t)
   {
-    return refAxis_ * velocities_[indexFromTime(t)];
+    return refAxis_ * velocityInterpolation_.compute(t);
   }
 
   inline const std::vector<sva::MotionVecd> & velocities() const noexcept
@@ -104,6 +117,9 @@ struct Trajectory
     return velocities_;
   }
 
+  /**
+   * Returns the discrete desired world wrench for time t
+   */
   inline const sva::ForceVecd worldWrench(double t) const
   {
     if(forces_)
@@ -167,4 +183,8 @@ private:
   std::vector<sva::MotionVecd> velocities_; ///< Desired velocity defined w.r.t refAxis_
   std::optional<std::vector<sva::ForceVecd>>
       forces_; ///< Desired force defined w.r.t refForceAxis_
+  using PoseInterpolator = mc_trajectory::SequenceInterpolator<sva::PTransformd, PoseInterpolation>;
+  using VelocityInterpolator = mc_trajectory::SequenceInterpolator<sva::MotionVecd>;
+  PoseInterpolator poseInterpolation_;
+  VelocityInterpolator velocityInterpolation_;
 };
