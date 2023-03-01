@@ -150,7 +150,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
 
   merge_urdf(brace_urdf, "panda_link8", "base_link", transformC("panda_link8_to_base_link"), transformC);
 
-  auto generate_panda_mechanical_data = [&brace_urdf, totalMass, &femurFrame](const Eigen::Matrix3d & inertia) {
+  auto generate_panda_mechanical_data = [&brace_urdf, totalMass](const Eigen::Matrix3d & inertia) {
     // For Panda end effector configuration
     auto & mb = brace_urdf.mb;
     auto & mbc = brace_urdf.mbc;
@@ -161,9 +161,27 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
     conf.add("mass", totalMass);
     conf.add("centerOfMass", braceCoM);
     conf.add("inertia", inertia);
-    conf.add("transformation", femurFrame.X_p_f * mbc.bodyPosW[mb.bodyIndexByName(femurFrame.parent)]
-                                   * mbc.bodyPosW[mb.bodyIndexByName("base_link")].inv());
+    Eigen::MatrixXd transformation = Eigen::MatrixXd::Identity(4,4);
+    Eigen::VectorXd transfoVec = Eigen::VectorXd::Zero(16);
+    for(int i = 0; i < transformation.rows(); i++)
+    {
+    	for(int j = 0; j < transformation.cols(); j++)
+    	{
+	  transfoVec(4*i + j) = transformation(i, j);
+    	}
+    }
+    conf.add("transformation", transfoVec);
+
     // collision model?
+    conf.add("collisionModel");
+    Eigen::Matrix3d pointA = Eigen::Matrix3d::Zero();
+    pointA(0,1) = 0.005;
+    Eigen::Matrix3d pointB = Eigen::Matrix3d::Zero();
+    pointB(0,1) = -0.005;
+    Eigen::Vector3d radius{0.005, 0, 0};
+    conf("collisionModel").add("pointA", pointA);
+    conf("collisionModel").add("pointB", pointB);
+    conf("collisionModel").add("radius", radius);
     return conf;
   };
 
