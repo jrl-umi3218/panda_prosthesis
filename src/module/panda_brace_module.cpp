@@ -215,6 +215,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
     ofs << rbd::parsers::to_urdf({mb, mbc, mbg, limits, _visual, _collision, "panda_brace_femur"});
   }
   this->urdf_path = urdf_path.string();
+  this->calib_dir = panda_prosthesis::calib_DIR;
   this->name = "panda_brace_femur";
   mc_rtc::log::info("Wrote URDF to {}", urdf_path.string());
 }

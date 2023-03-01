@@ -7,6 +7,7 @@ find_package(mc_panda REQUIRED)
 
 
 set(DATA_DIR "${CMAKE_INSTALL_PREFIX}/share/panda_prosthesis")
+set(calib_DIR "${DATA_DIR}/calib")
 set(meshes_DIR "${DATA_DIR}/meshes")
 set(convex_DIR "${DATA_DIR}/convex")
 set(inertia_DIR "${DATA_DIR}/inertia")
