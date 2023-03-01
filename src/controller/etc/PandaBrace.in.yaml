@@ -49,14 +49,6 @@ robots:
     init_pos:
       translation: [0,0,0.655]
       rotation: [0.0, 0.0, 0.0]
-    frames:
-      # Frame above the surface of the Femur
-      # This should contain the desired offset distance between the femur and the joint center
-      - name: Femur
-        parent: Link2
-        X_p_f:
-          translation: [0, 0, -0.05]
-          rotation: [0, 0, 0]
 # General constraints, always on
 constraints:
 - type: contact
