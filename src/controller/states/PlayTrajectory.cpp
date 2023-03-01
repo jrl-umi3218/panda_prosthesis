@@ -17,7 +17,7 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
     auto & trajectories = ctl.datastore().get<std::vector<Trajectory>>("Trajectories");
     mc_rtc::log::info("[{}] Playing {} trajectories: {}", name(), trajectories.size(),
                       mc_rtc::io::to_string(trajectories, [](const Trajectory & traj) { return traj.name(); }));
-    for(auto & traj : trajectories)
+    for(auto traj : trajectories)
     {
       traj.update();
       auto config = mc_rtc::Configuration{};
@@ -26,6 +26,7 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
         config = config_("TrajectoryPlayer")(traj.name());
         mc_rtc::log::info("config is {}", config.dump(true));
       }
+      traj.interpolateInitialPose(traj.frame().position(), traj.frame().velocity());
       trajPlayers_.push_back(std::make_shared<TrajectoryPlayer>(ctl.solver(), traj, config));
     }
   }

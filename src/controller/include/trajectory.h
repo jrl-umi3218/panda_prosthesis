@@ -76,6 +76,48 @@ struct Trajectory
             "Duration", [this]() { return duration_; }, [this](double duration) { this->duration(duration); }));
   }
 
+  /**
+   * Add an initial point at t=0 corresponding to the initial world pose and
+   * velocity of the control frame on the robot. Shift the whole trajectory by
+   * interpolationTime.
+   *
+   * This may be used to prevent the robot from jumping to the initial position
+   * of the trajectory
+   */
+  void interpolateInitialPose(const sva::PTransformd & initialRobotFrame,
+                              const sva::MotionVecd & initialRobotFrameVelocity = sva::MotionVecd::Zero(),
+                              double interpolationTime = 2.0)
+  {
+    duration_ += interpolationTime;
+    {
+      auto values = poseInterpolation_.values();
+      auto newValues = PoseInterpolator::TimedValueVector{};
+      newValues.reserve(values.size() + 1);
+      auto X_refAxis_initalRobotFrame = initialRobotFrame * refAxis_.inv();
+      newValues.emplace_back(0.0, X_refAxis_initalRobotFrame);
+      for(const auto & [t, pose] : values)
+      {
+        newValues.emplace_back(t + interpolationTime, pose);
+      }
+      poseInterpolation_.values(newValues);
+    }
+    for(const auto & [t, pose] : poseInterpolation_.values())
+    {
+      mc_rtc::log::info("t: {}, pose: {}", t, pose.translation().transpose());
+    }
+    {
+      auto values = velocityInterpolation_.values();
+      auto newValues = VelocityInterpolator::TimedValueVector{};
+      newValues.reserve(values.size() + 1);
+      newValues.emplace_back(0.0, refAxis_.inv() * initialRobotFrameVelocity);
+      for(const auto & [t, vel] : values)
+      {
+        newValues.emplace_back(t + interpolationTime, vel);
+      }
+      velocityInterpolation_.values(newValues);
+    }
+  }
+
   void update();
 
   inline void clear()

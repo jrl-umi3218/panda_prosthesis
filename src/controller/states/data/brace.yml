@@ -11,8 +11,9 @@ Brace::InitializeRobots:
     Choice:
       category: []
       choices:
-        - ["Calibrate", "Save Calibration"]
+        - ["Save Calibration", "Calibrate"]
         - ["Skip Calibration", "SkipCalibration"]
+        - ["Calibrate Relative", "CalibrateRelative"]
 
 Brace::InitializeRobots::Load:
   base: Brace::InitializeRobots
@@ -27,6 +28,15 @@ Brace::InitializeRobots::NoLoad:
     Brace::Initialize:
       load: false
 
+Brace::CalibrateRelative:
+  base: CalibrateRelative
+  robot: panda_brace_femur
+  frame: Femur
+  target_robot: brace_bottom_setup
+  target_frame: Tibia
+  relativePose:
+    translation: [0, 0, -0.03]
+
 Brace::SaveCalibration:
   base: SaveCalibration
   robot: panda_brace_femur
@@ -36,8 +46,8 @@ Brace::PlayTrajectory:
   TrajectoryPlayer:
     FemurTrajectory:
       impedanceTask:
-        dimWeight: [100, 100, 100, 1000, 1000, 1000]
-        stiffness: [10, 10, 10, 500, 500, 500]
+        # dimWeight: [100, 100, 100, 1000, 1000, 1000]
+        stiffness: [5000, 5000, 5000, 20000, 30000, 20000]
         gains:
           mass:
             angular: [10, 10, 10]
@@ -59,8 +69,11 @@ Brace::Simulation:
     - [InitialChoice, StartFromCurrent, Brace::InitializeRobots::NoLoad, Auto]
     - [Brace::InitializeRobots::Load, Calibrate, Brace::SaveCalibration, Auto]
     - [Brace::InitializeRobots::NoLoad, Calibrate, Brace::SaveCalibration, Auto]
+    - [Brace::InitializeRobots::Load, CalibrateRelative, Brace::CalibrateRelative, Auto]
+    - [Brace::InitializeRobots::NoLoad, CalibrateRelative, Brace::CalibrateRelative, Auto]
     - [Brace::InitializeRobots::Load, SkipCalibration, ChooseTrajectory, Auto]
     - [Brace::InitializeRobots::NoLoad, SkipCalibration, ChooseTrajectory, Auto]
+    - [Brace::CalibrateRelative, OK, ChooseTrajectory, Auto]
     - [Brace::SaveCalibration, OK, ChooseTrajectory, Auto]
     - [ChooseTrajectory, OK, Brace::PlayTrajectory , Auto]
   # - [PlayTrajectory, OK, InitialChoice , Auto]

@@ -161,23 +161,23 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
     conf.add("mass", totalMass);
     conf.add("centerOfMass", braceCoM);
     conf.add("inertia", inertia);
-    Eigen::MatrixXd transformation = Eigen::MatrixXd::Identity(4,4);
+    Eigen::MatrixXd transformation = Eigen::MatrixXd::Identity(4, 4);
     Eigen::VectorXd transfoVec = Eigen::VectorXd::Zero(16);
     for(int i = 0; i < transformation.rows(); i++)
     {
-    	for(int j = 0; j < transformation.cols(); j++)
-    	{
-	  transfoVec(4*i + j) = transformation(i, j);
-    	}
+      for(int j = 0; j < transformation.cols(); j++)
+      {
+        transfoVec(4 * i + j) = transformation(i, j);
+      }
     }
     conf.add("transformation", transfoVec);
 
     // collision model?
     conf.add("collisionModel");
     Eigen::Matrix3d pointA = Eigen::Matrix3d::Zero();
-    pointA(0,1) = 0.005;
+    pointA(0, 1) = 0.005;
     Eigen::Matrix3d pointB = Eigen::Matrix3d::Zero();
-    pointB(0,1) = -0.005;
+    pointB(0, 1) = -0.005;
     Eigen::Vector3d radius{0.005, 0, 0};
     conf("collisionModel").add("pointA", pointA);
     conf("collisionModel").add("pointB", pointB);
