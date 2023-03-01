@@ -194,6 +194,49 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
 
   _forceSensors.emplace_back("BraceTopForceSensor", "Link1", sva::PTransformd::Identity());
 
+  auto generate_default_force_sensor_calib = [totalMass, &brace_urdf]() {
+    auto & mb = brace_urdf.mb;
+    auto & mbc = brace_urdf.mbc;
+    auto braceCoM = rbd::computeCoM(brace_urdf.mb, brace_urdf.mbc);
+
+    // The file should contain 13 parameters in that order:
+    // - mass (1)
+    // - rpy of local rotation between the model force sensor and real one (3)
+    // - translation from the parent body to the virtual link CoM (3)
+    // - wrench offset (6).)
+    mc_rtc::log::success("Writing calibration data for BraceTopForceSensor");
+    bfs::path out = bfs::path(panda_prosthesis::calib_DIR);
+    out += "/calib_data.BraceTopForceSensor";
+    std::ofstream ofs(out.string());
+    if(!ofs.good())
+    {
+      mc_rtc::log::error("Could not write calibration file to {}", out.string());
+    }
+    else
+    {
+      ofs << totalMass << "\n";
+      // RPY
+      ofs << 0 << "\n";
+      ofs << 0 << "\n";
+      ofs << 0 << "\n";
+      // CoM
+      ofs << braceCoM.x() << "\n";
+      ofs << braceCoM.y() << "\n";
+      ofs << braceCoM.z() << "\n";
+      // Offset force
+      ofs << 0 << "\n";
+      ofs << 0 << "\n";
+      ofs << 0 << "\n";
+      ofs << 0 << "\n";
+      ofs << 0 << "\n";
+      ofs << 0 << "\n";
+      mc_rtc::log::info("Wrote calibration file to {}", out.string());
+      ofs.close();
+    }
+  };
+
+  generate_default_force_sensor_calib();
+
   const double i = 0.04;
   const double s = 0.02;
   const double d = 0.;
@@ -216,6 +259,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
   }
   this->urdf_path = urdf_path.string();
   this->calib_dir = panda_prosthesis::calib_DIR;
+
   this->name = "panda_brace_femur";
   mc_rtc::log::info("Wrote URDF to {}", urdf_path.string());
 }
