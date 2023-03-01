@@ -194,6 +194,15 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
 
   _forceSensors.emplace_back("BraceTopForceSensor", "Link1", sva::PTransformd::Identity());
 
+  const double i = 0.04;
+  const double s = 0.02;
+  const double d = 0.;
+  _minimalSelfCollisions.emplace_back("panda_link0*", "Link2", i, s, d);
+  _minimalSelfCollisions.emplace_back("panda_link1*", "Link2", i, s, d);
+  _minimalSelfCollisions.emplace_back("panda_link2*", "Link2", i, s, d);
+  _minimalSelfCollisions.emplace_back("panda_link3*", "Link2", i, s, d);
+  _minimalSelfCollisions.emplace_back("panda_link4*", "Link2", i, s, d);
+
   // Save new URDF
   auto urdf_path = bfs::temp_directory_path() / ("panda_brace_femur.urdf");
   {
