@@ -1,15 +1,15 @@
 #pragma once
 #include <mc_rtc/gui.h>
+#include <mc_trajectory/SequenceInterpolator.h>
 #include <SpaceVecAlg/SpaceVecAlg>
 #include <optional>
-#include <mc_trajectory/SequenceInterpolator.h>
 
 /**
  * Functor to interpolate values in-between two poses expressed as sva::PTransformd
  */
 struct PoseInterpolation
 {
-  sva::PTransformd operator() (const sva::PTransformd & p1, const sva::PTransformd & p2, double t) const
+  sva::PTransformd operator()(const sva::PTransformd & p1, const sva::PTransformd & p2, double t) const
   {
     return sva::interpolate(p1, p2, t);
   }
@@ -17,7 +17,8 @@ struct PoseInterpolation
 
 struct Trajectory
 {
-  Trajectory(const std::string & name, const mc_rbdyn::RobotFrame & frame, const mc_rbdyn::RobotFrame & refAxisFrame) : name_(name), frame_(frame), refAxisFrame_(refAxisFrame)
+  Trajectory(const std::string & name, const mc_rbdyn::RobotFrame & frame, const mc_rbdyn::RobotFrame & refAxisFrame)
+  : name_(name), frame_(frame), refAxisFrame_(refAxisFrame)
   {
     // By default rotate around the robot frame where the trajectory was created
     refAxis_ = refAxisFrame_->position();
@@ -181,8 +182,7 @@ private:
   double dt_ = 0;
   std::vector<sva::PTransformd> poses_; ///< Desired pose defined w.r.t refAxis_
   std::vector<sva::MotionVecd> velocities_; ///< Desired velocity defined w.r.t refAxis_
-  std::optional<std::vector<sva::ForceVecd>>
-      forces_; ///< Desired force defined w.r.t refForceAxis_
+  std::optional<std::vector<sva::ForceVecd>> forces_; ///< Desired force defined w.r.t refForceAxis_
   using PoseInterpolator = mc_trajectory::SequenceInterpolator<sva::PTransformd, PoseInterpolation>;
   using VelocityInterpolator = mc_trajectory::SequenceInterpolator<sva::MotionVecd>;
   PoseInterpolator poseInterpolation_;

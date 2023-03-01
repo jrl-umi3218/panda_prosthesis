@@ -8,10 +8,11 @@ namespace panda_prosthetics
 PandaBraceController::PandaBraceController(mc_rbdyn::RobotModulePtr rm, double dt, const mc_rtc::Configuration & config)
 : mc_control::fsm::Controller(rm, dt, config), config_(config)
 {
-  gui()->addElement(
-      {"Frames"}, mc_rtc::gui::Transform("Femur", [this]() { return robot().frame("Femur").position(); }));
-  gui()->addElement(
-      {"Frames"}, mc_rtc::gui::Transform("Tibia", [this]() { return robot("brace_bottom_setup").frame("Tibia").position(); }));
+  gui()->addElement({"Frames"},
+                    mc_rtc::gui::Transform("Femur", [this]() { return robot().frame("Femur").position(); }));
+  gui()->addElement({"Frames"}, mc_rtc::gui::Transform("Tibia", [this]() {
+                      return robot("brace_bottom_setup").frame("Tibia").position();
+                    }));
 }
 
 bool PandaBraceController::run()

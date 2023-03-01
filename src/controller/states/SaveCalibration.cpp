@@ -13,14 +13,14 @@ void save(const std::string & etc_file, const mc_rbdyn::Robot & robot)
 
 void SaveCalibration::start(mc_control::fsm::Controller & ctl)
 {
- if(!ctl.config().has("ETC_DIR") && ctl.config()("ETC_DIR").empty())
- {
-   mc_rtc::log::error_and_throw("[{}] No \"ETC_DIR\"  entry specified", name());
- }
- auto & robot = ctl.robot(config_("robot"));
- auto etc_file = static_cast<std::string>(ctl.config()("ETC_DIR")) + "/initial_" + robot.name() + ".yaml";
- save(etc_file, robot);
- output("OK");
+  if(!ctl.config().has("ETC_DIR") && ctl.config()("ETC_DIR").empty())
+  {
+    mc_rtc::log::error_and_throw("[{}] No \"ETC_DIR\"  entry specified", name());
+  }
+  auto & robot = ctl.robot(config_("robot"));
+  auto etc_file = static_cast<std::string>(ctl.config()("ETC_DIR")) + "/initial_" + robot.name() + ".yaml";
+  save(etc_file, robot);
+  output("OK");
 }
 
 bool SaveCalibration::run(mc_control::fsm::Controller & ctl)
@@ -28,8 +28,6 @@ bool SaveCalibration::run(mc_control::fsm::Controller & ctl)
   return true;
 }
 
-void SaveCalibration::teardown(mc_control::fsm::Controller & ctl)
-{
-}
+void SaveCalibration::teardown(mc_control::fsm::Controller & ctl) {}
 
 EXPORT_SINGLE_STATE("SaveCalibration", SaveCalibration)

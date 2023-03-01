@@ -6,7 +6,10 @@
 
 struct TrajectoryPlayer
 {
-  TrajectoryPlayer(mc_solver::QPSolver & solver, const Trajectory & traj, const mc_rtc::Configuration & config = mc_rtc::Configuration{}) : solver_(solver), trajectory_(traj)
+  TrajectoryPlayer(mc_solver::QPSolver & solver,
+                   const Trajectory & traj,
+                   const mc_rtc::Configuration & config = mc_rtc::Configuration{})
+  : solver_(solver), trajectory_(traj)
   {
     task_ = std::make_shared<mc_tasks::force::ImpedanceTask>(traj.frame());
     if(config.has("impedanceTask"))
@@ -16,7 +19,9 @@ struct TrajectoryPlayer
     task_->reset();
     solver.addTask(task_);
     mc_rtc::log::info("[TrajectoryPlayer::{}] Created TrajectoryPlayer for trajectory {}", traj.name(), traj.name());
-    mc_rtc::log::info("[TrajectoryPlayer::{}] Controlling frame {} of robot {} with an impedance task configured as follows:\n{}", traj.name(), traj.frame().name(), traj.frame().robot().name(), config.dump(true));
+    mc_rtc::log::info(
+        "[TrajectoryPlayer::{}] Controlling frame {} of robot {} with an impedance task configured as follows:\n{}",
+        traj.name(), traj.frame().name(), traj.frame().robot().name(), config.dump(true));
   }
 
   ~TrajectoryPlayer()

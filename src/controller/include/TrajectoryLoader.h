@@ -145,7 +145,8 @@ protected:
 
 struct BraceTrajectoryLoader : public TrajectoryLoader
 {
-  BraceTrajectoryLoader(const mc_rbdyn::RobotFrame & femurFrame, const mc_rbdyn::RobotFrame & tibiaFrame) : trajFemur("FemurTrajectory", femurFrame, tibiaFrame)
+  BraceTrajectoryLoader(const mc_rbdyn::RobotFrame & femurFrame, const mc_rbdyn::RobotFrame & tibiaFrame)
+  : trajFemur("FemurTrajectory", femurFrame, tibiaFrame)
   {
     name_ = "BraceTrajectoryLoader";
   }

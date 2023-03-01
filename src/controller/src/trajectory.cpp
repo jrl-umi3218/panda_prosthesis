@@ -21,18 +21,19 @@ void Trajectory::loadPoseFromCSV(const std::string & csv,
 }
 
 void Trajectory::loadForceFromCSV(const std::string & csv,
-                      const std::string & cx,
-                      const std::string & cy,
-                      const std::string & cz,
-                      const std::string & fx,
-                      const std::string & fy,
-                      const std::string & fz)
+                                  const std::string & cx,
+                                  const std::string & cy,
+                                  const std::string & cz,
+                                  const std::string & fx,
+                                  const std::string & fy,
+                                  const std::string & fz)
 {
   io::CSVReader<6> in(csv);
   sva::ForceVecd wrench = sva::ForceVecd::Zero();
   forces_ = std::vector<sva::ForceVecd>{};
   in.read_header(io::ignore_extra_column, cx, cy, cz, fx, fy, fz);
-  while(in.read_row(wrench.couple().x(), wrench.couple().y(), wrench.couple().z(), wrench.force().x(), wrench.force().y(), wrench.force().z()))
+  while(in.read_row(wrench.couple().x(), wrench.couple().y(), wrench.couple().z(), wrench.force().x(),
+                    wrench.force().y(), wrench.force().z()))
   {
     forces_->push_back(wrench);
   }
@@ -48,22 +49,23 @@ void Trajectory::update()
     }
     dt_ = duration_ / poses_.size();
     PoseInterpolator::TimedValueVector posesInterp;
-    for (int i = 0; i < poses_.size(); ++i) {
-     const auto & pose = poses_[i];
-     posesInterp.emplace_back(dt_*i, pose);
+    for(int i = 0; i < poses_.size(); ++i)
+    {
+      const auto & pose = poses_[i];
+      posesInterp.emplace_back(dt_ * i, pose);
     }
     poseInterpolation_.values(posesInterp);
     computeVelocity();
     VelocityInterpolator::TimedValueVector velInterp;
-    for (int i = 0; i < velocities_.size(); ++i) {
-     const auto & vel = velocities_[i];
-     velInterp.emplace_back(dt_*i, vel);
+    for(int i = 0; i < velocities_.size(); ++i)
+    {
+      const auto & vel = velocities_[i];
+      velInterp.emplace_back(dt_ * i, vel);
     }
     velocityInterpolation_.values(velInterp);
     needUpdate_ = false;
   }
 }
-
 
 void Trajectory::computeVelocity()
 {

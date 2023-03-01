@@ -26,8 +26,8 @@ void ChooseTrajectory::start(mc_control::fsm::Controller & ctl)
     {
       if(ctl.hasRobot("panda_brace_femur") && ctl.hasRobot("brace_bottom_setup"))
       {
-        loaders_["BraceTrajectory"] =
-            std::make_unique<BraceTrajectoryLoader>(ctl.robot("panda_brace_femur").frame("Femur"), ctl.robot("brace_bottom_setup").frame("Tibia"));
+        loaders_["BraceTrajectory"] = std::make_unique<BraceTrajectoryLoader>(
+            ctl.robot("panda_brace_femur").frame("Femur"), ctl.robot("brace_bottom_setup").frame("Tibia"));
         loader_ = "BraceTrajectory";
         loaders_[loader_]->directory(config("directory"));
         if(ctl.datastore().has("AtiDaq::removeForceSensorOffsets"))

@@ -24,7 +24,7 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
       if(config_.has("TrajectoryPlayer") && config_("TrajectoryPlayer").has(traj.name()))
       {
         config = config_("TrajectoryPlayer")(traj.name());
-	mc_rtc::log::info("config is {}", config.dump(true));
+        mc_rtc::log::info("config is {}", config.dump(true));
       }
       trajPlayers_.push_back(std::make_shared<TrajectoryPlayer>(ctl.solver(), traj, config));
     }
