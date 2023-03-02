@@ -4,6 +4,7 @@
 #include <boost/filesystem.hpp>
 #include "config.h"
 #include "config_panda_brace.h"
+#include <sch/S_Object/S_Box.h>
 namespace bfs = boost::filesystem;
 
 namespace mc_robots
@@ -237,6 +238,11 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
 
   generate_default_force_sensor_calib();
 
+  constexpr double height = 0.716;
+  _default_attitude = {{1., 0., 0., 0., 0., 0., height}};
+  _collisionObjects["BASE_STAND"] = {"panda_link0", std::make_shared<sch::S_Box>(0.25, 0.27, height)};
+  _collisionTransforms["BASE_STAND"] = sva::PTransformd(Eigen::Vector3d{0.0, 0.0, -height / 2});
+
   const double i = 0.04;
   const double s = 0.02;
   const double d = 0.;
@@ -245,6 +251,10 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
   _minimalSelfCollisions.emplace_back("panda_link2*", "Link2", i, s, d);
   _minimalSelfCollisions.emplace_back("panda_link3*", "Link2", i, s, d);
   _minimalSelfCollisions.emplace_back("panda_link4*", "Link2", i, s, d);
+  _minimalSelfCollisions.emplace_back("panda_link4*", "BASE_STAND", 0.08, 0.03, d);
+  _minimalSelfCollisions.emplace_back("panda_link5*", "BASE_STAND", 0.08, 0.03, d);
+  _minimalSelfCollisions.emplace_back("panda_link6*", "BASE_STAND", 0.08, 0.03, d);
+  _minimalSelfCollisions.emplace_back("Link2", "BASE_STAND", 0.08, 0.03, d);
 
   // Save new URDF
   auto urdf_path = bfs::temp_directory_path() / ("panda_brace_femur.urdf");
