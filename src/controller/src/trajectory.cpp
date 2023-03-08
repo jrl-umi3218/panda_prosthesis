@@ -67,6 +67,29 @@ void Trajectory::update()
   }
 }
 
+void Trajectory::reverse()
+{
+  auto revPoses = std::vector<sva::PTransformd>{};
+  revPoses.reserve(poses_.size());
+  for(auto it = poses_.rbegin(); it != poses_.rend(); ++it)
+  {
+    revPoses.push_back(*it);
+  }
+  poses_ = revPoses;
+  if(forces_)
+  {
+    auto revForces = std::vector<sva::ForceVecd>{};
+    revForces.reserve(forces_->size());
+    for(auto it = forces_->rbegin(); it != forces_->rend(); ++it)
+    {
+      revForces.push_back(*it);
+    }
+    forces_ = revForces;
+  }
+  needUpdate_ = true;
+  update();
+}
+
 void Trajectory::computeVelocity()
 {
   if(velocities_.size())

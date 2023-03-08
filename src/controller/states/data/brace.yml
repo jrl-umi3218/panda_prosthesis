@@ -80,5 +80,5 @@ Brace::Simulation:
     - [Brace::CalibrateRelative, OK, ChooseTrajectory, Auto]
     - [Brace::SaveCalibration, OK, ChooseTrajectory, Auto]
     - [ChooseTrajectory, OK, Brace::PlayTrajectory , Auto]
-  # - [PlayTrajectory, OK, InitialChoice , Auto]
-
+    - [Brace::PlayTrajectory, PlayTrajectory, Brace::PlayTrajectory , Auto]
+    - [Brace::PlayTrajectory, ChooseTrajectory, ChooseTrajectory , Auto]

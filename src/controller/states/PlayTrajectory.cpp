@@ -14,7 +14,8 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
   }
   else
   {
-    auto & trajectories = ctl.datastore().get<std::vector<Trajectory>>("Trajectories");
+    auto trajectories = ctl.datastore().get<std::vector<Trajectory>>("Trajectories");
+    ctl.datastore().get<std::vector<Trajectory>>("Trajectories").clear();
     mc_rtc::log::info("[{}] Playing {} trajectories: {}", name(), trajectories.size(),
                       mc_rtc::io::to_string(trajectories, [](const Trajectory & traj) { return traj.name(); }));
     for(auto traj : trajectories)
@@ -28,10 +29,32 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
       }
       traj.interpolateInitialPose(traj.frame().position(), traj.frame().velocity());
       auto trajPlayer = std::make_shared<TrajectoryPlayer>(ctl.solver(), traj, config);
-      trajPlayer->addToGUI(*ctl.gui());
+      trajPlayer->addToGUI(*ctl.gui(), {"PlayTrajectory"});
       trajPlayers_.push_back(trajPlayer);
     }
   }
+  ctl.gui()->addElement(this, {"PlayTrajectory"},
+                        mc_rtc::gui::Button("Reverse Trajectories",
+                                            [this, &ctl]() {
+                                              auto reversedTrajectories = std::vector<Trajectory>{};
+                                              for(auto & trajPlayer : trajPlayers_)
+                                              {
+                                                auto traj = trajPlayer->trajectory();
+                                                traj.reverse();
+                                                reversedTrajectories.push_back(traj);
+                                              }
+                                              ctl.datastore().get<std::vector<Trajectory>>("Trajectories") =
+                                                  reversedTrajectories;
+                                            }),
+                        mc_rtc::gui::Button("Next",
+                                            [this]() {
+                                              output("PlayTrajectory");
+                                              next_ = true;
+                                            }),
+                        mc_rtc::gui::Button("ChooseTrajectory", [this]() {
+                          output("ChooseTrajectory");
+                          next_ = true;
+                        }));
   output("OK");
 }
 
@@ -41,21 +64,18 @@ bool PlayTrajectory::run(mc_control::fsm::Controller & ctl)
   {
     trajPlayer->update(ctl.timeStep);
   }
-  // mc_rtc::log::info("Finished: {}", finished());
-  return finished();
+  return finished() && next_;
 }
 
 void PlayTrajectory::teardown(mc_control::fsm::Controller & ctl)
 {
   for(auto & trajPlayer : trajPlayers_)
   {
-    trajPlayer->removeFromGUI(*ctl.gui());
+    trajPlayer->removeFromGUI(*ctl.gui(), {"PlayTrajectory"});
   }
+  trajPlayers_.clear();
 
-  if(ctl.datastore().has("Trajectories"))
-  {
-    ctl.datastore().get<std::vector<Trajectory>>("Trajectories").clear();
-  }
+  ctl.gui()->removeCategory({"PlayTrajectory"});
 }
 
 EXPORT_SINGLE_STATE("PlayTrajectory", PlayTrajectory)

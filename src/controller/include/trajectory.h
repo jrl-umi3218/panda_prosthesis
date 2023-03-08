@@ -120,6 +120,8 @@ struct Trajectory
 
   void update();
 
+  void reverse();
+
   inline void clear()
   {
     dt_ = 0;
@@ -216,11 +218,9 @@ private:
   std::string name_{};
   mc_rbdyn::ConstRobotFramePtr frame_;
   mc_rbdyn::ConstRobotFramePtr refAxisFrame_;
-  // std::string robot_{""};
-  // std::string robotFrame_{""};
   sva::PTransformd refAxis_{sva::PTransformd::Identity()}; ///< Reference axis in world frame
   sva::PTransformd refForceAxis_{sva::PTransformd::Identity()}; ///< Reference force axis in world frame
-  double duration_ = 5; ///< Duration of the trajectory
+  double duration_ = 30; ///< Duration of the trajectory
   double dt_ = 0;
   std::vector<sva::PTransformd> poses_; ///< Desired pose defined w.r.t refAxis_
   std::vector<sva::MotionVecd> velocities_; ///< Desired velocity defined w.r.t refAxis_

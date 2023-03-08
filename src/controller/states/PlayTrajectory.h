@@ -30,19 +30,20 @@ struct TrajectoryPlayer
         traj.name(), traj.frame().name(), traj.frame().robot().name(), config.dump(true));
   }
 
-  void addToGUI(mc_rtc::gui::StateBuilder & gui)
+  void addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
   {
-    gui.addElement(this, {"TrajectoryPlayer", trajectory_.name()}, mc_rtc::gui::Input("Pause", pause_),
-                   mc_rtc::gui::Input("Track Force", trackForce_),
+    category.push_back(trajectory_.name());
+    gui.addElement(this, category, mc_rtc::gui::Input("Pause", pause_), mc_rtc::gui::Input("Track Force", trackForce_),
                    mc_rtc::gui::Input("Apply force when paused", applyForceWhenPaused_));
-    gui.addElement(this, {"TrajectoryPlayer", trajectory_.name(), "Manual"},
-                   mc_rtc::gui::Input("Manual Target Force", manualForce_),
+    category.push_back("Manual");
+    gui.addElement(this, category, mc_rtc::gui::Input("Manual Target Force", manualForce_),
                    mc_rtc::gui::Input("Manual Target Wrench", manualWrench_));
   }
 
-  void removeFromGUI(mc_rtc::gui::StateBuilder & gui)
+  void removeFromGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
   {
-    gui.removeElements(this);
+    category.push_back(trajectory_.name());
+    gui.removeCategory(category);
   }
 
   ~TrajectoryPlayer()
@@ -107,6 +108,11 @@ struct TrajectoryPlayer
     return t_ >= trajectory_.duration();
   }
 
+  const Trajectory & trajectory()
+  {
+    return trajectory_;
+  }
+
 protected:
   mc_solver::QPSolver & solver_;
   Trajectory trajectory_;
@@ -144,4 +150,5 @@ protected:
     return true;
   }
   std::vector<std::shared_ptr<TrajectoryPlayer>> trajPlayers_;
+  bool next_ = false;
 };
