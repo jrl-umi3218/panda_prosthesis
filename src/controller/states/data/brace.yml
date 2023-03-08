@@ -45,6 +45,10 @@ Brace::PlayTrajectory:
   base: PlayTrajectory
   TrajectoryPlayer:
     FemurTrajectory:
+      # Safe parameters for now
+      autoplay: false
+      trackForce: false
+      manualForce: false
       impedanceTask:
         # dimWeight: [100, 100, 100, 1000, 1000, 1000]
         stiffness: [5000, 5000, 5000, 20000, 30000, 20000]
@@ -60,7 +64,7 @@ Brace::PlayTrajectory:
             linear: [1000, 1000, 1000]
           wrench: # no force tracking for now
             angular: [0, 0, 0]
-            linear: [0, 0, 0]
+            linear: [0, 0, 0.1]
 
 Brace::Simulation:
   base: Meta

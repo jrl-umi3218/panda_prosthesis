@@ -27,7 +27,9 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
         mc_rtc::log::info("config is {}", config.dump(true));
       }
       traj.interpolateInitialPose(traj.frame().position(), traj.frame().velocity());
-      trajPlayers_.push_back(std::make_shared<TrajectoryPlayer>(ctl.solver(), traj, config));
+      auto trajPlayer = std::make_shared<TrajectoryPlayer>(ctl.solver(), traj, config);
+      trajPlayer->addToGUI(*ctl.gui());
+      trajPlayers_.push_back(trajPlayer);
     }
   }
   output("OK");
@@ -45,6 +47,11 @@ bool PlayTrajectory::run(mc_control::fsm::Controller & ctl)
 
 void PlayTrajectory::teardown(mc_control::fsm::Controller & ctl)
 {
+  for(auto & trajPlayer : trajPlayers_)
+  {
+    trajPlayer->removeFromGUI(*ctl.gui());
+  }
+
   if(ctl.datastore().has("Trajectories"))
   {
     ctl.datastore().get<std::vector<Trajectory>>("Trajectories").clear();
