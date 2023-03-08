@@ -236,7 +236,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
     }
   };
 
-  generate_default_force_sensor_calib();
+  // generate_default_force_sensor_calib();
 
   constexpr double height = 0.716;
   _default_attitude = {{1., 0., 0., 0., 0., 0., height}};
