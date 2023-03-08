@@ -193,7 +193,10 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
   mc_rtc::log::info("Saved mechanical data file for the brace attachement to {}", mechanical_data_path.string());
   mc_rtc::log::info("Mechanical data is:\n {}", mechanical_data_conf.dump(true));
 
-  _forceSensors.emplace_back("BraceTopForceSensor", "Link1", sva::PTransformd::Identity());
+  Eigen::Matrix3d Rr = Eigen::Matrix3d::Zero();
+  // Rr << 0, -1, 0, -1, 0, 0, 0, 0, 1;
+  Rr << 1, 0, 0, 0, 1, 0, 0, 0, -1;
+  _forceSensors.emplace_back("BraceTopForceSensor", "Link1", sva::PTransformd(Rr));
 
   auto generate_default_force_sensor_calib = [totalMass, &brace_urdf]() {
     auto & mb = brace_urdf.mb;
