@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mc_control/fsm/State.h>
+#include <mc_tasks/BSplineTrajectoryTask.h>
 
 struct CalibrateRelative : mc_control::fsm::State
 {
@@ -9,4 +10,6 @@ struct CalibrateRelative : mc_control::fsm::State
   bool run(mc_control::fsm::Controller & ctl) override;
 
   void teardown(mc_control::fsm::Controller & ctl) override;
+protected:
+  std::shared_ptr<mc_tasks::BSplineTrajectoryTask> transformTask_;
 };

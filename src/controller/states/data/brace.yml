@@ -31,11 +31,12 @@ Brace::InitializeRobots::NoLoad:
 Brace::CalibrateRelative:
   base: CalibrateRelative
   robot: panda_brace_femur
-  frame: Femur
+  frame: Link2
   target_robot: brace_bottom_setup
-  target_frame: Tibia
+  target_frame: Link6
   relativePose:
-    translation: [0, 0, -0.03]
+    translation: [0.0017, -0.01525, 0.0828] 
+    rotation: [0.324, 0, 0]
 
 Brace::SaveCalibration:
   base: SaveCalibration

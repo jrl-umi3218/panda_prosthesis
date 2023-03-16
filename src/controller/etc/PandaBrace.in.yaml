@@ -49,6 +49,13 @@ robots:
     init_pos:
       translation: [0,0,0.655]
       rotation: [0.0, 0.0, 0.0]
+    frames:
+      # Frame above the surface of the Femur
+      - name: Femur
+        parent: Link2
+        X_p_f:
+          translation: [0, 0.0, -0.05]
+          rotation: [0, 0, 0]
 # General constraints, always on
 constraints:
 - type: contact
@@ -71,7 +78,7 @@ ObserverPipelines:
     - type: Encoder
       config:
         position: control #encoderValues
-        velocity: control #encoderFiniteDifferences
+        velocity: control #encoderVelocities
 
 # Initial set of contacts
 contacts: []
@@ -84,7 +91,7 @@ states:
       - ["Load Saved Calibration", "LoadSavedCalibration"]
       - ["Start from current configuration", "StartFromCurrent"]
 
-        #Plugins: [AtiDaq]
+Plugins: [AtiDaq]
 
 transitions:
   - [Brace::Simulation, Auto, Brace::Simulation, Strict]

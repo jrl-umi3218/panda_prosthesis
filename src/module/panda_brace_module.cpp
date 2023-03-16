@@ -146,9 +146,6 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
   auto [newMb, totalMass] = fix_inertia(brace_urdf.mb, transformC);
   brace_urdf.mb = newMb;
 
-  auto femurFrame = FrameDescription("Femur", "Link2", sva::PTransformd(Eigen::Vector3d{0, 0, -0.05}));
-  _frames.push_back(femurFrame);
-
   merge_urdf(brace_urdf, "panda_link8", "base_link", transformC("panda_link8_to_base_link"), transformC);
 
   auto generate_panda_mechanical_data = [&brace_urdf, totalMass](const Eigen::Matrix3d & inertia) {
