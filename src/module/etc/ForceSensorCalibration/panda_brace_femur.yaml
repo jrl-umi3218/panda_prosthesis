@@ -7,7 +7,7 @@ forceSensors:
 initialGuess:
   BraceTopForceSensor:
     autocompute: true
-    includeparent: false
+    includeParent: false
     verbose: true
 initial_posture:
   completion:
