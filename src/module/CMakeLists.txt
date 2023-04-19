@@ -40,5 +40,7 @@ if(${catkin_FOUND})
     add_robot(PandaBraceModule panda_brace_module.cpp panda_brace_module.h)
     target_link_libraries(PandaBraceModule PUBLIC mc_panda::panda)
     target_include_directories(PandaBraceModule PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+
+    install(FILES etc/ForceSensorCalibration/panda_brace_femur.yaml DESTINATION ${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/ForceSensorCalibration/)
   endif()
 endif()
