@@ -13,6 +13,7 @@ void save(const std::string & etc_file, const mc_rbdyn::Robot & robot)
 
 void SaveCalibration::start(mc_control::fsm::Controller & ctl)
 {
+ 
   if(!ctl.config().has("ETC_DIR") && ctl.config()("ETC_DIR").empty())
   {
     mc_rtc::log::error_and_throw("[{}] No \"ETC_DIR\"  entry specified", name());

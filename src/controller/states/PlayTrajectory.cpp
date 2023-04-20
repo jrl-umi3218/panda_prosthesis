@@ -56,6 +56,7 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
                         mc_rtc::gui::Button("ChooseTrajectory", [this]() {
                           output("ChooseTrajectory");
                           next_ = true;
+                    
                         }));
   output("OK");
 }

@@ -14,6 +14,11 @@ Brace::InitializeRobots:
         - ["Save Calibration", "Calibrate"]
         - ["Skip Calibration", "SkipCalibration"]
         - ["Calibrate Relative", "CalibrateRelative"]
+        - ["Remove Tool", "RemoveTool"]
+        - ["Go in Contact", "GoInContact"]
+       
+      
+      
 
 Brace::InitializeRobots::Load:
   base: Brace::InitializeRobots
@@ -41,6 +46,21 @@ Brace::CalibrateRelative:
 Brace::SaveCalibration:
   base: SaveCalibration
   robot: panda_brace_femur
+
+Brace::RemoveTool:
+  base: RemoveTool
+  robot: panda_brace_femur
+  frame: Link2
+
+Brace::GoInContact:
+  base: GoInContact
+  robot: panda_brace_femur
+  frame: Link2
+  target_robot: brace_bottom_setup
+  target_frame: Link1
+       
+
+
 
 Brace::PlayTrajectory:
   base: PlayTrajectory
@@ -74,12 +94,17 @@ Brace::Simulation:
     - [InitialChoice, StartFromCurrent, Brace::InitializeRobots::NoLoad, Auto]
     - [Brace::InitializeRobots::Load, Calibrate, Brace::SaveCalibration, Auto]
     - [Brace::InitializeRobots::NoLoad, Calibrate, Brace::SaveCalibration, Auto]
+    - [Brace::InitializeRobots::Load, RemoveTool, Brace::RemoveTool, Auto]
+    - [Brace::InitializeRobots::NoLoad, RemoveTool, Brace::RemoveTool, Auto]
+    - [Brace::InitializeRobots::Load, GoInContact, Brace::GoInContact, Auto]
+    - [Brace::InitializeRobots::NoLoad, GoInContact, Brace::GoInContact, Auto]
     - [Brace::InitializeRobots::Load, CalibrateRelative, Brace::CalibrateRelative, Auto]
     - [Brace::InitializeRobots::NoLoad, CalibrateRelative, Brace::CalibrateRelative, Auto]
     - [Brace::InitializeRobots::Load, SkipCalibration, ChooseTrajectory, Auto]
     - [Brace::InitializeRobots::NoLoad, SkipCalibration, ChooseTrajectory, Auto]
+    - [Brace::RemoveTool, OK, ChooseTrajectory, Auto]
+    - [Brace::GoInContact, OK, ChooseTrajectory, Auto]
     - [Brace::CalibrateRelative, OK, ChooseTrajectory, Auto]
-    - [Brace::SaveCalibration, OK, ChooseTrajectory, Auto]
     - [ChooseTrajectory, OK, Brace::PlayTrajectory , Auto]
     - [Brace::PlayTrajectory, PlayTrajectory, Brace::PlayTrajectory , Auto]
     - [Brace::PlayTrajectory, ChooseTrajectory, ChooseTrajectory , Auto]

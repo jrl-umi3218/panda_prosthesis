@@ -43,8 +43,8 @@ robots:
       - name: Tibia
         parent: Link6
         X_p_f:
-          translation: [0, 0.0, 0.02]
-          rotation: [0, 0, 0]
+          translation: [0.0047998, 0.010857, 0.020029]
+          rotation: [0, 0, 0.215405549]
   panda_brace_femur:
     init_pos:
       translation: [0,0,0.655]
@@ -54,8 +54,8 @@ robots:
       - name: Femur
         parent: Link2
         X_p_f:
-          translation: [0, 0.0, -0.05]
-          rotation: [0, 0, 0]
+          translation: [0.00203585,-0.00855716, -0.064306]
+          rotation: [0, 0, 0.220134723]
 # General constraints, always on
 constraints:
 - type: contact

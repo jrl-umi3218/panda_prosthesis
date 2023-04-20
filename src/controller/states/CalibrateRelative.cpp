@@ -4,6 +4,7 @@
 
 void CalibrateRelative::start(mc_control::fsm::Controller & ctl)
 {
+  
   auto robotName = static_cast<std::string>(config_("robot"));
   auto frameName = static_cast<std::string>(config_("frame"));
   if(!ctl.hasRobot(robotName))
@@ -54,10 +55,7 @@ bool CalibrateRelative::run(mc_control::fsm::Controller & ctl)
 
 void CalibrateRelative::teardown(mc_control::fsm::Controller & ctl)
 {
-  ctl.getPostureTask(config_("robot"))->reset();
-  // XXX set high stiffness so that the robot stays here while selecting the trajectory
-  // consider a better way
-  ctl.getPostureTask(config_("robot"))->stiffness(100);
+
   ctl.solver().removeTask(transformTask_);
 }
 

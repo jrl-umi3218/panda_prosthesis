@@ -17,8 +17,8 @@ void save(const std::string & etc_file, const mc_rbdyn::Robot & robot)
 
 void Calibrate::start(mc_control::fsm::Controller & ctl)
 {
-  ctl.gui()->addElement(this, {}, mc_rtc::gui::Button("Change Tool", [this]() { output("ChangeTool"); }));
-  ctl.gui()->addElement(this, {}, mc_rtc::gui::Button("Skip tool changing", [this, &ctl]() { output("ChangeTool"); }));
+  
+  // ctl.gui()->addElement(this, {}, mc_rtc::gui::Button("Skip tool changing", [this, &ctl]() { output("ChangeTool"); }));
 
   if(!ctl.datastore().has("Femur"))
   {
