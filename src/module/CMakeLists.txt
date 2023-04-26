@@ -7,7 +7,7 @@ target_include_directories(PandaProsthesisModule PRIVATE $<BUILD_INTERFACE:${CMA
 find_package(catkin QUIET)
 if(${catkin_FOUND})
   message(STATUS "catkin found, looking for extra description packages")
-  find_package(catkin QUIET COMPONENTS brace_bottom_setup brace_top_setup)
+  find_package(catkin QUIET COMPONENTS brace_bottom_setup brace_top_setup brace_urdf)
   if(${brace_bottom_setup_FOUND})
     # brace_bottom_setup_SOURCE_PREFIX, brace_bottom_setup_DEVEL_PREFIX, brace_bottom_setup_INSTALL_PREFIX
     message(STATUS "Found brace_bottom_setup sources in ${brace_bottom_setup_SOURCE_PREFIX}")
@@ -25,6 +25,25 @@ if(${catkin_FOUND})
 
     # Install the alias
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/alias/brace_bottom_setup.yaml" DESTINATION "${MC_ROBOTS_ALIASES_DIRECTORY}")
+  endif()
+
+  if(${brace_urdf_FOUND})
+    # brace_urdf_SOURCE_PREFIX, brace_urdf_DEVEL_PREFIX, brace_urdf_INSTALL_PREFIX
+    message(STATUS "Found brace_urdf sources in ${brace_urdf_SOURCE_PREFIX}")
+    set(brace_urdf_DIR ${brace_urdf_SOURCE_PREFIX})
+
+    # Generate the robot module YAML description using this value
+    configure_file(yaml/brace_urdf.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/yaml/brace_urdf.yaml")
+
+    # Install the YAML file
+    set(MODULE_INSTALL_LOCATION "${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/")
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/yaml/brace_urdf.yaml" DESTINATION "${MODULE_INSTALL_LOCATION}")
+
+    # Configure the alias accordingly
+    configure_file(alias/brace_urdf.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/alias/brace_urdf.yaml")
+
+    # Install the alias
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/alias/brace_urdf.yaml" DESTINATION "${MC_ROBOTS_ALIASES_DIRECTORY}")
   endif()
 
   if(${brace_top_setup_FOUND})

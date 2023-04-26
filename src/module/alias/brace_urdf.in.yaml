@@ -1,0 +1,1 @@
+brace_urdf: [json, "@MODULE_INSTALL_LOCATION@/brace_urdf.yaml"]
