@@ -42,7 +42,7 @@ bool RemoveTool::run(mc_control::fsm::Controller & ctl)
 }
 
 void RemoveTool::teardown(mc_control::fsm::Controller& ctl) {
-   
+    ctl.solver().removeTask(targetTask_);
     ctl.getPostureTask(config_("robot"))->reset();
     // XXX set high stiffness so that the robot stays here while selecting the trajectory
     // consider a better way
