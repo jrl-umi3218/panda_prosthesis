@@ -1,57 +1,59 @@
 #include "GoInContact.h"
 #include <mc_control/fsm/Controller.h>
-#include <mc_rbdyn/RobotFrame.h>
-#include <mc_rbdyn/ForceSensor.h>
+
 
 
 void GoInContact::start(mc_control::fsm::Controller& ctl)
 
 {
-    auto robotName = static_cast<std::string>(config_("robot"));
-    auto frameName = static_cast<std::string>(config_("frame"));
-
-    velB_={ {0, 0, 0}, { 0,0,1 }};
-    stiff_ = { { 100, 100, 100},{ 100, 100, 1 } };
-    damp_ = { { 20, 20, 20}, {20, 20, 300 } };
-
-        transfoTask_ = std::make_shared<mc_tasks::TransformTask>(ctl.robot(robotName).frame(frameName), 2.0, 500.0);
-        if (!ctl.hasRobot(robotName))
-        {
-            mc_rtc::log::error_and_throw("[{}] No robot named {}", name(), robotName);
-        }
-        if (!ctl.robot(robotName).hasFrame(frameName))
-        {
-            mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), frameName, robotName);
-        }
-
-
-        auto targetRobotName = static_cast<std::string>(config_("target_robot"));
-        auto targetFrameName = static_cast<std::string>(config_("target_frame"));
-        auto force_sensor_output = ctl.robot(targetRobotName).frame(targetFrameName).wrench();
-        auto target_force_z = force_sensor_output.force().z();
-        
-        if (!ctl.hasRobot(targetRobotName))
-        {
-            mc_rtc::log::error_and_throw("[{}] No robot named {}", name(), targetRobotName);
-        }
-        if (!ctl.robot(targetRobotName).hasFrame(targetFrameName))
-        {
-            mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), targetFrameName, targetRobotName);
-        }
-
-      
-
-        transfoTask_->refVelB(velB_); //on veut une vitesse de 0.01 m/s dans le repère fixe, refVelb prend les coordonnées dans le repère de la frame controlée (fémur) donc on fait un changement de repère. Ici, on négligera 
-                                                                                  //l'angle de varus valgus supposé faible et on considèrera donc les 2 axes x confondus. L'angle entre les 2 frames est égal à 18.5 degrés et est constant au cours du mouvement qui est seulement une translation selon Z_repère_fixe
-                                               
-            
-       
-        //transfoTask_->setGains(stiff_, damp_);
-        ctl.solver().addTask(transfoTask_);
+    
                  
         ctl.gui()->addElement(this, { "GoInContact" },
         mc_rtc::gui::Button("Go to Contact", [this, &ctl]() {                     
-            bool clicked = true;           
+            bool clicked = true;  
+            auto robotName = static_cast<std::string>(config_("robot"));
+            auto frameName = static_cast<std::string>(config_("frame"));
+            auto velocity_y = -0.01 * sin(0.3227);
+            auto velocity_z = -0.01 * cos(0.3227);
+
+            velB_ = { {0, 0, 0}, { 0,velocity_y, velocity_z} };
+            stiff_ = { { 100, 100, 100},{ 100, 1, 1 } };
+            damp_ = { { 20, 20, 20}, {20, 300, 300 } };
+
+            transfoTask_ = std::make_shared<mc_tasks::TransformTask>(ctl.robot(robotName).frame(frameName), 2.0, 500.0);
+            if (!ctl.hasRobot(robotName))
+            {
+                mc_rtc::log::error_and_throw("[{}] No robot named {}", name(), robotName);
+            }
+            if (!ctl.robot(robotName).hasFrame(frameName))
+            {
+                mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), frameName, robotName);
+            }
+
+
+            auto targetRobotName = static_cast<std::string>(config_("target_robot"));
+            auto targetFrameName = static_cast<std::string>(config_("target_frame"));
+            auto force_sensor_output = ctl.robot(targetRobotName).frame(targetFrameName).wrench();
+            auto target_force_z = force_sensor_output.force().z();
+
+            if (!ctl.hasRobot(targetRobotName))
+            {
+                mc_rtc::log::error_and_throw("[{}] No robot named {}", name(), targetRobotName);
+            }
+            if (!ctl.robot(targetRobotName).hasFrame(targetFrameName))
+            {
+                mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), targetFrameName, targetRobotName);
+            }
+
+
+
+            transfoTask_->refVelB(velB_); //on veut une vitesse de 0.01 m/s dans le repère fixe, refVelb prend les coordonnées dans le repère de la frame controlée (fémur) donc on fait un changement de repère. Ici, on négligera 
+            //l'angle de varus valgus supposé faible et on considèrera donc les 2 axes x confondus. L'angle entre les 2 frames est égal à 18.5 degrés et est constant au cours du mouvement qui est seulement une translation selon Z_repère_fixe
+
+
+
+//transfoTask_->setGains(stiff_, damp_);
+            ctl.solver().addTask(transfoTask_);
             output("OK");            
             }));
 
