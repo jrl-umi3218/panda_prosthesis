@@ -56,6 +56,8 @@ robots:
         X_p_f:
           translation: [0.00203585,-0.00855716, -0.064306]
           rotation: [0, 0, 0.220134723]
+ #  brace_urdf:
+ #   module: brace_urdf
 # General constraints, always on
 constraints:
 - type: contact
