@@ -5,30 +5,28 @@
 
 void RemoveTool::start(mc_control::fsm::Controller& ctl)
 {
-    auto robotName = static_cast<std::string>(config_("robot"));
-    auto frameName = static_cast<std::string>(config_("frame"));
-    if (!ctl.hasRobot(robotName))
-    {
-        mc_rtc::log::error_and_throw("[{}] No robot named {}", name(), robotName);
-    }
-    if (!ctl.robot(robotName).hasFrame(frameName))
-    {
-        mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), frameName, robotName);
-    }
-    auto targetTask_ = std::make_shared<mc_tasks::TransformTask>(ctl.robot(robotName).frame(frameName), 2.0, 500.0);
-    auto X_tibia_femur = sva::PTransformd(Eigen::Vector3d{ 0,0,0.1 });
-    auto X_0_femur = X_tibia_femur * ctl.robot(robotName).frame(frameName).position();
-    targetTask_->target(X_0_femur);
-    ctl.solver().addTask(targetTask_);
-  
     
    
     ctl.gui()->addElement(this, { "Post Calibration" },
         mc_rtc::gui::Button("RemoveTool", [this, &ctl]() {
-            
+            auto robotName = static_cast<std::string>(config_("robot"));
+            auto frameName = static_cast<std::string>(config_("frame"));
+            if (!ctl.hasRobot(robotName))
+            {
+                mc_rtc::log::error_and_throw("[{}] No robot named {}", name(), robotName);
+            }
+            if (!ctl.robot(robotName).hasFrame(frameName))
+            {
+                mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), frameName, robotName);
+            }
+            auto targetTask_ = std::make_shared<mc_tasks::TransformTask>(ctl.robot(robotName).frame(frameName), 2.0, 500.0);
+            auto X_tibia_femur = sva::PTransformd(Eigen::Vector3d{ 0,0,0.1 });
+            auto X_0_femur = X_tibia_femur * ctl.robot(robotName).frame(frameName).position();
+            targetTask_->target(X_0_femur);
            
             output("OK");
             completed = true;
+            ctl.solver().addTask(targetTask_);
             mc_rtc::log::info("RemoveTool Ok");}));
        
   
@@ -36,7 +34,7 @@ void RemoveTool::start(mc_control::fsm::Controller& ctl)
 
 bool RemoveTool::run(mc_control::fsm::Controller & ctl)
 {   
-    if (completed)
+    if (completed)  //&& (targetTask_->eval())<=0.2
     {
         return true;
     }
