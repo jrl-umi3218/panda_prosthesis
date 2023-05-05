@@ -24,19 +24,26 @@ void RemoveTool::start(mc_control::fsm::Controller& ctl)
             auto X_0_femur = X_tibia_femur * ctl.robot(robotName).frame(frameName).position();
             targetTask_->target(X_0_femur);
            
-            output("OK");
+            ctl.getPostureTask(config_("robot"))->weight(1);
             completed = true;
             ctl.solver().addTask(targetTask_);
-            mc_rtc::log::info("RemoveTool Ok");}));
+            mc_rtc::log::info("RemoveTool Ok");
+            output("OK");}));
        
   
 }
 
 bool RemoveTool::run(mc_control::fsm::Controller & ctl)
 {   
-    if (completed)  //&& (targetTask_->eval())<=0.2
-    {
-        return true;
+
+    if (completed)
+	{
+
+        // err= targetTask_->eval().norm();
+        // if ( err <0.02)
+        // {
+        //     return true;
+        // }
     }
     return false;
 }
@@ -47,6 +54,7 @@ void RemoveTool::teardown(mc_control::fsm::Controller& ctl) {
     // XXX set high stiffness so that the robot stays here while selecting the trajectory
     // consider a better way
     ctl.getPostureTask(config_("robot"))->stiffness(100);
+    ctl.getPostureTask(config_("robot"))->weight(10);
     //ctl.solver().removeTask(targetTask_);
     ctl.gui()->removeElements(this);
 

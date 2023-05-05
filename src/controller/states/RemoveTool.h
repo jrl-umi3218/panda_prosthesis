@@ -20,4 +20,5 @@ private:
 	std::string loader_;
 	bool completed = false;
 	std::shared_ptr<mc_tasks::TransformTask> targetTask_;
+  double err =100;
 };
