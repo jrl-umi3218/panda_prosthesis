@@ -19,6 +19,7 @@ private:
 	std::map<std::string, std::unique_ptr<TrajectoryLoader>> loaders_;
 	std::string loader_;
 	bool completed = false;
+	bool pass = false;
 	std::shared_ptr<mc_tasks::TransformTask> targetTask_;
-  double err =100;
+	double err =100;
 };

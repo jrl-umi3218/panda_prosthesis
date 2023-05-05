@@ -23,14 +23,16 @@ void RemoveTool::start(mc_control::fsm::Controller& ctl)
             auto X_tibia_femur = sva::PTransformd(Eigen::Vector3d{ 0,0,0.1 });
             auto X_0_femur = X_tibia_femur * ctl.robot(robotName).frame(frameName).position();
             targetTask_->target(X_0_femur);
-           
+
             ctl.getPostureTask(config_("robot"))->weight(1);
             completed = true;
             ctl.solver().addTask(targetTask_);
             mc_rtc::log::info("RemoveTool Ok");
-            output("OK");}));
-       
-  
+            output("OK"); }),
+        mc_rtc::gui::Button("Pass", [this, &ctl]() {
+                pass = true;
+            }));
+            
 }
 
 bool RemoveTool::run(mc_control::fsm::Controller & ctl)
@@ -38,12 +40,13 @@ bool RemoveTool::run(mc_control::fsm::Controller & ctl)
 
     if (completed)
 	{
-
-        // err= targetTask_->eval().norm();
-        // if ( err <0.02)
-        // {
-        //     return true;
-        // }
+        if (!pass)
+        {
+           
+        }
+        if (pass) {
+            return true;
+        }
     }
     return false;
 }
