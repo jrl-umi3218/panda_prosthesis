@@ -8,9 +8,9 @@ void GoInContact::start(mc_control::fsm::Controller& ctl)
 {
     
                  
-        ctl.gui()->addElement(this, { "GoInContact" },
-        mc_rtc::gui::Button("Go to Contact", [this, &ctl]() {                     
-            bool clicked = true;  
+    ctl.gui()->addElement(this, { "GoInContact" },
+        mc_rtc::gui::Button("Go to Contact", [this, &ctl]() {
+            bool clicked = true;
             auto robotName = static_cast<std::string>(config_("robot"));
             auto frameName = static_cast<std::string>(config_("frame"));
             auto velocity_y = -0.01 * sin(0.3227);
@@ -19,22 +19,10 @@ void GoInContact::start(mc_control::fsm::Controller& ctl)
             velB_ = { {0, 0, 0}, { 0,velocity_y, velocity_z} };
             stiff_ = { { 100, 100, 100},{ 100, 1, 1 } };
             damp_ = { { 20, 20, 20}, {20, 300, 300 } };
-
-            transfoTask_ = std::make_shared<mc_tasks::TransformTask>(ctl.robot(robotName).frame(frameName), 2.0, 500.0);
-            if (!ctl.hasRobot(robotName))
-            {
-                mc_rtc::log::error_and_throw("[{}] No robot named {}", name(), robotName);
-            }
-            if (!ctl.robot(robotName).hasFrame(frameName))
-            {
-                mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), frameName, robotName);
-            }
-
-
             auto targetRobotName = static_cast<std::string>(config_("target_robot"));
             auto targetFrameName = static_cast<std::string>(config_("target_frame"));
             auto force_sensor_output = ctl.robot(targetRobotName).frame(targetFrameName).wrench();
-            auto target_force_z = force_sensor_output.force().z();
+            target_force_z = force_sensor_output.force().z();
 
             if (!ctl.hasRobot(targetRobotName))
             {
@@ -45,6 +33,18 @@ void GoInContact::start(mc_control::fsm::Controller& ctl)
                 mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), targetFrameName, targetRobotName);
             }
 
+            if (!ctl.hasRobot(robotName))
+            {
+                mc_rtc::log::error_and_throw("[{}] No robot named {}", name(), robotName);
+            }
+            if (!ctl.robot(robotName).hasFrame(frameName))
+            {
+                mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), frameName, robotName);
+            }
+            transfoTask_ = std::make_shared<mc_tasks::TransformTask>(ctl.robot(robotName).frame(frameName), 2.0, 500.0);
+
+
+
 
 
             transfoTask_->refVelB(velB_); //on veut une vitesse de 0.01 m/s dans le repère fixe, refVelb prend les coordonnées dans le repère de la frame controlée (fémur) donc on fait un changement de repère. Ici, on négligera 
@@ -52,10 +52,9 @@ void GoInContact::start(mc_control::fsm::Controller& ctl)
 
 
 
-//transfoTask_->setGains(stiff_, damp_);
+            transfoTask_->setGains(stiff_, damp_);
             ctl.solver().addTask(transfoTask_);
-            output("OK");            
-            }));
+            output("OK");}));
 
        
 }
@@ -63,10 +62,13 @@ void GoInContact::start(mc_control::fsm::Controller& ctl)
 bool GoInContact::run(mc_control::fsm::Controller& ctl)
 {
    
-    if (clicked) //&& target_force_z <=2
+    if (clicked)
     {
-        return true;
-
+        if (target_force_z <= 2)
+        {
+            return true;
+        }
+         
     }
     return false;
 }

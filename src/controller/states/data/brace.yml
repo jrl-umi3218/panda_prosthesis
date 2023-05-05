@@ -90,6 +90,7 @@ Brace::Simulation:
     - [InitialChoice, StartFromCurrent, Brace::InitializeRobots::NoLoad, Auto]
     - [Brace::InitializeRobots::NoLoad, Calibrate, Brace::SaveCalibration, Auto]
     - [Brace::SaveCalibration, OK, Brace::RemoveTool, Auto]
+    - [Brace::InitializeRobots::Load, SkipCalibration, ChooseTrajectory, Auto]
     - [Brace::RemoveTool, OK, InitialChoice, Auto]
     - [Brace::InitializeRobots::Load, CalibrateRelative, Brace::CalibrateRelative]
     - [Brace::CalibrateRelative, OK, Brace::GoInContact, Auto]

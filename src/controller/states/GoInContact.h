@@ -19,6 +19,8 @@ private:
 	std::map<std::string, std::unique_ptr<TrajectoryLoader>> loaders_;
 	std::string loader_;
 	bool clicked = false;
+	Eigen::DenseCoeffsBase<Eigen::Matrix<double, 3, 1>, 1>::Scalar target_force_z ;
+	
 	std::shared_ptr<mc_tasks::TransformTask> transfoTask_;
 	
 	
@@ -30,3 +32,4 @@ private:
 	
 
 };
+
