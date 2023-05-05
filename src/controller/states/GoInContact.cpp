@@ -10,7 +10,7 @@ void GoInContact::start(mc_control::fsm::Controller& ctl)
                  
     ctl.gui()->addElement(this, { "GoInContact" },
         mc_rtc::gui::Button("Go to Contact", [this, &ctl]() {
-            bool clicked = true;
+            clicked = true;
             auto robotName = static_cast<std::string>(config_("robot"));
             auto frameName = static_cast<std::string>(config_("frame"));
             auto velocity_y = -0.01 * sin(0.3227);
@@ -23,6 +23,7 @@ void GoInContact::start(mc_control::fsm::Controller& ctl)
             auto targetFrameName = static_cast<std::string>(config_("target_frame"));
             auto force_sensor_output = ctl.robot(targetRobotName).frame(targetFrameName).wrench();
             target_force_z = force_sensor_output.force().z();
+	        mc_rtc::log::info("the fz value is : {}",target_force_z);
 
             if (!ctl.hasRobot(targetRobotName))
             {
@@ -47,8 +48,8 @@ void GoInContact::start(mc_control::fsm::Controller& ctl)
 
 
 
-            transfoTask_->refVelB(velB_); //on veut une vitesse de 0.01 m/s dans le repère fixe, refVelb prend les coordonnées dans le repère de la frame controlée (fémur) donc on fait un changement de repère. Ici, on négligera 
-            //l'angle de varus valgus supposé faible et on considèrera donc les 2 axes x confondus. L'angle entre les 2 frames est égal à 18.5 degrés et est constant au cours du mouvement qui est seulement une translation selon Z_repère_fixe
+            transfoTask_->refVelB(velB_); //on veut une vitesse de 0.01 m/s dans le repï¿½re fixe, refVelb prend les coordonnï¿½es dans le repï¿½re de la frame controlï¿½e (fï¿½mur) donc on fait un changement de repï¿½re. Ici, on nï¿½gligera 
+            //l'angle de varus valgus supposï¿½ faible et on considï¿½rera donc les 2 axes x confondus. L'angle entre les 2 frames est ï¿½gal ï¿½ 18.5 degrï¿½s et est constant au cours du mouvement qui est seulement une translation selon Z_repï¿½re_fixe
 
 
 
@@ -60,11 +61,17 @@ void GoInContact::start(mc_control::fsm::Controller& ctl)
 }
 
 bool GoInContact::run(mc_control::fsm::Controller& ctl)
-{
-   
+{    auto targetRobotName = static_cast<std::string>(config_("target_robot"));
+     auto targetFrameName = static_cast<std::string>(config_("target_frame"));
+     auto force_sensor_output = ctl.robot(targetRobotName).frame(targetFrameName).wrench();
+     mc_rtc::log::info("we are in the run loop");
+     mc_rtc::log::info("the value of clicked is {}", clicked);
     if (clicked)
-    {
-        if (target_force_z <= 2)
+    {   
+        
+        target_force_z=force_sensor_output.force().z();
+	    mc_rtc::log::info("the fz value is : {}", target_force_z);
+        if (target_force_z<=-30)
         {
             return true;
         }
