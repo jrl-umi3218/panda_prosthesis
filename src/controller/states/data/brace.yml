@@ -36,8 +36,8 @@ Brace::CalibrateRelative:
   target_robot: brace_bottom_setup
   target_frame: Link6
   relativePose:
-    translation: [0.0017, -0.01525, 0.0828] 
-    rotation: [0.324, 0, 0]
+    translation: [0.000038, -0.00012522, 0.148] #si bon axes on met selon z 0.06990845
+    rotation: [0, 0, 0]
 
 Brace::SaveCalibration:
   base: SaveCalibration
@@ -45,6 +45,12 @@ Brace::SaveCalibration:
 
 Brace::RemoveTool:
   base: RemoveTool
+  robot: panda_brace_femur
+  frame: Link2
+
+
+Brace::GoBackCalibPos:
+  base: GoBackCalibPos
   robot: panda_brace_femur
   frame: Link2
 
@@ -91,7 +97,8 @@ Brace::Simulation:
     - [Brace::InitializeRobots::NoLoad, Calibrate, Brace::SaveCalibration, Auto]
     - [Brace::SaveCalibration, OK, Brace::RemoveTool, Auto]
     - [Brace::InitializeRobots::Load, SkipCalibration, ChooseTrajectory, Auto]
-    - [Brace::RemoveTool, OK, InitialChoice, Auto]
+    - [Brace::RemoveTool, OK, Brace::GoBackCalibPos, Auto]
+    - [Brace::GoBackCalibPos, OK, ChooseTrajectory, Auto]
     - [Brace::InitializeRobots::Load, CalibrateRelative, Brace::CalibrateRelative]
     - [Brace::CalibrateRelative, OK, Brace::GoInContact, Auto]
     - [Brace::InitializeRobots::NoLoad, SkipCalibration, ChooseTrajectory, Auto]

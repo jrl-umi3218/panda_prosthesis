@@ -64,13 +64,12 @@ bool GoInContact::run(mc_control::fsm::Controller& ctl)
 {    auto targetRobotName = static_cast<std::string>(config_("target_robot"));
      auto targetFrameName = static_cast<std::string>(config_("target_frame"));
      auto force_sensor_output = ctl.robot(targetRobotName).frame(targetFrameName).wrench();
-     mc_rtc::log::info("we are in the run loop");
-     mc_rtc::log::info("the value of clicked is {}", clicked);
+     
     if (clicked)
     {   
         
         target_force_z=force_sensor_output.force().z();
-	    mc_rtc::log::info("the fz value is : {}", target_force_z);
+	    
         if (target_force_z<=-30)
         {
             return true;
