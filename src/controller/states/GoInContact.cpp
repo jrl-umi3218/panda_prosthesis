@@ -15,8 +15,9 @@ void GoInContact::start(mc_control::fsm::Controller& ctl)
             auto frameName = static_cast<std::string>(config_("frame"));
             auto velocity_y = -0.01 * sin(0.3227);
             auto velocity_z = -0.01 * cos(0.3227);
-
-            velB_ = { {0, 0, 0}, { 0,velocity_y, velocity_z} };
+            auto X_0_femur = ctl.robot().frame(frameName).position();
+            auto refVelW = sva::MotionVecd({ 0,0,0 }, { 0,0,-0.01 });
+            velB_ = X_0_femur * refVelW  ;
             stiff_ = { { 100, 100, 100},{ 100, 1, 1 } };
             damp_ = { { 20, 20, 20}, {20, 300, 300 } };
             auto targetRobotName = static_cast<std::string>(config_("target_robot"));
