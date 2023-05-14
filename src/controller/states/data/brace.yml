@@ -36,8 +36,8 @@ Brace::CalibrateRelative:
   target_robot: brace_bottom_setup
   target_frame: Link6
   relativePose:
-    translation: [0.000038, -0.00012522, 0.148] #si bon axes on met selon z 0.06990845
-    rotation: [0, 0, 0]
+    translation: [0.000038, -0.00012522, 0.148] #si bon axes on met selon z 0.06990845   
+    rotation: [0.324, 0.057, 0]
 
 Brace::SaveCalibration:
   base: SaveCalibration
