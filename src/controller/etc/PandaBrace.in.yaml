@@ -54,11 +54,13 @@ robots:
       - name: Femur
         parent: Link2
         X_p_f:
-          translation: [0.00203585,-0.00855716, -0.064306]
-          rotation: [0, 0, 0.220134723]
+          translation: [0.00203498,-0.00855732, -0.064306]
+          rotation: [0, 0.140, 0.1716]
+
+	   
 
  #  brace_urdf:
- # 	 module: brace_urdf
+ # module: brace_urdf
 
 # General constraints, always on
 constraints:
