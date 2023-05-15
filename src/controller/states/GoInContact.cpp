@@ -72,7 +72,7 @@ bool GoInContact::run(mc_control::fsm::Controller& ctl)
         
         target_force_z=force_sensor_output.force().z();
 	    mc_rtc::log::info("the fz value is : {}", target_force_z);
-        if (target_force_z<=-30)
+        if (target_force_z<=-2)
         {
             return true;
         }
