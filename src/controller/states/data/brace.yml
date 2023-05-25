@@ -32,12 +32,14 @@ Brace::InitializeRobots::NoLoad:
 Brace::CalibrateRelative:
   base: CalibrateRelative
   robot: panda_brace_femur
-  frame: Link2
+  frame: Femur
   target_robot: brace_bottom_setup
-  target_frame: Link6
+  target_frame: Tibia
   relativePose:
     translation: [0.00038, -0.0012522, 0.148] #si en contact alors z= 0.06
-    rotation: [0.324, 0.057, 0.104]
+    #rotation: [0.324, 0.057, 0.104]
+    rotation: [0.324, 0.0, 0.0]
+
 
 Brace::SaveCalibration:
   base: SaveCalibration
@@ -107,9 +109,8 @@ Brace::Simulation:
     - [Brace::RemoveTool, OK, InitialChoice, Auto]
     #- [Brace::RemoveTool, OK, Brace::GoBackCalibPos, Auto]
     #- [Brace::GoBackCalibPos, OK, ChooseTrajectory, Auto]
-    - [Brace::InitializeRobots::Load, CalibrateRelative, Brace::CalibrateRelative]
-    - [Brace::CalibrateRelative, OK, Brace::OffsetCalib, Auto]
-    - [Brace::OffsetCalib, OK, Brace::GoInContact, Auto]
+    - [Brace::InitializeRobots::Load, CalibrateRelative, Brace::CalibrateRelative,Auto]
+    - [Brace::CalibrateRelative, OK, Brace::GoInContact, Auto]
     - [Brace::InitializeRobots::NoLoad, SkipCalibration, ChooseTrajectory, Auto]
     - [Brace::GoInContact, OK, ChooseTrajectory, Auto]
     - [ChooseTrajectory, OK, Brace::PlayTrajectory , Auto]

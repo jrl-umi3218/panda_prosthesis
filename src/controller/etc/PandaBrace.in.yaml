@@ -44,7 +44,7 @@ robots:
         parent: Link6
         X_p_f:
           translation: [0.0047996, 0.01085675, 0.0203177]
-          rotation: [0, 0, 0.00001]
+          rotation: [0.0, 0.14758, 0.215405549]
   panda_brace_femur:
     init_pos:
       translation: [0,0,0.655]
