@@ -33,34 +33,30 @@ offsets:
 # Additional robots to load
 robots:
   brace_bottom_setup:
-    module: brace_bottom_setup 
+    module: brace_bottom_setup
     init_pos:
-      translation: [0.55,0.2,0.0]
+      translation: [0.55, 0.2, 0.0]
       rotation: [0.0, 0.0, 0.0]
     frames:
-      # Frame above the surface of the Tibia
-      # This should contain the desired offset distance between the tibia and the joint center
+      # Anatomic frame defined in Solidworks
       - name: Tibia
         parent: Link6
         X_p_f:
-          translation: [0.0047996, 0.01085675, 0.0203177]
-          rotation: [0.0, 0.14758, 0.215405549]
+          translation: [0.00307, 0.00266, 0.02017]
+          rotation: [0.1365, 0.0876, 0.106]
   panda_brace_femur:
     init_pos:
-      translation: [0,0,0.655]
+      translation: [0, 0, 0.655]
       rotation: [0.0, 0.0, 0.0]
     frames:
-      # Frame above the surface of the Femur
+      # Anatomic frame defined in Solidworks
       - name: Femur
         parent: Link2
         X_p_f:
-          translation: [0.00203498,-0.00855732, -0.064306]
-          rotation: [0, 0.140, 0.1716]
-
-	   
-
+          translation: [0.000453, 0.0092127, -0.05082]
+          rotation: [0.0298, 0.1287, 0.0163]
  #  brace_urdf:
- # module: brace_urdf
+ #    module: brace_urdf
 
 # General constraints, always on
 constraints:
@@ -97,7 +93,7 @@ states:
       - ["Load Saved Calibration", "LoadSavedCalibration"]
       - ["Start from current configuration", "StartFromCurrent"]
 
-Plugins: [AtiDaq]
+#Plugins: [AtiDaq]
 
 transitions:
   - [Brace::Simulation, Auto, Brace::Simulation, Strict]

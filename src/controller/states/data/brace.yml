@@ -35,11 +35,9 @@ Brace::CalibrateRelative:
   frame: Femur
   target_robot: brace_bottom_setup
   target_frame: Tibia
-  relativePose:
-    translation: [0.00038, -0.0012522, 0.148] #si en contact alors z= 0.06
-    #rotation: [0.324, 0.057, 0.104]
-    rotation: [0.324, 0.0, 0.0]
-
+  femurToTibia:
+    translation: [0.004677, -0.018503, -0.011227]
+    rotation: [-0.2636, -0.0216, -0.045]
 
 Brace::SaveCalibration:
   base: SaveCalibration
