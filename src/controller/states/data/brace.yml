@@ -94,7 +94,7 @@ Brace::PlayTrajectory:
             linear: [1000, 1000, 1000]
           wrench: # no force tracking for now
             angular: [0, 0, 0]
-            linear: [0, 0, 0.1]
+            linear: [0, 0, 0]
 
 Brace::Simulation:
   base: Meta
@@ -111,6 +111,6 @@ Brace::Simulation:
     - [Brace::CalibrateRelative, OK, Brace::GoInContact, Auto]
     - [Brace::InitializeRobots::NoLoad, SkipCalibration, ChooseTrajectory, Auto]
     - [Brace::GoInContact, OK, ChooseTrajectory, Auto]
-    - [ChooseTrajectory, OK, Brace::PlayTrajectory , Auto]
+    - [ChooseTrajectory, OK, Brace::PlayTrajectory, Auto]
     - [Brace::PlayTrajectory, PlayTrajectory, Brace::PlayTrajectory , Auto]
     - [Brace::PlayTrajectory, ChooseTrajectory, ChooseTrajectory , Auto]

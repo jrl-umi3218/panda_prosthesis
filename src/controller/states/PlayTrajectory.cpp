@@ -1,5 +1,6 @@
 #include "PlayTrajectory.h"
 
+#include <TrajectoryPlayer.h>
 #include <mc_control/fsm/Controller.h>
 #include <mc_rtc/io_utils.h>
 #include <boost/filesystem.hpp>
@@ -80,5 +81,17 @@ void PlayTrajectory::teardown(mc_control::fsm::Controller & ctl)
 
   ctl.gui()->removeCategory({"PlayTrajectory"});
 }
+
+  bool PlayTrajectory::finished() const
+  {
+    for(const auto & player : trajPlayers_)
+    {
+      if(!player->finished())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 
 EXPORT_SINGLE_STATE("PlayTrajectory", PlayTrajectory)

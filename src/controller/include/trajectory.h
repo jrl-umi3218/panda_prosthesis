@@ -9,9 +9,31 @@
  */
 struct PoseInterpolation
 {
+  // FIXME using RPY for now as both sva::interpolate and Quaternion slerp fail
   sva::PTransformd operator()(const sva::PTransformd & p1, const sva::PTransformd & p2, double t) const
   {
-    return sva::interpolate(p1, p2, t);
+    auto interpolated = sva::interpolate(p1, p2, t);
+
+    Eigen::Quaterniond r1{p1.rotation()};
+    Eigen::Quaterniond r2{p2.rotation()};
+    Eigen::Matrix3d rslerp = r1.slerp(t, r2).toRotationMatrix().eval();
+
+    // Interpolate using RPY
+    auto rpy1 = mc_rbdyn::rpyFromMat(p1.rotation());
+    auto rpy2 = mc_rbdyn::rpyFromMat(p2.rotation());
+    auto t1 = p1.translation();
+    auto t2 = p2.translation();
+    interpolated.rotation() = mc_rbdyn::rpyToMat(rpy1 + (rpy2-rpy1) * t);
+    interpolated.translation() = t1 + (t2-t1) * t;
+    /* mc_rtc::log::info("Interpolation between\n\t{}\n\t{}\n\t{}\n\t{},\n\tt={}", */
+    /*     mc_rbdyn::rpyFromMat(p1.rotation()).transpose() * 180/3.14, */
+    /*     mc_rbdyn::rpyFromMat(p2.rotation()).transpose() * 180/3.14, */
+    /*     mc_rbdyn::rpyFromMat(interpolated.rotation()).transpose() * 180/3.14, */
+    /*     interpolated.translation().transpose(), */
+    /*     t */
+    /*     ); */
+
+    return interpolated;
   }
 };
 
@@ -99,11 +121,12 @@ struct Trajectory
       {
         newValues.emplace_back(t + interpolationTime, pose);
       }
+      poseInterpolation_.clear();
       poseInterpolation_.values(newValues);
     }
     for(const auto & [t, pose] : poseInterpolation_.values())
     {
-      mc_rtc::log::info("t: {}, pose: {}", t, pose.translation().transpose());
+      mc_rtc::log::info("t: {}, translation: {}, rotation (deg): {}", t, pose.translation().transpose(), mc_rbdyn::rpyFromMat(pose.rotation()).transpose() * 180 / mc_rtc::constants::PI);
     }
     {
       auto values = velocityInterpolation_.values();
