@@ -1,9 +1,9 @@
 set(common_SRC
-  src/trajectory.cpp
+  src/Trajectory.cpp
   src/TrajectoryPlayer.cpp
 )
 set(common_HDR
-  include/trajectory.h
+  include/Trajectory.h
   include/TrajectoryPlayer.h
   include/utils.h
 )

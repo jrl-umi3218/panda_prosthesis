@@ -1,8 +1,11 @@
 #pragma once
 
 #include <mc_control/fsm/State.h>
-#include <mc_tasks/TransformTask.h>
-#include "../include/TrajectoryLoader.h"
+
+namespace mc_tasks
+{
+struct TransformTask;
+}
 
 struct GoInContact : mc_control::fsm::State
 {
@@ -15,8 +18,6 @@ struct GoInContact : mc_control::fsm::State
   void load(mc_control::fsm::Controller & ctl);
 
 private:
-  std::map<std::string, std::unique_ptr<TrajectoryLoader>> loaders_;
-  std::string loader_;
   bool clicked = false;
   Eigen::DenseCoeffsBase<Eigen::Matrix<double, 3, 1>, 1>::Scalar target_force_z;
 

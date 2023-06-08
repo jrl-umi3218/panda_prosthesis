@@ -1,5 +1,6 @@
 #include "GoInContact.h"
 #include <mc_control/fsm/Controller.h>
+#include <mc_tasks/TransformTask.h>
 
 void GoInContact::start(mc_control::fsm::Controller & ctl)
 

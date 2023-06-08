@@ -1,7 +1,7 @@
-#include "trajectory.h"
+#include <Trajectory.h>
 #include <mc_rbdyn/rpy_utils.h>
 #include <mc_rtc/logging.h>
-#include "../3rd-party/csv.h"
+#include <3rd-party/csv.h>
 
 void Trajectory::loadPoseFromCSV(const std::string & csv,
                                  const std::string & tangage,

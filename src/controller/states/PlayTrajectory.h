@@ -3,7 +3,7 @@
 #include <mc_control/fsm/State.h>
 #include <mc_rtc/gui/NumberSlider.h>
 #include <mc_tasks/ImpedanceTask.h>
-#include "../include/trajectory.h"
+#include <Trajectory.h>
 
 struct TrajectoryPlayer;
 

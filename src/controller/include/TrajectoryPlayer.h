@@ -1,6 +1,6 @@
 #pragma once
 #include <mc_solver/QPSolver.h>
-#include <trajectory.h>
+#include <Trajectory.h>
 
 namespace mc_tasks
 {

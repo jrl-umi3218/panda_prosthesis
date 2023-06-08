@@ -4,7 +4,7 @@
 #include <mc_rtc/gui/StateBuilder.h>
 #include <mc_rtc/io_utils.h>
 #include <boost/filesystem.hpp>
-#include "trajectory.h"
+#include <Trajectory.h>
 #include <string>
 #include <variant>
 
