@@ -15,7 +15,8 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
   // Merge with brace_top_setup urdf here
   auto merge_urdf = [this](const rbd::parsers::ParserResult & brace_urdf, const std::string & merge_root,
                            const std::string & merge_with_link, const sva::PTransformd & X_root_link,
-                           const mc_rtc::Configuration & extraConf) {
+                           const mc_rtc::Configuration & extraConf)
+  {
     const auto & brace_mb = brace_urdf.mb;
     const auto & bodies = brace_mb.bodies();
     const auto & pred = brace_mb.predecessors();
@@ -50,7 +51,8 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
       if(add)
       {
         static bool first_add = true;
-        auto addBody = [this, &bodies, &brace_urdf](const std::string & name, int bodyIdx) {
+        auto addBody = [this, &bodies, &brace_urdf](const std::string & name, int bodyIdx)
+        {
           mc_rtc::log::info("[PandaBrace] Add body {}", name);
           mbg.addBody(bodies[bodyIdx]);
           auto convex = bfs::path(panda_prosthesis::brace_top_setup_DIR) / "convex" / (name + "-ch.txt");
@@ -92,7 +94,8 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
     mbc.zero(mb);
   };
 
-  auto fix_inertia = [this](const rbd::MultiBody & brace_mb, const mc_rtc::Configuration & extraConf) {
+  auto fix_inertia = [this](const rbd::MultiBody & brace_mb, const mc_rtc::Configuration & extraConf)
+  {
     mc_rtc::log::info("Fix inertia");
     const auto & bodies = brace_mb.bodies();
     const auto & pred = brace_mb.predecessors();
@@ -148,7 +151,8 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
 
   merge_urdf(brace_urdf, "panda_link8", "base_link", transformC("panda_link8_to_base_link"), transformC);
 
-  auto generate_panda_mechanical_data = [&brace_urdf, totalMass](const Eigen::Matrix3d & inertia) {
+  auto generate_panda_mechanical_data = [&brace_urdf, totalMass](const Eigen::Matrix3d & inertia)
+  {
     // For Panda end effector configuration
     auto & mb = brace_urdf.mb;
     auto & mbc = brace_urdf.mbc;
@@ -195,7 +199,8 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
   Rr << 1, 0, 0, 0, 1, 0, 0, 0, -1;
   _forceSensors.emplace_back("BraceTopForceSensor", "Link1", sva::PTransformd(Rr));
 
-  auto generate_default_force_sensor_calib = [totalMass, &brace_urdf]() {
+  auto generate_default_force_sensor_calib = [totalMass, &brace_urdf]()
+  {
     auto & mb = brace_urdf.mb;
     auto & mbc = brace_urdf.mbc;
     auto braceCoM = rbd::computeCoM(brace_urdf.mb, brace_urdf.mbc);

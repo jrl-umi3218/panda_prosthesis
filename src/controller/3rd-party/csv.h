@@ -232,27 +232,29 @@ public:
     byte_source = std::move(arg_byte_source);
     desired_byte_count = -1;
     termination_requested = false;
-    worker = std::thread([&] {
-      std::unique_lock<std::mutex> guard(lock);
-      try
-      {
-        for(;;)
+    worker = std::thread(
+        [&]
         {
-          read_requested_condition.wait(guard, [&] { return desired_byte_count != -1 || termination_requested; });
-          if(termination_requested) return;
+          std::unique_lock<std::mutex> guard(lock);
+          try
+          {
+            for(;;)
+            {
+              read_requested_condition.wait(guard, [&] { return desired_byte_count != -1 || termination_requested; });
+              if(termination_requested) return;
 
-          read_byte_count = byte_source->read(buffer, desired_byte_count);
-          desired_byte_count = -1;
-          if(read_byte_count == 0) break;
+              read_byte_count = byte_source->read(buffer, desired_byte_count);
+              desired_byte_count = -1;
+              if(read_byte_count == 0) break;
+              read_finished_condition.notify_one();
+            }
+          }
+          catch(...)
+          {
+            read_error = std::current_exception();
+          }
           read_finished_condition.notify_one();
-        }
-      }
-      catch(...)
-      {
-        read_error = std::current_exception();
-      }
-      read_finished_condition.notify_one();
-    });
+        });
   }
 
   bool is_valid() const

@@ -69,25 +69,28 @@ void ChooseTrajectory::start(mc_control::fsm::Controller & ctl)
   ctl.gui()->addElement(this, {"ChooseTrajectory"},
                         mc_rtc::gui::ComboInput(
                             "Trajectory Loader", keys, [this]() { return loader_; },
-                            [this, &ctl](const std::string & name) {
+                            [this, &ctl](const std::string & name)
+                            {
                               auto & l = *loaders_[loader_];
                               mc_rtc::log::info("Adding to GUI {}", l.name());
                               l.addToGUI(*ctl.gui(), {"ChooseTrajectory"});
                             }),
-                        mc_rtc::gui::Button("Play Trajectory", [this, &ctl]() {
-                          bool valid = true;
-                          auto & l = *loaders_[loader_];
-                          for(const auto & traj : l.trajectories())
-                          {
-                            valid = traj.poses().size();
-                            if(!valid)
-                            {
-                              mc_rtc::log::error("Cannot play empty trajectory");
-                              return;
-                            }
-                          }
-                          ctl.datastore().assign("Trajectories", l.trajectories());
-                        }));
+                        mc_rtc::gui::Button("Play Trajectory",
+                                            [this, &ctl]()
+                                            {
+                                              bool valid = true;
+                                              auto & l = *loaders_[loader_];
+                                              for(const auto & traj : l.trajectories())
+                                              {
+                                                valid = traj.poses().size();
+                                                if(!valid)
+                                                {
+                                                  mc_rtc::log::error("Cannot play empty trajectory");
+                                                  return;
+                                                }
+                                              }
+                                              ctl.datastore().assign("Trajectories", l.trajectories());
+                                            }));
   output("OK");
 };
 

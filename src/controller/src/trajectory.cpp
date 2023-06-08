@@ -20,14 +20,15 @@ void Trajectory::loadPoseFromCSV(const std::string & csv,
     // This should really be its own trajectory loader to remain compatible with BoneTag experiment
     const auto angleRad = mc_rtc::constants::PI / 180 * rotation;
     const auto alpha = angleRad.x();
-    const auto beta = mc_rtc::constants::PI/2 - angleRad.y(); // for left knee
+    const auto beta = mc_rtc::constants::PI / 2 - angleRad.y(); // for left knee
     const auto gamma = angleRad.z();
 
     Eigen::Matrix3d Rt;
-    Rt <<
-      cos(gamma) * sin(beta), -cos(alpha) * sin(gamma) - cos(gamma) * sin(alpha) * cos(beta), sin(alpha) * sin(gamma) - cos(alpha) * cos(gamma) * cos(beta),
-      sin(gamma) * sin(beta), cos(alpha) * cos(gamma) - sin(gamma) * sin(alpha) * cos(beta), cos(gamma) * sin(alpha) - cos(alpha) * cos(beta) * sin(gamma),
-      cos(beta), sin(beta) * sin(alpha), cos(alpha) * sin(beta);
+    Rt << cos(gamma) * sin(beta), -cos(alpha) * sin(gamma) - cos(gamma) * sin(alpha) * cos(beta),
+        sin(alpha) * sin(gamma) - cos(alpha) * cos(gamma) * cos(beta), sin(gamma) * sin(beta),
+        cos(alpha) * cos(gamma) - sin(gamma) * sin(alpha) * cos(beta),
+        cos(gamma) * sin(alpha) - cos(alpha) * cos(beta) * sin(gamma), cos(beta), sin(beta) * sin(alpha),
+        cos(alpha) * sin(beta);
     mc_rtc::log::info("Rotation is: {}", mc_rbdyn::rpyFromMat(Rt).transpose() * 180 / mc_rtc::constants::PI);
 
     poses_.push_back(sva::PTransformd{Rt, translation / 1000});
@@ -61,7 +62,7 @@ void Trajectory::update()
     {
       mc_rtc::log::error_and_throw("[Trajectory::update] Must have at least one pose, none provided");
     }
-    auto Nintervals = poses_.size()-1;
+    auto Nintervals = poses_.size() - 1;
     dt_ = duration_ / Nintervals;
     PoseInterpolator::TimedValueVector posesInterp;
     for(int i = 0; i < poses_.size(); ++i)

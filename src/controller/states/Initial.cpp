@@ -87,7 +87,8 @@ void Initial::start(mc_control::fsm::Controller & ctl)
                         mc_rtc::gui::Transform(
                             fmt::format("Initial pose ({})", robot_),
                             [this]() -> const sva::PTransformd & { return initial_pose_; },
-                            [this](const sva::PTransformd & p) {
+                            [this](const sva::PTransformd & p)
+                            {
                               initial_pose_ = p;
                               pose_changed_ = true;
                             }));

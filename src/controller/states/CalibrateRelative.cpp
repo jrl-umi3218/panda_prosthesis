@@ -49,8 +49,6 @@ bool CalibrateRelative::run(mc_control::fsm::Controller & ctl)
   return true;
 }
 
-void CalibrateRelative::teardown(mc_control::fsm::Controller & ctl)
-{
-}
+void CalibrateRelative::teardown(mc_control::fsm::Controller & ctl) {}
 
 EXPORT_SINGLE_STATE("CalibrateRelative", CalibrateRelative)

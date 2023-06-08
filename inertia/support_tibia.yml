@@ -5,4 +5,3 @@ mass: 0.05
 com: [0.0, 0.0, 0.09]
 # Inertia (kg.meters²) [Ixx, Ixy, Ixz, Iyy, Iyz, Izz]
 inertia: [0.00013625, 0.0, 0.0, 0.00013625, 0.0, 0.00000042]
-

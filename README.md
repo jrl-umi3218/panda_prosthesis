@@ -32,7 +32,7 @@ roslaunch mc_rtc_ticker display.launch
 - Click on Real -> Start from Current configuration -> Calibrate
 - Click on `Change tool`, the robots will move away from each other
 - Remove the calibration tool, attach the prosthesis
-- Click `Tool changed`, the robots move to the initial knee configuration 
+- Click `Tool changed`, the robots move to the initial knee configuration
 
 ### Normal use (without calibration)
 

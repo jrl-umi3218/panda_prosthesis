@@ -1,9 +1,9 @@
 #include "PlayTrajectory.h"
 
-#include <TrajectoryPlayer.h>
 #include <mc_control/fsm/Controller.h>
 #include <mc_rtc/io_utils.h>
 #include <boost/filesystem.hpp>
+#include <TrajectoryPlayer.h>
 
 void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
 {
@@ -38,7 +38,8 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
   }
   ctl.gui()->addElement(this, {"PlayTrajectory"},
                         mc_rtc::gui::Button("Reverse Trajectories",
-                                            [this, &ctl]() {
+                                            [this, &ctl]()
+                                            {
                                               auto reversedTrajectories = std::vector<Trajectory>{};
                                               for(auto & trajPlayer : trajPlayers_)
                                               {
@@ -50,15 +51,17 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
                                                   reversedTrajectories;
                                             }),
                         mc_rtc::gui::Button("Next",
-                                            [this]() {
+                                            [this]()
+                                            {
                                               output("PlayTrajectory");
                                               next_ = true;
                                             }),
-                        mc_rtc::gui::Button("ChooseTrajectory", [this]() {
-                          output("ChooseTrajectory");
-                          next_ = true;
-                    
-                        }));
+                        mc_rtc::gui::Button("ChooseTrajectory",
+                                            [this]()
+                                            {
+                                              output("ChooseTrajectory");
+                                              next_ = true;
+                                            }));
   output("OK");
 }
 
@@ -82,16 +85,16 @@ void PlayTrajectory::teardown(mc_control::fsm::Controller & ctl)
   ctl.gui()->removeCategory({"PlayTrajectory"});
 }
 
-  bool PlayTrajectory::finished() const
+bool PlayTrajectory::finished() const
+{
+  for(const auto & player : trajPlayers_)
   {
-    for(const auto & player : trajPlayers_)
+    if(!player->finished())
     {
-      if(!player->finished())
-      {
-        return false;
-      }
+      return false;
     }
-    return true;
   }
+  return true;
+}
 
 EXPORT_SINGLE_STATE("PlayTrajectory", PlayTrajectory)

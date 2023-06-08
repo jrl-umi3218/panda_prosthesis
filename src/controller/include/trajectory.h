@@ -23,8 +23,8 @@ struct PoseInterpolation
     auto rpy2 = mc_rbdyn::rpyFromMat(p2.rotation());
     auto t1 = p1.translation();
     auto t2 = p2.translation();
-    interpolated.rotation() = mc_rbdyn::rpyToMat(rpy1 + (rpy2-rpy1) * t);
-    interpolated.translation() = t1 + (t2-t1) * t;
+    interpolated.rotation() = mc_rbdyn::rpyToMat(rpy1 + (rpy2 - rpy1) * t);
+    interpolated.translation() = t1 + (t2 - t1) * t;
     /* mc_rtc::log::info("Interpolation between\n\t{}\n\t{}\n\t{}\n\t{},\n\tt={}", */
     /*     mc_rbdyn::rpyFromMat(p1.rotation()).transpose() * 180/3.14, */
     /*     mc_rbdyn::rpyFromMat(p2.rotation()).transpose() * 180/3.14, */
@@ -126,7 +126,8 @@ struct Trajectory
     }
     for(const auto & [t, pose] : poseInterpolation_.values())
     {
-      mc_rtc::log::info("t: {}, translation: {}, rotation (deg): {}", t, pose.translation().transpose(), mc_rbdyn::rpyFromMat(pose.rotation()).transpose() * 180 / mc_rtc::constants::PI);
+      mc_rtc::log::info("t: {}, translation: {}, rotation (deg): {}", t, pose.translation().transpose(),
+                        mc_rbdyn::rpyFromMat(pose.rotation()).transpose() * 180 / mc_rtc::constants::PI);
     }
     {
       auto values = velocityInterpolation_.values();

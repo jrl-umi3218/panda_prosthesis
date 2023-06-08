@@ -51,7 +51,8 @@ struct TrajectoryLoader
     gui.addElement(this, category,
                    mc_rtc::gui::ComboInput(
                        "Trajectory", files_, [this]() { return selectedFile_; },
-                       [this](const std::string & name) {
+                       [this](const std::string & name)
+                       {
                          selectedFile_ = name;
                          load(directory_, name);
                        }));

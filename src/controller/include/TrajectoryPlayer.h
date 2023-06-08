@@ -4,11 +4,11 @@
 
 namespace mc_tasks
 {
-  namespace force
-  {
-    struct ImpedanceTask;
-  }
+namespace force
+{
+struct ImpedanceTask;
 }
+} // namespace mc_tasks
 
 struct TrajectoryPlayer
 {
@@ -53,4 +53,3 @@ protected:
   sva::ForceVecd manualWrench_ = sva::ForceVecd::Zero(); /// Manual wrench (only
                                                          /// used if manualForce_ = true
 };
-

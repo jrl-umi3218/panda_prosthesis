@@ -1,7 +1,7 @@
 add_library(BoneTagSerial SHARED BoneTagSerial.cpp)
 target_link_libraries(BoneTagSerial PUBLIC mc_rtc::mc_rtc_utils)
 
-install(TARGETS BoneTagSerial 
+install(TARGETS BoneTagSerial
   ARCHIVE DESTINATION "${MC_RTC_LIBDIR}"
   LIBRARY DESTINATION "${MC_RTC_LIBDIR}"
   RUNTIME DESTINATION bin)

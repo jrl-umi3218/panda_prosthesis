@@ -1,13 +1,13 @@
-#include <TrajectoryPlayer.h>
-#include <mc_tasks/ImpedanceTask.h>
+#include <mc_rtc/gui/ArrayLabel.h>
 #include <mc_rtc/gui/Input.h>
 #include <mc_rtc/gui/NumberSlider.h>
-#include <mc_rtc/gui/ArrayLabel.h>
+#include <mc_tasks/ImpedanceTask.h>
+#include <TrajectoryPlayer.h>
 
 TrajectoryPlayer::TrajectoryPlayer(mc_solver::QPSolver & solver,
-    const Trajectory & traj,
-    const mc_rtc::Configuration & config)
-  : solver_(solver), trajectory_(traj)
+                                   const Trajectory & traj,
+                                   const mc_rtc::Configuration & config)
+: solver_(solver), trajectory_(traj)
 {
   task_ = std::make_shared<mc_tasks::force::ImpedanceTask>(traj.frame());
   if(config.has("impedanceTask"))
@@ -34,21 +34,19 @@ TrajectoryPlayer::~TrajectoryPlayer()
   solver_.removeTask(task_);
 }
 
-
 void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
 {
   category.push_back(trajectory_.name());
   gui.addElement(this, category, mc_rtc::gui::Input("Pause", pause_), mc_rtc::gui::Input("Track Force", trackForce_),
-      mc_rtc::gui::Input("Apply force when paused", applyForceWhenPaused_));
+                 mc_rtc::gui::Input("Apply force when paused", applyForceWhenPaused_));
   auto playingStatusCat = category;
   playingStatusCat.push_back("Playing Status");
-  gui.addElement(this, category,
-      mc_rtc::gui::NumberSlider("t: ", t_, 0, trajectory_.duration()),
-      mc_rtc::gui::ArrayLabel("Target Translation (World): ", task_->targetPose().translation()),
-      mc_rtc::gui::RPYLabel("Target Rotation (World): ", task_->targetPose().rotation()));
+  gui.addElement(this, category, mc_rtc::gui::NumberSlider("t: ", t_, 0, trajectory_.duration()),
+                 mc_rtc::gui::ArrayLabel("Target Translation (World): ", task_->targetPose().translation()),
+                 mc_rtc::gui::RPYLabel("Target Rotation (World): ", task_->targetPose().rotation()));
   category.push_back("Manual");
   gui.addElement(this, category, mc_rtc::gui::Input("Manual Target Force", manualForce_),
-      mc_rtc::gui::Input("Manual Target Wrench", manualWrench_));
+                 mc_rtc::gui::Input("Manual Target Wrench", manualWrench_));
 }
 
 void TrajectoryPlayer::removeFromGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
@@ -59,7 +57,8 @@ void TrajectoryPlayer::removeFromGUI(mc_rtc::gui::StateBuilder & gui, std::vecto
 
 void TrajectoryPlayer::update(double dt)
 {
-  auto trackForce = [this]() {
+  auto trackForce = [this]()
+  {
     // Track force from the trajectory
     if(trackForce_)
     {
@@ -83,7 +82,8 @@ void TrajectoryPlayer::update(double dt)
   if(t_ < trajectory_.duration() && !pause_)
   {
     const auto pose = trajectory_.worldPose(t_);
-    /* mc_rtc::log::info("Computed pose for t={} is {}", t_, mc_rbdyn::rpyFromMat(pose.rotation()).transpose() * 180 / mc_rtc::constants::PI); */
+    /* mc_rtc::log::info("Computed pose for t={} is {}", t_, mc_rbdyn::rpyFromMat(pose.rotation()).transpose() * 180 /
+     * mc_rtc::constants::PI); */
     const auto velocity = trajectory_.worldVelocity(t_);
 
     task_->targetPose(pose);

@@ -122,7 +122,7 @@ PrepareJoint:
 
 ManipulateKnee::Rotation:
   base: ManipulateKnee
-  samples: 15 
+  samples: 15
   rate: 0.5
   thresholds:
     translation: 0.1
@@ -165,4 +165,3 @@ Simulation:
   - [PrepareJoint, "PrepareTibia(OK), PrepareFemur(OK)", ChooseTrajectory , Auto]
   - [ChooseTrajectory, "OK", PlayTrajectory , Auto]
   - [PlayTrajectory, "OK", InitialChoice , Auto]
-

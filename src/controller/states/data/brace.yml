@@ -14,7 +14,7 @@ Brace::InitializeRobots:
         - ["Save Calibration", "Calibrate"]
         - ["Skip Calibration", "SkipCalibration"]
         - ["Calibrate Relative", "CalibrateRelative"]
-     
+
 
 Brace::InitializeRobots::Load:
   base: Brace::InitializeRobots
@@ -67,7 +67,7 @@ Brace::GoInContact:
   frame: Link2
   target_robot: brace_bottom_setup
   target_frame: Tibia
-       
+
 
 
 

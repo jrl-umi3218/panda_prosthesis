@@ -18,7 +18,8 @@ PandaProsthesisRobotModule::PandaProsthesisRobotModule(const std::string & prost
   auto inertias = bfs::path(panda_prosthesis::inertia_DIR);
   auto transforms = bfs::path(panda_prosthesis::transforms_DIR);
 
-  auto addBody = [&](const std::string name) {
+  auto addBody = [&](const std::string name)
+  {
     auto mesh = meshes / (name + ".stl");
     auto convex = convexes / (name + "-ch.txt");
     auto inertia = inertias / (name + ".yml");
