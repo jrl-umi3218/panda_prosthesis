@@ -12,19 +12,41 @@ struct PoseInterpolation
   // FIXME using RPY for now as both sva::interpolate and Quaternion slerp fail
   sva::PTransformd operator()(const sva::PTransformd & p1, const sva::PTransformd & p2, double t) const
   {
-    auto interpolated = sva::interpolate(p1, p2, t);
+    return sva::interpolate(p1, p2, t);
+  }
+};
 
+struct PoseInterpolationSlerp
+{
+  sva::PTransformd operator()(const sva::PTransformd & p1, const sva::PTransformd & p2, double t) const
+  {
     Eigen::Quaterniond r1{p1.rotation()};
     Eigen::Quaterniond r2{p2.rotation()};
     Eigen::Matrix3d rslerp = r1.slerp(t, r2).toRotationMatrix().eval();
+    auto t1 = p1.translation();
+    auto t2 = p2.translation();
+    return {rslerp, t1 + (t2 - t1) * t};
+  }
+};
 
+/*
+ * Simplistic interpolation:
+ * - Rotations are interpolated in RPY space. It can fail when crossing RPY discontinuities
+ * - Translations are a simple linear interpolation
+ *
+ * Prefer using a more eleborate method, this is only intended for quick checks
+ */
+struct RPYPoseInterpolation
+{
+  sva::PTransformd operator()(const sva::PTransformd & p1, const sva::PTransformd & p2, double t) const
+  {
     // Interpolate using RPY
     auto rpy1 = mc_rbdyn::rpyFromMat(p1.rotation());
     auto rpy2 = mc_rbdyn::rpyFromMat(p2.rotation());
     auto t1 = p1.translation();
     auto t2 = p2.translation();
-    interpolated.rotation() = mc_rbdyn::rpyToMat(rpy1 + (rpy2 - rpy1) * t);
-    interpolated.translation() = t1 + (t2 - t1) * t;
+
+    return {mc_rbdyn::rpyToMat(rpy1 + (rpy2 - rpy1) * t), t1 + (t2 - t1) * t};
     /* mc_rtc::log::info("Interpolation between\n\t{}\n\t{}\n\t{}\n\t{},\n\tt={}", */
     /*     mc_rbdyn::rpyFromMat(p1.rotation()).transpose() * 180/3.14, */
     /*     mc_rbdyn::rpyFromMat(p2.rotation()).transpose() * 180/3.14, */
@@ -32,8 +54,6 @@ struct PoseInterpolation
     /*     interpolated.translation().transpose(), */
     /*     t */
     /*     ); */
-
-    return interpolated;
   }
 };
 
@@ -249,7 +269,9 @@ private:
   std::vector<sva::PTransformd> poses_; ///< Desired pose defined w.r.t refAxis_
   std::vector<sva::MotionVecd> velocities_; ///< Desired velocity defined w.r.t refAxis_
   std::optional<std::vector<sva::ForceVecd>> forces_; ///< Desired force defined w.r.t refForceAxis_
-  using PoseInterpolator = mc_trajectory::SequenceInterpolator<sva::PTransformd, PoseInterpolation>;
+  // FIXME We should not be using RPYPoseInterpolation but for now the
+  // interpolation using sva::interpolate fails
+  using PoseInterpolator = mc_trajectory::SequenceInterpolator<sva::PTransformd, RPYPoseInterpolation>;
   using VelocityInterpolator = mc_trajectory::SequenceInterpolator<sva::MotionVecd>;
   PoseInterpolator poseInterpolation_;
   VelocityInterpolator velocityInterpolation_;
