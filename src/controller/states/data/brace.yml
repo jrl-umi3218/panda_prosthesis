@@ -13,7 +13,6 @@ Brace::InitializeRobots:
       choices:
         - ["Save Calibration", "Calibrate"]
         - ["Skip Calibration", "SkipCalibration"]
-        - ["Calibrate Relative", "CalibrateRelative"]
         - ["Offset Calib", "OffsetCalib"]
 
 
@@ -36,9 +35,14 @@ Brace::CalibrateRelative:
   frame: Femur
   target_robot: brace_bottom_setup
   target_frame: Tibia
+  refRobot : brace_bottom_setup
+  refFrame : Link6
   femurToTibia:
     translation: [0.004677, -0.018503, -0.011227]
-    rotation: [-0.2636, -0.0216, -0.045]
+    rotation: [-0.2636, -0.0216, 0.045]
+
+  offsetLink6:
+    translation: [0,0.0,-0.06]
 
 Brace::SaveCalibration:
   base: SaveCalibration
@@ -59,7 +63,7 @@ Brace::OffsetCalib:
     translation: [-0.0065, 0.015, 0]
   completion:
     AND:
-      - eval: 0.0001
+      - eval: 0.0005
       - speed: 1e-4
 
 Brace::GoBackCalibPos:
@@ -110,9 +114,9 @@ Brace::Simulation:
     - [Brace::RemoveTool, OK, InitialChoice, Auto]
     #- [Brace::RemoveTool, OK, Brace::GoBackCalibPos, Auto]
     #- [Brace::GoBackCalibPos, OK, ChooseTrajectory, Auto]
-    - [Brace::InitializeRobots::Load, CalibrateRelative, Brace::CalibrateRelative,Auto]
-    - [Brace::InitializeRobots::Load, OffsetCalib, Brace::OffsetCalib,Auto]
-    - [Brace::OffsetCalib, OK, Brace::InitializeRobots::Load, Auto]
+    - [Brace::InitializeRobots::Load, CalibrateRelative, Brace::CalibrateRelative, Auto]
+    - [Brace::InitializeRobots::Load, OffsetCalib, Brace::OffsetCalib, Auto]
+    - [Brace::OffsetCalib, OK, Brace::CalibrateRelative, Auto]
     - [Brace::CalibrateRelative, OK, Brace::GoInContact, Auto]
     - [Brace::InitializeRobots::NoLoad, SkipCalibration, ChooseTrajectory, Auto]
     - [Brace::GoInContact, OK, ChooseTrajectory, Auto]

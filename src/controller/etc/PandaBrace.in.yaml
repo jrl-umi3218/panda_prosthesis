@@ -93,7 +93,7 @@ states:
       - ["Load Saved Calibration", "LoadSavedCalibration"]
       - ["Start from current configuration", "StartFromCurrent"]
 
-#Plugins: [AtiDaq]
+Plugins: [AtiDaq]
 
 transitions:
   - [Brace::Simulation, Auto, Brace::Simulation, Strict]

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mc_control/fsm/State.h>
-#include <mc_tasks/BSplineTrajectoryTask.h>
 
 struct CalibrateRelative : mc_control::fsm::State
 {

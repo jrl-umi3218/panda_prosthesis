@@ -15,18 +15,23 @@ void GoInContact::start(mc_control::fsm::Controller & ctl)
             clicked = true;
             auto robotName = static_cast<std::string>(config_("robot"));
             auto frameName = static_cast<std::string>(config_("frame"));
-            auto velocity_y = -0.01 * sin(0.3227);
-            auto velocity_z = -0.01 * cos(0.3227);
             auto X_0_femur = ctl.robot().frame(frameName).position();
-            auto refVelW = sva::MotionVecd({0, 0, 0}, {0, 0, -0.01});
+
+            auto X_0_link6 = ctl.robot("brace_bottom_setup").frame("Link6").position();
+            auto refVelLink6 = sva::MotionVecd({0, 0, 0}, {0, 0, -0.01});
+            auto refVelW = X_0_link6.inv() * refVelLink6;
+            mc_rtc::log::info("refVelW: {}", refVelW.vector().transpose());
+            
+            // for real
+            // auto refVelW = sva::MotionVecd({0, 0, 0}, {0, 0, -0.01});
+
             velB_ = X_0_femur * refVelW;
-            stiff_ = {{100, 100, 100}, {100, 1, 1}};
-            damp_ = {{20, 20, 20}, {20, 300, 300}};
+            stiff_ = {{100, 100, 100}, {1, 1, 1}};
+            damp_ = {{20, 20, 20}, {300, 300, 300}};
             auto targetRobotName = static_cast<std::string>(config_("target_robot"));
             auto targetFrameName = static_cast<std::string>(config_("target_frame"));
             auto force_sensor_output = ctl.robot(targetRobotName).frame(targetFrameName).wrench();
             target_force_z = force_sensor_output.force().z();
-            mc_rtc::log::info("the fz value is : {}", target_force_z);
 
             if(!ctl.hasRobot(targetRobotName))
             {
@@ -70,7 +75,6 @@ bool GoInContact::run(mc_control::fsm::Controller & ctl)
   if(clicked)
   {
     target_force_z = force_sensor_output.force().z();
-    mc_rtc::log::info("the fz value is : {}", target_force_z);
     if(target_force_z <= -2)
     {
       return true;
