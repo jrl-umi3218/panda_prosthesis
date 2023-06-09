@@ -21,7 +21,7 @@ void GoInContact::start(mc_control::fsm::Controller & ctl)
             auto refVelLink6 = sva::MotionVecd({0, 0, 0}, {0, 0, -0.01});
             auto refVelW = X_0_link6.inv() * refVelLink6;
             mc_rtc::log::info("refVelW: {}", refVelW.vector().transpose());
-            
+
             // for real
             // auto refVelW = sva::MotionVecd({0, 0, 0}, {0, 0, -0.01});
 

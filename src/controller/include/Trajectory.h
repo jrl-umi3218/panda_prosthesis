@@ -254,7 +254,7 @@ struct Trajectory
   {
     return refAxisFrame_;
   }
-  
+
 protected:
   unsigned indexFromTime(double t) const noexcept
   {

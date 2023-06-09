@@ -34,7 +34,7 @@ void CalibrateRelative::start(mc_control::fsm::Controller & ctl)
   {
     mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), refFrameName, refRobotName);
   }
-  
+
   // Suppose that the femur and calibration tool are in perfect contact
   // and that the relative position between the femur and tibia frames is fully known in that configuration
   auto X_femur_tibia = config_("femurToTibia", sva::PTransformd::Identity());
