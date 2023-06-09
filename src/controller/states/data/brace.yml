@@ -98,8 +98,8 @@ Brace::PlayTrajectory:
             linear: [1000, 1000, 1000]
           spring:
             angular: [1000, 1000, 1000]
-            linear: [1000, 1000, 1000]
-          wrench: # no force tracking for now
+            linear: [300, 300, 300]
+          wrench:
             angular: [0, 0, 0]
             linear: [0, 0, 0]
 

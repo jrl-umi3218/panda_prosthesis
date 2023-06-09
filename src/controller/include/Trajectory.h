@@ -250,6 +250,11 @@ struct Trajectory
     return duration_;
   }
 
+  inline mc_rbdyn::ConstRobotFramePtr refAxisFrame() const noexcept
+  {
+    return refAxisFrame_;
+  }
+  
 protected:
   unsigned indexFromTime(double t) const noexcept
   {

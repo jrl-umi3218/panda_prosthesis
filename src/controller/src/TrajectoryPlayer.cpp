@@ -46,7 +46,17 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
                  mc_rtc::gui::RPYLabel("Target Rotation (World): ", task_->targetPose().rotation()));
   category.push_back("Manual");
   gui.addElement(this, category, mc_rtc::gui::Input("Manual Target Force", manualForce_),
-                 mc_rtc::gui::Input("Manual Target Wrench", manualWrench_));
+                 mc_rtc::gui::Input("Manual Target Wrench (Tibia frame)", manualWrench_));
+                 gui.addElement(this, category, mc_rtc::gui::Force("Target Force Femur", 
+                 [this]() -> sva::ForceVecd
+                  {
+                    return task_->targetWrench();
+                  },
+                  [this]() -> sva::PTransformd
+                  {
+                    task_->frame().position();
+                  }                  
+                 ));
 }
 
 void TrajectoryPlayer::removeFromGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
@@ -64,7 +74,9 @@ void TrajectoryPlayer::update(double dt)
     {
       if(manualForce_)
       { // manual force
-        task_->targetWrenchW(manualWrench_);
+        auto refAxis = trajectory_.refAxisFrame()->position();
+        auto manualWrenchW = refAxis.inv().dualMul(manualWrench_);
+        task_->targetWrenchW(manualWrenchW);
       }
       else
       { // force from trajectory
