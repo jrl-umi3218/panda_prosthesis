@@ -42,7 +42,7 @@ Brace::CalibrateRelative:
     rotation: [-0.2636, -0.0216, 0.045]
 
   offsetLink6:
-    translation: [0,0.0,-0.06]
+    translation: [0,0.0,-0.07263]
 
 Brace::SaveCalibration:
   base: SaveCalibration
