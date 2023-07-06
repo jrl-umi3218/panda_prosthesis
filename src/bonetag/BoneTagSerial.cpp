@@ -1,5 +1,6 @@
 #include "BoneTagSerial.h"
 #include <mc_rtc/logging.h>
+#include <mc_rtc/io_utils.h>
 
 namespace io
 {
@@ -43,6 +44,7 @@ void BoneTagSerial::synchronize()
   while(synch != 'A')
   {
     synch = f.get();
+    std::cout << synch << std::endl;
     if(synch == 'A')
     {
       synch = 0;
@@ -67,28 +69,32 @@ const BoneTagSerial::Data & BoneTagSerial::read()
 
   f.flush();
 
+  /* for (size_t i = 0 ; i < 8; i++) { */
+  /*   rawData[i] = 0; */
+  /* } */
+
   unsigned compt = 0;
   // Data is encoded on 12 bits, stored in 2 consecutive bytes:
   // - First 8 bits are the first 8 bits of the integer
   // - Second 8 bits: first 5 bits contains the rest of the number, last 3 bits are zero padding
   // Thus the number to be retrieved is stored as a 16 bits integer
-  for(unsigned res = 0; res < 8; ++res)
+  for(unsigned res = 0; res <= 7; ++res)
   {
-    // auto temp = static_cast<double>(data[compt]);
-    rawData[res] = data[compt++] << 9; // Shift the first 9 received bits to the leftmost byte of the integer
+    rawData[res] = data[compt] << 9; // Shift the first 9 received bits to the leftmost byte of the integer
     rawData[res] >>= 1;
     rawData[res] &= 32767;
-    rawData[res] += data[compt++]; // Add the remaining 5 bits (+3 zero padding bits)
+    rawData[res] += data[compt + 1]; // Add the remaining 5 bits (+3 zero padding bits)
     rawData[res] = rawData[res] >> 5; // Remove the zero padding
-    if(res >= 1)
-    {
+    /* if(res >= 0) */
+    /* { */
       compt += 2;
-    }
+    /* } */
   }
-  result[0] = 500 * (rawData[3] - rawData[2]) / (rawData[3] + rawData[2]);
-  result[1] = 500 * (rawData[4] - rawData[1]) / (rawData[4] + rawData[1]);
-  result[2] = 500 * (rawData[7] - rawData[6]) / (rawData[7] + rawData[6]);
-  result[3] = 500 * (rawData[8] - rawData[5]) / (rawData[8] + rawData[5]);
+  std::cout << "rawData: " << mc_rtc::io::to_string(rawData) << std::endl;
+  result[0] = 500 * (rawData[2] - rawData[1]) / (rawData[2] + rawData[1]);
+  result[1] = 500 * (rawData[3] - rawData[0]) / (rawData[3] + rawData[0]);
+  result[2] = 500 * (rawData[6] - rawData[5]) / (rawData[6] + rawData[5]);
+  result[3] = 500 * (rawData[7] - rawData[4]) / (rawData[7] + rawData[4]);
 
   return result;
 }
