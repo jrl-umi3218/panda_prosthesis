@@ -3,6 +3,7 @@
 #include <mc_control/CompletionCriteria.h>
 #include <mc_control/fsm/State.h>
 #include <mc_tasks/TransformTask.h>
+#include <mc_trajectory/SequenceInterpolator.h>
 #include "../../bonetag/BoneTagSerial.h"
 #include <deque>
 
@@ -15,6 +16,14 @@ struct ReadCSV
   std::deque<Eigen::Vector3d> femurRotationVector;
   std::deque<Eigen::Vector3d> tibiaTranslationVector;
   std::deque<Eigen::Vector3d> tibiaRotationVector;
+};
+
+struct PTransformInterpolator
+{
+  sva::PTransformd operator()(const sva::PTransformd & p1, const sva::PTransformd & p2, double t)
+  {
+    return sva::interpolate(p1, p2, t);
+  }
 };
 
 struct Result
@@ -101,6 +110,18 @@ protected:
   double getRate(double timeStep) const noexcept
   {
     return iterRate_ * timeStep;
+  }
+
+  inline void updateTibiaOffset(const sva::PTransformd & offset)
+  {
+    tibiaOffsetInterpolationTime_ = 0;
+    tibiaOffsetInterpolator_.values({{0., tibiaOffset_}, {offsetDuration_, offset}});
+  }
+
+  inline void updateFemurOffset(const sva::PTransformd & offset)
+  {
+    femurOffsetInterpolationTime_ = 0;
+    femurOffsetInterpolator_.values({{0., femurOffset_}, {offsetDuration_, offset}});
   }
 
   /// Rotation axis for the knee joint
@@ -224,4 +245,10 @@ protected:
   std::shared_ptr<mc_tasks::TransformTask> femur_task_;
   bool continuous_ = false;
   bool measure_ = true;
+
+  mc_trajectory::SequenceInterpolator<sva::PTransformd, PTransformInterpolator> tibiaOffsetInterpolator_,
+      femurOffsetInterpolator_;
+  double offsetDuration_ = 2;
+  double tibiaOffsetInterpolationTime_ = 0;
+  double femurOffsetInterpolationTime_ = 0;
 };
