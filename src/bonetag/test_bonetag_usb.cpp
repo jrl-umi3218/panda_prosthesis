@@ -7,7 +7,7 @@
 int main()
 {
   io::BoneTagSerial serial;
-  serial.open("/dev/ttyACM0");
+  serial.open("/dev/ttyUSB0");
   while(true)
   {
     const auto & data = serial.read();

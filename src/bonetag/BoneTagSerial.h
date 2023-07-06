@@ -6,7 +6,7 @@ namespace io
 {
 struct BoneTagSerial
 {
-  using Data = std::array<uint16_t, 10>;
+  using Data = std::array<uint16_t, 4>;
 
   BoneTagSerial();
   ~BoneTagSerial();
@@ -26,6 +26,7 @@ protected:
 protected:
   std::fstream f;
   std::string descriptor_;
-  std::array<uint16_t, 10> result;
+  std::array<uint16_t, 8> rawData;
+  Data result;
 };
 } // namespace io
