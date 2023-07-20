@@ -49,8 +49,9 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
                  mc_rtc::gui::Input("Manual Target Wrench (Tibia frame)", manualWrench_));
   gui.addElement(this, category,
                  mc_rtc::gui::Force(
-                     "Target Force Femur", [this]() -> sva::ForceVecd { return task_->targetWrench(); },
-                     [this]() -> sva::PTransformd { task_->frame().position(); }));
+                     "Target Force Femur",
+                     [this]() -> sva::ForceVecd { return task_->targetWrench(); },
+                     [this]() -> sva::PTransformd { return task_->frame().position(); }));
 }
 
 void TrajectoryPlayer::removeFromGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)

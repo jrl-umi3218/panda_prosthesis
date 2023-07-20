@@ -17,6 +17,8 @@ StatesFiles:
 # If true, state factory will be more verbose
 VerboseStateFactory: false
 
+#Plugins: [AtiDaq, PhidgetPressureSensorPlugin]
+
 TrajectoryLoaders:
   Brace:
     directory: "@TRAJECTORY_DIR@"
@@ -92,8 +94,6 @@ states:
     choices:
       - ["Load Saved Calibration", "LoadSavedCalibration"]
       - ["Start from current configuration", "StartFromCurrent"]
-
-Plugins: [AtiDaq]
 
 transitions:
   - [Brace::Simulation, Auto, Brace::Simulation, Strict]
