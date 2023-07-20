@@ -42,8 +42,8 @@ robots:
       - name: Tibia
         parent: Link6
         X_p_f:
-          translation: [0.00307, 0.00266, 0.02017]
-          rotation: [0.1365, 0.0876, 0.106]
+          translation: [0.00194, 0.011432, 0.04717]
+          rotation: [0.087602, 0.0876, 0.106]
   panda_brace_femur:
     init_pos:
       translation: [0, 0, 0.655]
@@ -53,8 +53,8 @@ robots:
       - name: Femur
         parent: Link2
         X_p_f:
-          translation: [0.000453, 0.0092127, -0.05082]
-          rotation: [0.0298, 0.1287, 0.0163]
+          translation: [0.00060302, 0.00471268, -0.05168362]
+          rotation: [0.12755763, 0.02742844, 0.12627309]
  #  brace_urdf:
  #    module: brace_urdf
 

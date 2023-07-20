@@ -16,6 +16,7 @@ Brace::InitializeRobots:
         - ["Offset Calib", "OffsetCalib"]
 
 
+
 Brace::InitializeRobots::Load:
   base: Brace::InitializeRobots
   configs:
@@ -38,8 +39,8 @@ Brace::CalibrateRelative:
   refRobot : brace_bottom_setup
   refFrame : Link6
   femurToTibia:
-    translation: [0.004677, -0.018503, -0.011227]
-    rotation: [-0.2636, -0.0216, 0.045]
+    translation: [0.00401671, -0.01573711, -0.09415]
+    rotation: [-0.056, -0.0318, 0.088]
 
   offsetLink6:
     translation: [0,0.0,-0.07263]
@@ -60,7 +61,7 @@ Brace::OffsetCalib:
   refRobot: brace_bottom_setup
   refFrame: Link6
   offset:
-    translation: [-0.0065, 0.015, 0]
+    translation: [0, 0, 0]
   completion:
     AND:
       - eval: 0.0005
