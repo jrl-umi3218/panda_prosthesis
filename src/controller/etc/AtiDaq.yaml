@@ -3,11 +3,11 @@ AtiDaq:
   CutoffFrequency: -1
   ComediDevice: /dev/comedi1
   sensors:
-    - Serial: FT07319 # sensor serial number
+    - Serial: FT21001 #sensor serial number
       Port: 1 # DAQ port (1 or 2)
       Robot: brace_bottom_setup
       SensorName: BraceTopForceSensor
-    - Serial: FT21001 # sensor serial number
+    - Serial: FT07319 # sensor serial number
       Port: 2 # DAQ port (1 or 2)
       Robot: brace_bottom_setup
       SensorName: BraceBottomForceSensor
