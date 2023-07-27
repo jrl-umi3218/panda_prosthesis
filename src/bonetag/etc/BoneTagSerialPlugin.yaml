@@ -5,4 +5,4 @@
 
 verbose: false
 rate: 200 # Rate at which the plugin looks for new data
-descriptor: "/dev/ttyACM0" # USB serial device
+descriptor: "/dev/ttyUSB0" # USB serial device

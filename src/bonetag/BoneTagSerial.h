@@ -1,7 +1,8 @@
+#ifndef BONETAGSERIAL_H
+#define BONETAGSERIAL_H
 #include <array>
 #include <fstream>
 #include <iostream>
-
 namespace io
 {
 struct BoneTagSerial
@@ -16,13 +17,22 @@ struct BoneTagSerial
   bool connected() const noexcept;
   const Data & read();
 
+  bool debug_bytes = true;
+  bool debug_raw = true;
+  bool debug_results = true;
+
   inline const std::string & descriptor() const noexcept
   {
     return descriptor_;
   }
 
 protected:
-  void synchronize();
+  void sync();
+  void get_input_data(bool print_bytes);
+  void get_results(bool print_bytes, bool print_raw, bool print_result); 
+  void parse_data(bool print_raw_data);
+  void parse_result(bool print_result);
+  void print_input_data();
 
 protected:
   std::fstream f;
@@ -31,3 +41,5 @@ protected:
   Data result;
 };
 } // namespace io
+
+#endif /* BONETAGSERIAL_H */

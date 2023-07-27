@@ -21,9 +21,9 @@ trajectory_dir: "@TRAJECTORY_DIR@"
 results_dir: "@RESULTS_DIR@"
 offsets:
   femur:
-    translation: [0, 0, 0.12]
+    translation: [0, 0, 0.0]
   tibia:
-    translation: [0, 0, 0.14]
+    translation: [0, 0, 0.02]
 # Additional robots to load
 robots:
   panda_femur:
@@ -87,8 +87,8 @@ ObserverPipelines:
     - type: Encoder
       config:
         robot: panda_femur
-        position: control #encoderValues
-        velocity: control #encoderFiniteDifferences
+        position: encoderValues
+        velocity: encoderFiniteDifferences
   - name: PandaTibia
     observers:
     - type: BodySensor
@@ -98,8 +98,8 @@ ObserverPipelines:
     - type: Encoder
       config:
         robot: panda_tibia
-        position: control #encoderValues
-        velocity: control #encoderFiniteDifferences
+        position: encoderValues
+        velocity: encoderFiniteDifferences
 
 # Initial set of contacts
 contacts: []

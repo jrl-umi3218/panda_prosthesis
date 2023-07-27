@@ -19,7 +19,7 @@ You can change the initial position of the robots by dragging the interactive ma
 
 ```sh
 (roscore &)
-MCFrankaControl -f <panda_prosthesis>/src/controller/etc/mc_rtc.yaml
+MCFrankaControl -f /home/panda/src/controller/etc/mc_rtc.yaml
 roslaunch mc_rtc_ticker display.launch
 ```
 
