@@ -20,7 +20,7 @@ void RemoveTool::start(mc_control::fsm::Controller & ctl)
                               mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), frameName,
                                                            robotName);
                             }
-                            auto targetTask_ = std::make_shared<mc_tasks::TransformTask>(
+                            targetTask_ = std::make_shared<mc_tasks::TransformTask>(
                                 ctl.robot(robotName).frame(frameName), 2.0, 500.0);
                             auto X_tibia_femur = sva::PTransformd(Eigen::Vector3d{0, 0, 0.1});
                             auto X_0_femur = X_tibia_femur * ctl.robot(robotName).frame(frameName).position();
