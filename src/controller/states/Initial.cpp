@@ -15,10 +15,7 @@ void Initial::load(mc_control::fsm::Controller & ctl)
     if(initial.has(robot_) && initial(robot_).has("pose"))
     {
       initial_pose_ = initial(robot_)("pose");
-    }
-    else
-    {
-      mc_rtc::log::error_and_throw("[{}] No \"pose\" defined in {}", name(), etc_file_);
+      robot.posW(initial_pose_);
     }
 
     if(initial.has(robot_) && initial(robot_).has("joints"))
@@ -33,7 +30,6 @@ void Initial::load(mc_control::fsm::Controller & ctl)
   ctl.getPostureTask(robot_)->posture(initial_joints);
   auto qActual = robot.mbc().q;
   robot.mbc().q = initial_joints;
-  robot.posW(initial_pose_);
   robot.forwardKinematics();
 
   if(!ctl.datastore().has(frame_))

@@ -47,9 +47,6 @@ robots:
           translation: [0.00194, 0.011432, 0.04717]
           rotation: [0.087602, 0.0876, 0.106]
   panda_brace_femur:
-    init_pos:
-      translation: [0, 0, 0.655]
-      rotation: [0.0, 0.0, 0.0]
     frames:
       # Anatomic frame defined in Solidworks
       - name: Femur
