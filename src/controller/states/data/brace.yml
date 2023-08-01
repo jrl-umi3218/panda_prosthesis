@@ -40,8 +40,11 @@ Brace::CalibrateRelative:
   refFrame : Link6
   # transfo between femur and tibia assuming they are in perfect contact
   femurToTibia:
-    translation: [0.00401671, -0.01573711, -0.0133]
-    rotation: [-0.056, 0.075, 0.088]
+    # Theorical value according to Lea (27/07)
+    # translation: [0.00401671, -0.01573711, -0.09415]
+    # rotation: [-0.056, -0.0318, 0.088]
+    translation: [0.00401671, -0.01573711, 0.0133]
+    rotation: [-0.056, 0.0318, 0.088]
   # Transfo between link6 and the calibration frame
   offsetLink6:
     translation: [0,0.0,-0.07263]
@@ -64,7 +67,7 @@ Brace::OffsetCalib:
   refRobot: brace_bottom_setup
   refFrame: Link6
   offset:
-    translation: [0, 0, 0]
+    translation: [-0.015,0,0]
   completion:
     AND:
       - eval: 0.0005
