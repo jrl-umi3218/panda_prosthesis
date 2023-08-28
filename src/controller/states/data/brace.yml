@@ -13,7 +13,7 @@ Brace::InitializeRobots:
       choices:
         - ["Save Calibration", "Calibrate"]
         - ["Skip Calibration", "SkipCalibration"]
-        - ["Offset Calib", "OffsetCalib"]
+        - ["CalibrateRelative", "CalibrateRelative"]
 
 
 
@@ -33,9 +33,9 @@ Brace::InitializeRobots::NoLoad:
 Brace::CalibrateRelative:
   base: CalibrateRelative
   robot: panda_brace_femur
-  frame: Femur
+  frame: Link2
   target_robot: brace_bottom_setup
-  target_frame: Tibia
+  target_frame: Link6
   refRobot : brace_bottom_setup
   refFrame : Link6
   # transfo between femur and tibia assuming they are in perfect contact
@@ -43,11 +43,12 @@ Brace::CalibrateRelative:
     # Theorical value according to Lea (27/07)
     # translation: [0.00401671, -0.01573711, -0.09415]
     # rotation: [-0.056, -0.0318, 0.088]
-    translation: [0.00401671, -0.01573711, 0.0133]
-    rotation: [-0.056, 0.0318, 0.088]
+   # translation: [0.00401671, -0.01573711, 0.0133]
+     translation: [0,-0.007, 0]
+  #  rotation: [-0.056, 0.0318, 0.088]
   # Transfo between link6 and the calibration frame
   offsetLink6:
-    translation: [0,0.0,-0.07263]
+    translation: [0,0.0,-0.174]
     #translation: [0,0.0,0.0]
 
 
@@ -60,30 +61,14 @@ Brace::RemoveTool:
   robot: panda_brace_femur
   frame: Link2
 
-Brace::OffsetCalib:
-  base: OffsetCalib
-  robot: panda_brace_femur
-  frame: Femur
-  refRobot: brace_bottom_setup
-  refFrame: Link6
-  offset:
-    translation: [-0.015,0,0]
-  completion:
-    AND:
-      - eval: 0.0005
-      - speed: 1e-4
-
-Brace::GoBackCalibPos:
- base: GoBackCalibPos
- robot: panda_brace_femur
- frame: Link2
-
 Brace::GoInContact:
   base: GoInContact
   robot: panda_brace_femur
   frame: Link2
   target_robot: brace_bottom_setup
   target_frame: Tibia
+  useForce: false # when true move down until force is detected; otherwise move to "heightAboveLink6"
+  heightAboveLink6: 0.110353 # only used if useForce = false
 
 Brace::PlayTrajectory:
   base: PlayTrajectory
@@ -122,10 +107,8 @@ Brace::Simulation:
     #- [Brace::RemoveTool, OK, Brace::GoBackCalibPos, Auto]
     #- [Brace::GoBackCalibPos, OK, ChooseTrajectory, Auto]
     - [Brace::InitializeRobots::Load, CalibrateRelative, Brace::CalibrateRelative, Auto]
-    - [Brace::InitializeRobots::Load, OffsetCalib, Brace::OffsetCalib, Auto]
-    - [Brace::OffsetCalib, OK, Brace::CalibrateRelative, Auto]
     - [Brace::CalibrateRelative, OK, Brace::GoInContact, Auto]
-    - [Brace::InitializeRobots::NoLoad, SkipCalibration, ChooseTrajectory, Auto]
+    - [Brace::InitializeRobots::NoLoad, SkipCalibration, Brace::CalibrateRelative, Auto]
     - [Brace::GoInContact, OK, ChooseTrajectory, Auto]
     - [ChooseTrajectory, OK, Brace::PlayTrajectory, Auto]
     - [Brace::PlayTrajectory, PlayTrajectory, Brace::PlayTrajectory , Auto]
