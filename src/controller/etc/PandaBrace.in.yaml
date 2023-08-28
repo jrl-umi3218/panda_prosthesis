@@ -17,7 +17,7 @@ StatesFiles:
 # If true, state factory will be more verbose
 VerboseStateFactory: false
 
-Plugins: [AtiDaq] #, PhidgetPressureSensorPlugin]
+Plugins: [AtiDaq] #, [PhidgetPressureSensorPlugin]
 
 TrajectoryLoaders:
   Brace:
@@ -44,7 +44,7 @@ robots:
       - name: Tibia
         parent: Link6
         X_p_f:
-          translation: [0.00194, 0.003568, 0.04717] #valeur précedente de y 0,011432
+          translation: [0.00194, 0.003568, 0.044493] #valeur précedente de y 0,011432
           rotation: [0.087602, 0.0872, 0.106] #Valeur précedente roty 0,0872
   panda_brace_femur:
     frames:
@@ -78,8 +78,10 @@ ObserverPipelines:
         method: control
     - type: Encoder
       config:
-        position: control #encoderValues
-        velocity: control #encoderVelocities
+        #position: encoderValues
+        #velocity: encoderVelocities
+        position: control
+        velocity: control
 
 # Initial set of contacts
 contacts: []
