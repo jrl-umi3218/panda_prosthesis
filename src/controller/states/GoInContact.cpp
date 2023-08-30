@@ -7,7 +7,6 @@ void GoInContact::start(mc_control::fsm::Controller & ctl)
 {
   config_("useForce", useForce_);
   config_("heightAboveLink6", heightAboveLink6_);
-            
 
   ctl.gui()->addElement(
       this, {"GoInContact"},
@@ -83,10 +82,10 @@ bool GoInContact::run(mc_control::fsm::Controller & ctl)
     {
       return true;
     }
-    else 
+    else
     {
       auto X_0_link6 = ctl.robot("brace_bottom_setup").frame("Link6").position();
-      auto X_0_final = sva::PTransformd(Eigen::Vector3d{0,0,heightAboveLink6_}) * X_0_link6;
+      auto X_0_final = sva::PTransformd(Eigen::Vector3d{0, 0, heightAboveLink6_}) * X_0_link6;
       auto frameName = static_cast<std::string>(config_("frame"));
       auto X_0_Link2 = ctl.robot().frame(frameName).position();
       auto X_Link6_Link2 = X_0_Link2 * X_0_link6.inv();

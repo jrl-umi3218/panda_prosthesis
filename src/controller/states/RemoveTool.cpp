@@ -6,32 +6,31 @@ void RemoveTool::start(mc_control::fsm::Controller & ctl)
 
   ctl.gui()->addElement(
       this, {"Post Calibration"},
-      mc_rtc::gui::Button("RemoveTool",
-                          [this, &ctl]()
-                          {
-                            auto robotName = static_cast<std::string>(config_("robot"));
-                            auto frameName = static_cast<std::string>(config_("frame"));
-                            if(!ctl.hasRobot(robotName))
-                            {
-                              mc_rtc::log::error_and_throw("[{}] No robot named {}", name(), robotName);
-                            }
-                            if(!ctl.robot(robotName).hasFrame(frameName))
-                            {
-                              mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), frameName,
-                                                           robotName);
-                            }
-                            targetTask_ = std::make_shared<mc_tasks::TransformTask>(
-                                ctl.robot(robotName).frame(frameName), 2.0, 500.0);
-                            auto X_tibia_femur = sva::PTransformd(Eigen::Vector3d{0, 0, 0.1});
-                            auto X_0_femur = X_tibia_femur * ctl.robot(robotName).frame(frameName).position();
-                            targetTask_->target(X_0_femur);
+      mc_rtc::gui::Button(
+          "RemoveTool",
+          [this, &ctl]()
+          {
+            auto robotName = static_cast<std::string>(config_("robot"));
+            auto frameName = static_cast<std::string>(config_("frame"));
+            if(!ctl.hasRobot(robotName))
+            {
+              mc_rtc::log::error_and_throw("[{}] No robot named {}", name(), robotName);
+            }
+            if(!ctl.robot(robotName).hasFrame(frameName))
+            {
+              mc_rtc::log::error_and_throw("[{}] No frame named {} in robot {}", name(), frameName, robotName);
+            }
+            targetTask_ = std::make_shared<mc_tasks::TransformTask>(ctl.robot(robotName).frame(frameName), 2.0, 500.0);
+            auto X_tibia_femur = sva::PTransformd(Eigen::Vector3d{0, 0, 0.1});
+            auto X_0_femur = X_tibia_femur * ctl.robot(robotName).frame(frameName).position();
+            targetTask_->target(X_0_femur);
 
-                            ctl.getPostureTask(config_("robot"))->weight(1);
-                            completed = true;
-                            ctl.solver().addTask(targetTask_);
-                            mc_rtc::log::info("RemoveTool Ok");
-                            output("OK");
-                          }),
+            ctl.getPostureTask(config_("robot"))->weight(1);
+            completed = true;
+            ctl.solver().addTask(targetTask_);
+            mc_rtc::log::info("RemoveTool Ok");
+            output("OK");
+          }),
       mc_rtc::gui::Button("Pass", [this, &ctl]() { pass = true; }));
 }
 

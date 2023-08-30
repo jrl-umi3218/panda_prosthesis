@@ -10,7 +10,8 @@ namespace bfs = boost::filesystem;
 namespace mc_robots
 {
 
-PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(false, false, false)
+template<bool DebugLog>
+PandaBraceRobotModule<DebugLog>::PandaBraceRobotModule() : mc_robots::PandaRobotModule(false, false, false)
 {
   // Merge with brace_top_setup urdf here
   auto merge_urdf = [this](const rbd::parsers::ParserResult & brace_urdf, const std::string & merge_root,
@@ -23,7 +24,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
     const auto & succ = brace_mb.successors();
     const auto & trans = brace_mb.transforms();
     bool add = false;
-    mc_rtc::log::info("Print joints predecessors and successors");
+    log_info("Print joints predecessors and successors");
     for(int ji = 0; ji < brace_mb.joints().size(); ++ji)
     {
       const auto & j = brace_mb.joint(ji);
@@ -39,9 +40,9 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
         predBName = "Root";
       }
       auto succBName = bodies[succBi].name();
-      mc_rtc::log::info("pred {}, joint {}, succ {}", predBName, j.name(), succBName);
-      mc_rtc::log::info("the static translation between the body {} and the joint {} is {}", j.name(), predBName,
-                        trans[ji].translation().transpose());
+      log_info("pred {}, joint {}, succ {}", predBName, j.name(), succBName);
+      log_info("the static translation between the body {} and the joint {} is {}", j.name(), predBName,
+               trans[ji].translation().transpose());
 
       if(predBName == merge_with_link)
       {
@@ -53,7 +54,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
         static bool first_add = true;
         auto addBody = [this, &bodies, &brace_urdf](const std::string & name, int bodyIdx)
         {
-          mc_rtc::log::info("[PandaBrace] Add body {}", name);
+          log_info("[PandaBrace] Add body {}", name);
           mbg.addBody(bodies[bodyIdx]);
           auto convex = bfs::path(panda_prosthesis::brace_top_setup_DIR) / "convex" / (name + "-ch.txt");
           if(!bfs::exists(convex))
@@ -72,20 +73,20 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
           first_add = false;
         }
 
-        mc_rtc::log::info("[PandaBrace] Add joint {}", j.name());
+        log_info("[PandaBrace] Add joint {}", j.name());
         mbg.addJoint(j);
 
-        mc_rtc::log::info("[PandaBrace] Add body {}", succBName);
+        log_info("[PandaBrace] Add body {}", succBName);
         addBody(succBName, succBi);
 
-        mc_rtc::log::info("[PandaBrace] Link body {} to joint {} with transform {}", predBName, j.name(),
-                          trans[ji].translation().transpose());
+        log_info("[PandaBrace] Link body {} to joint {} with transform {}", predBName, j.name(),
+                 trans[ji].translation().transpose());
         mbg.linkBodies(predBName, trans[ji], succBName, sva::PTransformd::Identity(), j.name());
       }
     }
 
     auto merge_fixed_joint = merge_root + "_" + merge_with_link + "_joint";
-    mc_rtc::log::info("Add fixed joint {} between {} and {}", merge_fixed_joint, merge_root, merge_with_link);
+    log_info("Add fixed joint {} between {} and {}", merge_fixed_joint, merge_root, merge_with_link);
     mbg.addJoint({rbd::Joint::Type::Fixed, true, merge_fixed_joint});
     mbg.linkBodies(merge_root, X_root_link, merge_with_link, sva::PTransformd::Identity(), merge_fixed_joint);
 
@@ -96,7 +97,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
 
   auto fix_inertia = [this](const rbd::MultiBody & brace_mb, const mc_rtc::Configuration & extraConf)
   {
-    mc_rtc::log::info("Fix inertia");
+    log_info("Fix inertia");
     const auto & bodies = brace_mb.bodies();
     const auto & pred = brace_mb.predecessors();
     const auto & succ = brace_mb.successors();
@@ -119,11 +120,11 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
           // Scale mass and inertia
           newBody =
               rbd::Body{newMass, body.inertia().momentum() / oldMass, ratio * body.inertia().inertia(), body.name()};
-          mc_rtc::log::info("[PandaBrace] Modifying inertia for body {}:\n- Old mass: {}, New mass: {}\n- Old com: "
-                            "{}\n- New com: {}\n- Old inertia:\n{}\n- New inertia:\n{}",
-                            name, oldMass, newMass, body.inertia().momentum().transpose() / oldMass,
-                            newBody.inertia().momentum().transpose() / newMass, body.inertia().inertia(),
-                            newBody.inertia().inertia());
+          log_info("[PandaBrace] Modifying inertia for body {}:\n- Old mass: {}, New mass: {}\n- Old com: "
+                   "{}\n- New com: {}\n- Old inertia:\n{}\n- New inertia:\n{}",
+                   name, oldMass, newMass, body.inertia().momentum().transpose() / oldMass,
+                   newBody.inertia().momentum().transpose() / newMass, body.inertia().inertia(),
+                   newBody.inertia().inertia());
         }
       }
       newBodies.push_back(newBody);
@@ -146,19 +147,21 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
 
   auto urdf_file = panda_prosthesis::brace_top_setup_DIR + std::string{"/urdf/brace_top_setup.urdf"};
   auto brace_urdf = rbd::parsers::from_urdf_file(urdf_file);
-  auto [newMb, totalMass] = fix_inertia(brace_urdf.mb, transformC);
+  auto [newMb_, totalMass_] = fix_inertia(brace_urdf.mb, transformC);
+  auto newMb = newMb_;
+  auto totalMass = totalMass_;
   brace_urdf.mb = newMb;
 
   merge_urdf(brace_urdf, "panda_link8", "base_link", transformC("panda_link8_to_base_link"), transformC);
 
-  auto generate_panda_mechanical_data = [&brace_urdf, totalMass](const Eigen::Matrix3d & inertia)
+  auto generate_panda_mechanical_data = [this, &brace_urdf, totalMass](const Eigen::Matrix3d & inertia)
   {
     // For Panda end effector configuration
     auto & mb = brace_urdf.mb;
     auto & mbc = brace_urdf.mbc;
     auto braceCoM = rbd::computeCoM(brace_urdf.mb, brace_urdf.mbc);
-    mc_rtc::log::info("Brace CoM: {}", braceCoM.transpose());
-    mc_rtc::log::info("Total Mass: {}", totalMass);
+    log_info("Brace CoM: {}", braceCoM.transpose());
+    log_info("Total Mass: {}", totalMass);
     mc_rtc::Configuration conf;
     conf.add("mass", totalMass);
     conf.add("centerOfMass", braceCoM);
@@ -191,15 +194,15 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
   auto mechanical_data_conf = generate_panda_mechanical_data(transformC("brace_inertia"));
   auto mechanical_data_path = bfs::temp_directory_path() / "brace_mechanical_data.json";
   mechanical_data_conf.save(mechanical_data_path.string());
-  mc_rtc::log::info("Saved mechanical data file for the brace attachement to {}", mechanical_data_path.string());
-  mc_rtc::log::info("Mechanical data is:\n {}", mechanical_data_conf.dump(true));
+  log_info("Saved mechanical data file for the brace attachement to {}", mechanical_data_path.string());
+  log_info("Mechanical data is:\n {}", mechanical_data_conf.dump(true));
 
   Eigen::Matrix3d Rr = Eigen::Matrix3d::Zero();
   // Rr << 0, -1, 0, -1, 0, 0, 0, 0, 1;
   Rr << 1, 0, 0, 0, 1, 0, 0, 0, -1;
   _forceSensors.emplace_back("BraceTopForceSensor", "Link1", sva::PTransformd(Rr));
 
-  auto generate_default_force_sensor_calib = [totalMass, &brace_urdf]()
+  auto generate_default_force_sensor_calib = [this, totalMass, &brace_urdf]()
   {
     auto & mb = brace_urdf.mb;
     auto & mbc = brace_urdf.mbc;
@@ -210,7 +213,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
     // - rpy of local rotation between the model force sensor and real one (3)
     // - translation from the parent body to the virtual link CoM (3)
     // - wrench offset (6).)
-    mc_rtc::log::success("Writing calibration data for BraceTopForceSensor");
+    log_success("Writing calibration data for BraceTopForceSensor");
     bfs::path out = bfs::path(panda_prosthesis::calib_DIR);
     out += "/calib_data.BraceTopForceSensor";
     std::ofstream ofs(out.string());
@@ -236,7 +239,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
       ofs << 0 << "\n";
       ofs << 0 << "\n";
       ofs << 0 << "\n";
-      mc_rtc::log::info("Wrote calibration file to {}", out.string());
+      log_info("Wrote calibration file to {}", out.string());
       ofs.close();
     }
   };
@@ -276,7 +279,7 @@ PandaBraceRobotModule::PandaBraceRobotModule() : mc_robots::PandaRobotModule(fal
   this->calib_dir = panda_prosthesis::calib_DIR;
 
   this->name = "panda_brace_femur";
-  mc_rtc::log::info("Wrote URDF to {}", urdf_path.string());
+  log_info("Wrote URDF to {}", urdf_path.string());
 }
 
 } // namespace mc_robots
@@ -285,7 +288,7 @@ extern "C"
 {
   ROBOT_MODULE_API void MC_RTC_ROBOT_MODULE(std::vector<std::string> & names)
   {
-    names = {"PandaBrace::Femur"};
+    names = {"PandaBrace::Femur", "PandaBrace::Femur::Debug"};
   }
   ROBOT_MODULE_API void destroy(mc_rbdyn::RobotModule * ptr)
   {
@@ -296,7 +299,11 @@ extern "C"
     ROBOT_MODULE_CHECK_VERSION("PandaBrace")
     if(n == "PandaBrace::Femur")
     {
-      return new mc_robots::PandaBraceRobotModule();
+      return new mc_robots::PandaBraceRobotModule<false>();
+    }
+    else if(n == "PandaBrace::Femur::Debug")
+    {
+      return new mc_robots::PandaBraceRobotModule<true>();
     }
     else
     {
