@@ -96,12 +96,18 @@ void BoneTagSerial::parse_data(bool print_raw_data)
     std::cout << "rawData: " << mc_rtc::io::to_string(rawData) << std::endl;
   }
 }
+
+template<typename T>
+T diff(const T&a, const T&b) {
+  return (a > b) ? (a - b) : (b - a);
+}
+
 void BoneTagSerial::parse_result(bool print_result)
 {
-  result[0] = 500 * (rawData[2] - rawData[1]) / (rawData[2] + rawData[1]);
-  result[1] = 500 * (rawData[3] - rawData[0]) / (rawData[3] + rawData[0]);
-  result[2] = 250 * (rawData[6] - rawData[5]) / (rawData[6] + rawData[5]);
-  result[3] = 250 * (rawData[7] - rawData[4]) / (rawData[7] + rawData[4]);
+  result[0] = 500 * diff(rawData[2], rawData[1]) / (rawData[2] + rawData[1]);
+  result[1] = 500 * diff(rawData[3], rawData[0]) / (rawData[3] + rawData[0]);
+  result[2] = 250 * diff(rawData[6], rawData[5]) / (rawData[6] + rawData[5]);
+  result[3] = 250 * diff(rawData[7], rawData[4]) / (rawData[7] + rawData[4]);
   if(print_result)
   {
     for(size_t i = 0; i < result.size(); i++)

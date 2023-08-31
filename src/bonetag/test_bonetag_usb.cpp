@@ -17,19 +17,26 @@ void intHandler(int dummy)
   run = false;
 }
 
-void connect(std::string serial_port_base, int serial_port_number)
+bool connect(std::string serial_port_base, int serial_port_number)
 {
   std::string serial_port = serial_port_base + std::to_string(serial_port_number);
   try
   {
     std::cout << "Trying to connect to " << serial_port << std::endl;
     serial.open(serial_port_base + std::to_string(serial_port_number));
+    return true;
   }
   catch(std::runtime_error & e)
   {
+    serial.close();
     std::cout << "Cannot connect to " << serial_port << std::endl;
-    connect(serial_port_base, serial_port_number + 1);
+    if(serial_port_number < 10)
+    {
+      return connect(serial_port_base, serial_port_number + 1);
+    }
+    return false;
   }
+  return false;
 }
 
 int main(int argc, char ** argv)
@@ -49,7 +56,11 @@ int main(int argc, char ** argv)
   serial.debug_results = debug_results;
   std::string serial_port_base = "/dev/ttyUSB";
   int serial_port_number = 0;
-  connect(serial_port_base, serial_port_number);
+  if(!connect(serial_port_base, serial_port_number))
+  {
+    std::cerr << "Failed to connect" << std::endl;
+    exit(-1);
+  }
   while(run)
   {
     const auto & data = serial.read();

@@ -17,9 +17,9 @@ struct BoneTagSerial
   bool connected() const noexcept;
   const Data & read();
 
-  bool debug_bytes = true;
-  bool debug_raw = true;
-  bool debug_results = true;
+  bool debug_bytes = false;
+  bool debug_raw = false;
+  bool debug_results = false;
 
   inline const std::string & descriptor() const noexcept
   {

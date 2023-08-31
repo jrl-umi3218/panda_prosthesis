@@ -118,8 +118,8 @@ void BoneTagSerialPlugin::init(mc_control::MCGlobalController & gc, const mc_rtc
 
   gc.controller().gui()->addPlot("BoneTag Measurements", mc_rtc::gui::plot::X("N", [this]() { return t_; }),
                                  make_sensor_plot(0), make_sensor_plot(1), make_sensor_plot(2), make_sensor_plot(3));
-  gc.controller().logger().addLogEntry("BoneTag_Sensors", this, [this]() -> std::array<double, 10> {
-    std::array<double, 10> data{0};
+  gc.controller().logger().addLogEntry("BoneTag_Sensors", this, [this]() -> std::array<double, 4> {
+    std::array<double, 4> data{0};
     for(int i = 0; i < lastData_.size(); ++i)
     {
       data[i] = lastData_[i];
