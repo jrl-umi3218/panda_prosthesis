@@ -27,13 +27,13 @@ add_subdirectory(src)
 set(BONETAG_CONTROLLER_ETC "${PROJECT_SOURCE_DIR}/src/controller/etc")
 configure_file(scripts/run_bonetag_controller_real.in.sh "${CMAKE_CURRENT_BINARY_DIR}/scripts/run_bonetag_controller_real" @ONLY)
 configure_file(scripts/run_bonetag_controller_simu.in.sh "${CMAKE_CURRENT_BINARY_DIR}/scripts/run_bonetag_controller_simu" @ONLY)
-file(
-  COPY ${CMAKE_CURRENT_BINARY_DIR}/scripts/run_bonetag_controller_real
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/scripts/run_bonetag_controller_real
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
   DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-    )
-file(
-  COPY ${CMAKE_CURRENT_BINARY_DIR}/scripts/run_bonetag_controller_simu
+)
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/scripts/run_bonetag_controller_simu
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
   DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-    )
+)

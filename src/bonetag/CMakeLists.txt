@@ -24,9 +24,9 @@ add_plugin(BoneTagSerialPlugin "${plugin_SRC}" "${plugin_HDR}")
 target_link_libraries(BoneTagSerialPlugin PUBLIC BoneTagSerial)
 install(FILES etc/BoneTagSerialPlugin.yaml DESTINATION ${MC_PLUGINS_RUNTIME_INSTALL_PREFIX}/etc/)
 
-file(
-  COPY scripts/reset_bonetag_serial
+install(
+  FILES scripts/reset_bonetag_serial
   DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-    )
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+)
 
