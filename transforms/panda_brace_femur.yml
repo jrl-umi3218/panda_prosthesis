@@ -1,15 +1,28 @@
 panda_link8_to_base_link:
   translation: [0.0, 0.0, 0.0]
   rotation: [3.14, 0.0, 0.0]
-base_link:
-  mass: 0.37798 #kg
-Link1:
-  mass: 0.09563
-Link2:
-  mass: 1.61915
+brace_top_setup:
+  base_link:
+    mass: 0.37798 #kg
+  Link1:
+    mass: 0.09563
+  Link2:
+    mass: 1.61915
+brace_top_setup_brace:
+  base_link:
+    mass: 0.37798 #kg
+  Link1:
+    mass: 0.09563
+  Link2:
+    mass: 2.4636
 # inertia matrix for the brace expressed w.r.t base_link [kg.m^2]
 # TODO compute it automatically from individual body inertia
-brace_inertia:
+inertia_brace_top_setup:
+  [0.03843247, 0., 0.,
+   0, 0.0383, 0,
+   0., 0., 0.00711868]
+# FIXME @Lea export correct inertia from solidworks
+inertia_brace_top_setup_brace:
   [0.03843247, 0., 0.,
    0, 0.0383, 0,
    0., 0., 0.00711868]

@@ -1,4 +1,5 @@
 #pragma once
+#include "config_panda_brace.h"
 #include "module.h"
 
 namespace mc_robots
@@ -9,10 +10,14 @@ namespace mc_robots
  * attached
  **/
 template<bool DebugLog = false>
-struct ROBOT_MODULE_API PandaBraceRobotModule : public mc_robots::PandaRobotModule
+struct ROBOT_MODULE_API PandaBraceCommonRobotModule : public mc_robots::PandaRobotModule
 {
 public:
-  PandaBraceRobotModule();
+  PandaBraceCommonRobotModule(const std::string & robot_description_path_, const std::string & brace_urdf_name);
+
+protected:
+  std::string robot_description_path_;
+  std::string brace_urdf_name_;
 
 protected:
   template<typename... Args>
@@ -32,6 +37,18 @@ protected:
       mc_rtc::log::success(std::forward<Args>(args)...);
     }
   }
+};
+
+template<bool DebugLog = false>
+struct ROBOT_MODULE_API PandaFemurRobotModule : public mc_robots::PandaBraceCommonRobotModule<DebugLog>
+{
+  PandaFemurRobotModule();
+};
+
+template<bool DebugLog = false>
+struct ROBOT_MODULE_API PandaFemurWithBraceRobotModule : public mc_robots::PandaBraceCommonRobotModule<DebugLog>
+{
+  PandaFemurWithBraceRobotModule();
 };
 
 } // namespace mc_robots

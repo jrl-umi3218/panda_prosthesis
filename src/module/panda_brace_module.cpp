@@ -5,13 +5,17 @@
 #include "config.h"
 #include "config_panda_brace.h"
 #include <sch/S_Object/S_Box.h>
+
 namespace bfs = boost::filesystem;
 
 namespace mc_robots
 {
 
 template<bool DebugLog>
-PandaBraceRobotModule<DebugLog>::PandaBraceRobotModule() : mc_robots::PandaRobotModule(false, false, false)
+PandaBraceCommonRobotModule<DebugLog>::PandaBraceCommonRobotModule(const std::string & robot_description_path,
+                                                                   const std::string & brace_urdf_name)
+: mc_robots::PandaRobotModule(false, false, false), robot_description_path_(robot_description_path),
+  brace_urdf_name_(brace_urdf_name)
 {
   // Merge with brace_top_setup urdf here
   auto merge_urdf = [this](const rbd::parsers::ParserResult & brace_urdf, const std::string & merge_root,
@@ -56,7 +60,7 @@ PandaBraceRobotModule<DebugLog>::PandaBraceRobotModule() : mc_robots::PandaRobot
         {
           log_info("[PandaBrace] Add body {}", name);
           mbg.addBody(bodies[bodyIdx]);
-          auto convex = bfs::path(panda_prosthesis::brace_top_setup_DIR) / "convex" / (name + "-ch.txt");
+          auto convex = bfs::path(robot_description_path_) / "convex" / (name + "-ch.txt");
           if(!bfs::exists(convex))
           {
             mc_rtc::log::error_and_throw<std::runtime_error>("Invalid brace_top_setup, no convex found {}",
@@ -145,9 +149,9 @@ PandaBraceRobotModule<DebugLog>::PandaBraceRobotModule() : mc_robots::PandaRobot
   }
   auto transformC = mc_rtc::Configuration(transform.string());
 
-  auto urdf_file = panda_prosthesis::brace_top_setup_DIR + std::string{"/urdf/brace_top_setup.urdf"};
+  auto urdf_file = fmt::format("{}/urdf/{}.urdf", robot_description_path_, brace_urdf_name);
   auto brace_urdf = rbd::parsers::from_urdf_file(urdf_file);
-  auto [newMb_, totalMass_] = fix_inertia(brace_urdf.mb, transformC);
+  auto [newMb_, totalMass_] = fix_inertia(brace_urdf.mb, transformC(brace_urdf_name));
   auto newMb = newMb_;
   auto totalMass = totalMass_;
   brace_urdf.mb = newMb;
@@ -191,8 +195,9 @@ PandaBraceRobotModule<DebugLog>::PandaBraceRobotModule() : mc_robots::PandaRobot
   };
 
   // XXX autocompute inertia instead
-  auto mechanical_data_conf = generate_panda_mechanical_data(transformC("brace_inertia"));
-  auto mechanical_data_path = bfs::temp_directory_path() / "brace_mechanical_data.json";
+  auto mechanical_data_conf = generate_panda_mechanical_data(transformC("inertia_" + brace_urdf_name));
+  auto mechanical_data_path =
+      bfs::path(fmt::format("{}/mechanical_data_{}.json", bfs::temp_directory_path().string(), brace_urdf_name));
   mechanical_data_conf.save(mechanical_data_path.string());
   log_info("Saved mechanical data file for the brace attachement to {}", mechanical_data_path.string());
   log_info("Mechanical data is:\n {}", mechanical_data_conf.dump(true));
@@ -282,13 +287,26 @@ PandaBraceRobotModule<DebugLog>::PandaBraceRobotModule() : mc_robots::PandaRobot
   log_info("Wrote URDF to {}", urdf_path.string());
 }
 
+template<bool DebugLog>
+PandaFemurRobotModule<DebugLog>::PandaFemurRobotModule()
+: PandaBraceCommonRobotModule<DebugLog>(panda_prosthesis::brace_top_setup_DIR, "brace_top_setup")
+{
+}
+
+template<bool DebugLog>
+PandaFemurWithBraceRobotModule<DebugLog>::PandaFemurWithBraceRobotModule()
+: PandaBraceCommonRobotModule<DebugLog>(panda_prosthesis::brace_top_setup_brace_DIR, "brace_top_setup_brace")
+{
+}
+
 } // namespace mc_robots
 
 extern "C"
 {
   ROBOT_MODULE_API void MC_RTC_ROBOT_MODULE(std::vector<std::string> & names)
   {
-    names = {"PandaBrace::Femur", "PandaBrace::Femur::Debug"};
+    names = {"PandaBrace::Femur", "PandaBrace::Femur::Debug", "PandaBrace::Femur::Brace",
+             "PandaBrace::Femur::Brace::Debug"};
   }
   ROBOT_MODULE_API void destroy(mc_rbdyn::RobotModule * ptr)
   {
@@ -299,11 +317,19 @@ extern "C"
     ROBOT_MODULE_CHECK_VERSION("PandaBrace")
     if(n == "PandaBrace::Femur")
     {
-      return new mc_robots::PandaBraceRobotModule<false>();
+      return new mc_robots::PandaFemurRobotModule<false>();
     }
     else if(n == "PandaBrace::Femur::Debug")
     {
-      return new mc_robots::PandaBraceRobotModule<true>();
+      return new mc_robots::PandaFemurRobotModule<true>();
+    }
+    else if(n == "PandaBrace::Femur::Brace")
+    {
+      return new mc_robots::PandaFemurWithBraceRobotModule<false>();
+    }
+    else if(n == "PandaBrace::Femur::Brace::Debug")
+    {
+      return new mc_robots::PandaFemurWithBraceRobotModule<true>();
     }
     else
     {
