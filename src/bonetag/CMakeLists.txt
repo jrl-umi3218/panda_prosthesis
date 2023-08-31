@@ -1,7 +1,7 @@
 add_library(BoneTagSerial SHARED BoneTagSerial.cpp)
 target_link_libraries(BoneTagSerial PUBLIC mc_rtc::mc_rtc_utils)
 
-install(TARGETS BoneTagSerial 
+install(TARGETS BoneTagSerial
   ARCHIVE DESTINATION "${MC_RTC_LIBDIR}"
   LIBRARY DESTINATION "${MC_RTC_LIBDIR}"
   RUNTIME DESTINATION bin)
@@ -23,3 +23,10 @@ set(plugin_HDR
 add_plugin(BoneTagSerialPlugin "${plugin_SRC}" "${plugin_HDR}")
 target_link_libraries(BoneTagSerialPlugin PUBLIC BoneTagSerial)
 install(FILES etc/BoneTagSerialPlugin.yaml DESTINATION ${MC_PLUGINS_RUNTIME_INSTALL_PREFIX}/etc/)
+
+file(
+  COPY scripts/reset_bonetag_serial
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    )
+

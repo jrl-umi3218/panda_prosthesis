@@ -22,3 +22,18 @@ install(DIRECTORY rsdf DESTINATION "${DATA_DIR}" FILES_MATCHING PATTERN "*.rsdf"
 set(TRAJECTORY_DIR "${PROJECT_SOURCE_DIR}/data/trajectories")
 set(RESULTS_DIR "${PROJECT_SOURCE_DIR}/data/results")
 add_subdirectory(src)
+
+
+set(BONETAG_CONTROLLER_ETC "${PROJECT_SOURCE_DIR}/src/controller/etc")
+configure_file(scripts/run_bonetag_controller_real.in.sh "${CMAKE_CURRENT_BINARY_DIR}/scripts/run_bonetag_controller_real" @ONLY)
+configure_file(scripts/run_bonetag_controller_simu.in.sh "${CMAKE_CURRENT_BINARY_DIR}/scripts/run_bonetag_controller_simu" @ONLY)
+file(
+  COPY ${CMAKE_CURRENT_BINARY_DIR}/scripts/run_bonetag_controller_real
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    )
+file(
+  COPY ${CMAKE_CURRENT_BINARY_DIR}/scripts/run_bonetag_controller_simu
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    )

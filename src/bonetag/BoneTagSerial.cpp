@@ -22,8 +22,11 @@ BoneTagSerial::~BoneTagSerial()
 
 void BoneTagSerial::open(const std::string & descriptor)
 {
-  f.close();
-  f.open(descriptor);
+  if(f.is_open())
+  {
+    f.close();
+  }
+  f.open(descriptor, std::fstream::in);
   if(!f.is_open())
   {
     throw std::runtime_error(fmt::format("[BoneTagSerial] Failed to open file descriptor {}", descriptor));
@@ -38,11 +41,11 @@ void BoneTagSerial::close()
 
 bool BoneTagSerial::connected() const noexcept
 {
-  return f.is_open();
+  return f.is_open() && f.good();
 }
 void BoneTagSerial::sync()
 {
-  while(true)
+  while(true || f.good())
   {
     curr_byte = f.get();
 
@@ -51,6 +54,10 @@ void BoneTagSerial::sync()
       return;
     }
     prev_byte = curr_byte;
+  }
+  if(!f.good())
+  {
+    throw std::runtime_error(fmt::format("[BoneTagSerial] Failed to sync (stream error flags are set)"));
   }
 }
 void BoneTagSerial::print_input_data()
@@ -128,6 +135,9 @@ const BoneTagSerial::Data & BoneTagSerial::read()
   {
     sync();
     get_results(debug_bytes, debug_raw, debug_results);
+  }
+  else {
+    throw std::runtime_error(fmt::format("[BoneTagSerial] Failed to read (stream error flags are set)"));
   }
 
   return result;
