@@ -31,6 +31,7 @@ inline std::vector<std::string> get_all_filenames(boost::filesystem::path const 
 struct TrajectoryLoader
 {
   TrajectoryLoader() {}
+  virtual ~TrajectoryLoader() = default;
 
   void directory(const std::string & directory)
   {

@@ -1,7 +1,8 @@
 #include <mc_rtc/gui/ArrayLabel.h>
 #include <mc_rtc/gui/Input.h>
 #include <mc_rtc/gui/NumberSlider.h>
-#include <mc_tasks/ImpedanceTask.h>
+#include <SpaceVecAlg/SpaceVecAlg>
+#include <PandaProsthesisImpedanceTask.h> // custom impedance task
 #include <TrajectoryPlayer.h>
 
 TrajectoryPlayer::TrajectoryPlayer(mc_solver::QPSolver & solver,
@@ -9,23 +10,27 @@ TrajectoryPlayer::TrajectoryPlayer(mc_solver::QPSolver & solver,
                                    const mc_rtc::Configuration & config)
 : solver_(solver), trajectory_(traj)
 {
-  task_ = std::make_shared<mc_tasks::force::ImpedanceTask>(traj.frame());
+  const auto & frame = traj.frame();
+  task_ = std::make_shared<mc_tasks::force::PandaProsthesisImpedanceTask>(*traj.frame(), *traj.refAxisFrame(),
+                                                                          *traj.frame());
+  task_->reset();
   if(config.has("impedanceTask"))
   {
     task_->load(solver, config("impedanceTask"));
   }
+  solver.addTask(task_);
+
   pause_ = !config("autoplay", true);
   config("applyForceWhenPaused", applyForceWhenPaused_);
   config("trackForce", trackForce_);
   config("manualForce", manualForce_);
   config("manualWrench", manualWrench_);
 
-  task_->reset();
-  solver.addTask(task_);
+  wrenchGains_ = task_->gains().wrench().vector();
   mc_rtc::log::info("[TrajectoryPlayer::{}] Created TrajectoryPlayer for trajectory {}", traj.name(), traj.name());
   mc_rtc::log::info(
       "[TrajectoryPlayer::{}] Controlling frame {} of robot {} with an impedance task configured as follows:\n{}",
-      traj.name(), traj.frame().name(), traj.frame().robot().name(), config.dump(true));
+      frame->name(), frame->name(), frame->robot().name(), config.dump(true));
 }
 
 TrajectoryPlayer::~TrajectoryPlayer()
@@ -46,7 +51,8 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
                  mc_rtc::gui::RPYLabel("Target Rotation (World): ", task_->targetPose().rotation()));
   category.push_back("Manual");
   gui.addElement(this, category, mc_rtc::gui::Input("Manual Target Force", manualForce_),
-                 mc_rtc::gui::Input("Manual Target Wrench (Tibia frame)", manualWrench_));
+                 mc_rtc::gui::Input("Manual Target Wrench (Tibia frame)", manualWrench_),
+                 mc_rtc::gui::Input("Wrench Gains", wrenchGains_));
   gui.addElement(this, category,
                  mc_rtc::gui::Force(
                      "Target Force Femur", [this]() -> sva::ForceVecd { return task_->targetWrench(); },
@@ -66,6 +72,7 @@ void TrajectoryPlayer::update(double dt)
     // Track force from the trajectory
     if(trackForce_)
     {
+      task_->gains().wrench() = wrenchGains_;
       if(manualForce_)
       { // manual force
         auto refAxis = trajectory_.refAxisFrame()->position();
@@ -81,6 +88,7 @@ void TrajectoryPlayer::update(double dt)
     else
     {
       task_->targetWrench(sva::ForceVecd::Zero());
+      task_->gains().wrench() = sva::ImpedanceVecd::Zero();
     }
   };
 

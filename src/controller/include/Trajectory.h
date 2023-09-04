@@ -228,7 +228,7 @@ struct Trajectory
     return name_;
   }
 
-  const mc_rbdyn::RobotFrame & frame() const noexcept
+  const mc_rbdyn::ConstRobotFramePtr frame() const noexcept
   {
     return *frame_;
   }

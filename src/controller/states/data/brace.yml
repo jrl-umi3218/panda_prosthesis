@@ -93,7 +93,7 @@ Brace::PlayTrajectory:
             linear: [300, 300, 300]
           wrench:
             angular: [0, 0, 0]
-            linear: [0, 0, 0]
+            linear: [0, 0, 1]
 
 Brace::Simulation:
   base: Meta

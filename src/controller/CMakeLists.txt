@@ -1,11 +1,13 @@
 set(common_SRC
   src/Trajectory.cpp
   src/TrajectoryPlayer.cpp
+  src/PandaProsthesisImpedanceTask.cpp
 )
 set(common_HDR
   include/Trajectory.h
   include/TrajectoryPlayer.h
   include/utils.h
+  include/PandaProsthesisImpedanceTask.h
 )
 add_library(PandaProsthesisCommon SHARED ${common_SRC} ${common_HDR})
 target_include_directories(PandaProsthesisCommon PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)

@@ -1,12 +1,13 @@
 #pragma once
 #include <mc_solver/QPSolver.h>
+#include <SpaceVecAlg/SpaceVecAlg>
 #include <Trajectory.h>
 
 namespace mc_tasks
 {
 namespace force
 {
-struct ImpedanceTask;
+struct PandaProsthesisImpedanceTask;
 }
 } // namespace mc_tasks
 
@@ -41,7 +42,8 @@ struct TrajectoryPlayer
 protected:
   mc_solver::QPSolver & solver_;
   Trajectory trajectory_;
-  std::shared_ptr<mc_tasks::force::ImpedanceTask> task_;
+  std::shared_ptr<mc_tasks::force::PandaProsthesisImpedanceTask> task_;
+  sva::ImpedanceVecd wrenchGains_ = sva::ImpedanceVecd::Zero();
   unsigned n_ = 0;
   double t_ = 0;
   unsigned iter_ = 0;
