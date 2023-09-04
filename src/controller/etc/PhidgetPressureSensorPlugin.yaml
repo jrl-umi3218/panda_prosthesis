@@ -1,0 +1,11 @@
+---
+required: false
+hubs:
+  BracePhidget:
+    serial_number: 683870
+    frequency: 100
+    sensors:
+      Sensor0:
+        port: 0
+      Sensor1:
+        port: 3
