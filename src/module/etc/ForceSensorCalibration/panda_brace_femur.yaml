@@ -3,9 +3,9 @@ ObserverPipelines:
   observers:
     - type: Encoder
 forceSensors:
-- BraceTopForceSensor
+- LeftHandForceSensor
 initialGuess:
-  BraceTopForceSensor:
+  LeftHandForceSensor:
     autocompute: true
     includeParent: false
     verbose: true
