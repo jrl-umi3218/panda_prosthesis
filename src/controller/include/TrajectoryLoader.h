@@ -12,7 +12,7 @@
  * \brief   Return the filenames of all files that have the specified extension
  *          in the specified directory and all subdirectories.
  */
-inline std::vector<std::string> get_all_filenames(boost::filesystem::path const & root, std::string const & ext)
+inline std::vector<std::string> get_all_filenames(boost::filesystem::path const & root, std::string const & ext = "")
 {
   std::vector<std::string> paths;
 
@@ -20,7 +20,7 @@ inline std::vector<std::string> get_all_filenames(boost::filesystem::path const 
   {
     for(auto const & entry : boost::filesystem::recursive_directory_iterator(root))
     {
-      if(boost::filesystem::is_regular_file(entry) && entry.path().extension() == ext)
+      if(boost::filesystem::is_regular_file(entry) && (ext.empty() || entry.path().extension() == ext))
         paths.emplace_back(entry.path().filename().c_str());
     }
   }
@@ -75,7 +75,7 @@ struct TrajectoryLoader
 protected:
   void loadDirectory()
   {
-    files_ = get_all_filenames(directory_, ".csv");
+    files_ = get_all_filenames(directory_, "");
     mc_rtc::log::info("[{}] Looking for trajectory files in \"{}\"", name_, directory_);
     if(files_.size())
     {
@@ -185,4 +185,24 @@ struct BraceTrajectoryLoader : public TrajectoryLoader
 
 protected:
   Trajectory trajFemur;
+};
+
+struct RecordedBraceTrajectoryLoader : public BraceTrajectoryLoader
+{
+  RecordedBraceTrajectoryLoader(const mc_rbdyn::RobotFrame & femurFrame, const mc_rbdyn::RobotFrame & tibiaFrame)
+  : BraceTrajectoryLoader(femurFrame, tibiaFrame)
+  {
+    name_ = "RecordedBraceTrajectoryLoader";
+  }
+
+  void load(const std::string & directory, const std::string & yamlFile) override
+  {
+    TrajectoryLoader::load(directory, yamlFile);
+    trajFemur.clear();
+
+    mc_rtc::Configuration conf(directory + "/" + yamlFile);
+    trajFemur.loadPoses(conf);
+    trajFemur.update();
+    mc_rtc::log::info("Loaded Brace trajectory {} with {} poses", yamlFile, trajFemur.poses().size());
+  }
 };

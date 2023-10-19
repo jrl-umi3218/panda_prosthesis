@@ -11,8 +11,8 @@ TrajectoryPlayer::TrajectoryPlayer(mc_solver::QPSolver & solver,
 : solver_(solver), trajectory_(traj)
 {
   const auto & frame = traj.frame();
-  //task_ = std::make_shared<mc_tasks::force::PandaProsthesisImpedanceTask>(*traj.frame(), *traj.refAxisFrame(),
-  //                                                                        *traj.frame());
+  // task_ = std::make_shared<mc_tasks::force::PandaProsthesisImpedanceTask>(*traj.frame(), *traj.refAxisFrame(),
+  //                                                                         *traj.frame());
   task_ = std::make_shared<mc_tasks::force::PandaProsthesisImpedanceTask>(*traj.frame(), *traj.refAxisFrame(),
                                                                           traj.frame()->robot().frame("panda_link7"));
   task_->reset();

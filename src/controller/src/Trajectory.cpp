@@ -35,6 +35,11 @@ void Trajectory::loadPoseFromCSV(const std::string & csv,
   }
 }
 
+void Trajectory::loadPoses(const mc_rtc::Configuration & config)
+{
+  config("poses", poses_);
+}
+
 void Trajectory::loadForceFromCSV(const std::string & csv,
                                   const std::string & cx,
                                   const std::string & cy,

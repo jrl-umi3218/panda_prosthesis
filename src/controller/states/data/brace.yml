@@ -95,6 +95,14 @@ Brace::PlayTrajectory:
             angular: [0, 0, 0]
             linear: [0, 0, 1]
 
+Brace::RecordTrajectory:
+  base: RecordTrajectory
+  overwrite: true
+
+Brace::RecordTrajectory::AddNewPose:
+  base: Brace::RecordTrajectory
+  overwrite: false
+
 Brace::Simulation:
   base: Meta
   transitions:
@@ -107,7 +115,9 @@ Brace::Simulation:
     #- [Brace::RemoveTool, OK, Brace::GoBackCalibPos, Auto]
     #- [Brace::GoBackCalibPos, OK, ChooseTrajectory, Auto]
     - [Brace::InitializeRobots::Load, CalibrateRelative, Brace::CalibrateRelative, Auto]
-    - [Brace::CalibrateRelative, OK, Brace::GoInContact, Auto]
+    - [Brace::CalibrateRelative, GoInContact, Brace::GoInContact, Auto]
+    - [Brace::CalibrateRelative, AddNewPose, Brace::RecordTrajectory::AddNewPose, Auto]
+    - [Brace::CalibrateRelative, RecordNewTrajectory, Brace::RecordTrajectory, Auto]
     - [Brace::InitializeRobots::NoLoad, SkipCalibration, Brace::CalibrateRelative, Auto]
     - [Brace::GoInContact, OK, ChooseTrajectory, Auto]
     - [ChooseTrajectory, OK, Brace::PlayTrajectory, Auto]

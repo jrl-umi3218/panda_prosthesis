@@ -21,8 +21,8 @@ target_link_libraries(PandaProsthesisController PUBLIC PandaProsthesisCommon)
 target_link_libraries(PandaProsthesisController PUBLIC mc_rtc::mc_control_fsm)
 target_include_directories(PandaProsthesisController PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../module/include>)
 
-set(TRAJECTORY_DIR "${PROJECT_SOURCE_DIR}/data/trajectories/bonetag")
-set(RESULTS_DIR "${PROJECT_SOURCE_DIR}/data/results/bonetag")
+set(TRAJECTORY_DIR "${PROJECT_SOURCE_DIR}/data/trajectories")
+set(RESULTS_DIR "${PROJECT_SOURCE_DIR}/data/results")
 configure_file(etc/PandaProsthesis.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaProsthesis.yaml")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaProsthesis.yaml" DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc")
 
@@ -35,8 +35,8 @@ if(TARGET PandaBraceModule)
   target_link_libraries(PandaBraceController PUBLIC mc_rtc::mc_control_fsm)
   target_include_directories(PandaBraceController PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../module/include>)
 
-  set(TRAJECTORY_DIR "${PROJECT_SOURCE_DIR}/data/trajectories/brace")
-  set(RESULTS_DIR "${PROJECT_SOURCE_DIR}/data/results/brace")
+  set(TRAJECTORY_DIR "${PROJECT_SOURCE_DIR}/data/trajectories")
+  set(RESULTS_DIR "${PROJECT_SOURCE_DIR}/data/results")
   configure_file(etc/PandaBrace.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaBrace.yaml")
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaBrace.yaml" DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc")
 

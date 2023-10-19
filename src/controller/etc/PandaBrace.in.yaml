@@ -22,6 +22,8 @@ Plugins: [AtiDaq] #, PhidgetPressureSensorPlugin]
 TrajectoryLoaders:
   Brace:
     directory: "@TRAJECTORY_DIR@"
+  RecordedBrace:
+    directory: "@TRAJECTORY_DIR@"
 
 trajectory_dir: "@TRAJECTORY_DIR@"
 results_dir: "@RESULTS_DIR@"

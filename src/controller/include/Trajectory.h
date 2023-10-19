@@ -104,6 +104,8 @@ struct Trajectory
                         const std::string & fy,
                         const std::string & fz);
 
+  void loadPoses(const mc_rtc::Configuration & config);
+
   void addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
   {
     category.push_back(name_);

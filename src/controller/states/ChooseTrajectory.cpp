@@ -15,7 +15,7 @@ void ChooseTrajectory::start(mc_control::fsm::Controller & ctl)
         loaders_["BoneTagTrajectory"] = std::make_unique<BoneTagTrajectoryLoader>(
             ctl.robot("panda_tibia").frame("Tibia"), ctl.robot("panda_femur").frame("Femur"));
         loader_ = "BoneTagTrajectory";
-        loaders_[loader_]->directory(config("directory"));
+        loaders_[loader_]->directory(static_cast<std::string>(config("directory")) + "/bonetag");
       }
       else
       {
@@ -29,12 +29,7 @@ void ChooseTrajectory::start(mc_control::fsm::Controller & ctl)
         loaders_["BraceTrajectory"] = std::make_unique<BraceTrajectoryLoader>(
             ctl.robot("panda_brace_femur").frame("Femur"), ctl.robot("brace_bottom_setup").frame("Tibia"));
         loader_ = "BraceTrajectory";
-        loaders_[loader_]->directory(config("directory"));
-        if(ctl.datastore().has("AtiDaq::removeForceSensorOffsets"))
-        {
-          mc_rtc::log::info("[AtiDaq] Removing force sensor offsets");
-          ctl.datastore().call<void>("AtiDaq::removeForceSensorOffsets");
-        }
+        loaders_[loader_]->directory(static_cast<std::string>(config("directory")) + "/brace");
       }
       else
       {
@@ -42,12 +37,26 @@ void ChooseTrajectory::start(mc_control::fsm::Controller & ctl)
             "[{}] The BraceTrajectory loader requires robots panda_brace_femur and brace_bottom_setup");
       }
     }
+    else if(name == "RecordedBrace")
+    {
+      if(ctl.hasRobot("panda_brace_femur") && ctl.hasRobot("brace_bottom_setup"))
+      {
+        loaders_["RecordedBraceTrajectory"] = std::make_unique<RecordedBraceTrajectoryLoader>(
+            ctl.robot("panda_brace_femur").frame("Femur"), ctl.robot("brace_bottom_setup").frame("Tibia"));
+        loader_ = "RecordedBraceTrajectory";
+        loaders_[loader_]->directory(static_cast<std::string>(config("directory")) + "/recorded_brace");
+      }
+      else
+      {
+        mc_rtc::log::error_and_throw(
+            "[{}] The RecordedBraceTrajectory loader requires robots panda_brace_femur and brace_bottom_setup");
+      }
+    }
     else
     {
       mc_rtc::log::error_and_throw("[{}] Unsupported trajectory loader {}", this->name(), name);
     }
   }
-
   if(loaders_.empty())
   {
     mc_rtc::log::error_and_throw("No valid loader found");
