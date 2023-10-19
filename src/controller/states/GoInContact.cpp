@@ -82,7 +82,7 @@ bool GoInContact::run(mc_control::fsm::Controller & ctl)
     {
       return true;
     }
-    else
+    if(!useForce_)
     {
       auto X_0_link6 = ctl.robot("brace_bottom_setup").frame("Link6").position();
       auto X_0_final = sva::PTransformd(Eigen::Vector3d{0, 0, heightAboveLink6_}) * X_0_link6;

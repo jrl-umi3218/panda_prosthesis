@@ -1,6 +1,6 @@
 panda_link8_to_base_link:
   translation: [0.0, 0.0, 0.0]
-  rotation: [0.0, 0.0, 0.0]
+  rotation: [0.0, -0.012, -0.017] # This small rotation adjustement was obtained visually
 brace_top_setup:
   base_link:
     mass: 0.37798 #kg

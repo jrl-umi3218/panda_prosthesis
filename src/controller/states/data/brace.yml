@@ -39,16 +39,15 @@ Brace::CalibrateRelative:
   refRobot : brace_bottom_setup
   refFrame : Link6
   # transfo between femur and tibia assuming they are in perfect contact
-  femurToTibia:
-    # Theorical value according to Lea (27/07)
-    # translation: [0.00401671, -0.01573711, -0.09415]
-    # rotation: [-0.056, -0.0318, 0.088]
-   # translation: [0.00401671, -0.01573711, 0.0133]
-     translation: [0,-0.007, 0]
-  #  rotation: [-0.056, 0.0318, 0.088]
+  femurToTibia:  
+    translation: [0,-0.007, 0]
+    
+  
+  
   # Transfo between link6 and the calibration frame
   offsetLink6:
-    translation: [0,0.0,-0.174]
+    translation: [0,0,-0.157] #0.158 with the orange calib part, -0.11 with the calib part with cones
+    rotation: [0,0,0]
     #translation: [0,0.0,0.0]
 
 
@@ -67,7 +66,7 @@ Brace::GoInContact:
   frame: Link2
   target_robot: brace_bottom_setup
   target_frame: Tibia
-  useForce: false # when true move down until force is detected; otherwise move to "heightAboveLink6"
+  useForce: true # when true move down until force is detected; otherwise move to "heightAboveLink6"
   heightAboveLink6: 0.110353 # only used if useForce = false
 
 Brace::PlayTrajectory:
