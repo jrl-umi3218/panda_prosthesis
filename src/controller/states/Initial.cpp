@@ -18,6 +18,8 @@ void Initial::load(mc_control::fsm::Controller & ctl)
       robot.posW(initial_pose_);
     }
 
+if(useJoints_)
+{
     if(initial.has(robot_) && initial(robot_).has("joints"))
     {
       initial_joints = initial(robot_)("joints");
@@ -26,10 +28,11 @@ void Initial::load(mc_control::fsm::Controller & ctl)
     {
       mc_rtc::log::error_and_throw("[{}] No \"joints\" defined in {}", name(), etc_file_);
     }
-  }
-  ctl.getPostureTask(robot_)->posture(initial_joints);
-  auto qActual = robot.mbc().q;
+      ctl.getPostureTask(robot_)->posture(initial_joints);
   robot.mbc().q = initial_joints;
+}
+  }
+  auto qActual = robot.mbc().q;
   robot.forwardKinematics();
 
   if(!ctl.datastore().has(frame_))
@@ -51,6 +54,7 @@ void Initial::start(mc_control::fsm::Controller & ctl)
   robot_ = config_("robot", ctl.robot().name());
   initial_pose_ = ctl.robot(robot_).posW();
   config_("load", load_);
+  config_("useJoints", useJoints_);
   config_("frame", frame_);
   config_("reset_mbc", reset_mbc_);
   config_("category", category_);
@@ -70,8 +74,11 @@ void Initial::start(mc_control::fsm::Controller & ctl)
   }
   etc_file_ = static_cast<std::string>(ctl.config()("ETC_DIR")) + "/initial_" + robot_ + ".yaml";
 
+  if(useJoints_)
+  {
   saved_stiffness_ = ctl.getPostureTask(robot_)->stiffness();
   ctl.getPostureTask(robot_)->stiffness(config_("stiffness", 1.0));
+  }
 
   if(load_)
   {
@@ -104,7 +111,10 @@ bool Initial::run(mc_control::fsm::Controller & ctl)
 
 void Initial::teardown(mc_control::fsm::Controller & ctl)
 {
+  if(useJoints_)
+  {
   ctl.getPostureTask(robot_)->stiffness(saved_stiffness_);
+  }
   ctl.gui()->removeElements(this);
 }
 

@@ -19,6 +19,7 @@ private:
   bool pose_changed_ = false;
   bool load_ = true;
   bool reset_mbc_ = true;
+  bool useJoints_ = true;
   std::string frame_;
   double saved_stiffness_ = 1.0;
   sva::PTransformd initial_pose_ = sva::PTransformd::Identity();

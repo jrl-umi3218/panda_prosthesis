@@ -12,7 +12,6 @@ void RecordTrajectory::start(mc_control::fsm::Controller & ctl)
   std::vector<sva::PTransformd> poses;
   mc_rtc::Configuration conf;
   auto path = directory + "/" + "recorded_brace/" + fileName_;
-  mc_rtc::log::info("Loading recorded trajectory from {}", path);
   if(!overwrite_)
   {
     conf.load(path);

@@ -1,8 +1,20 @@
-Brace::Initialize:
+Brace::Initialize::Femur:
   base: Initial
   frame: Femur
   stiffness: 10
   category: ["Initial Configuration"]
+
+Brace::Initialize::Tibia:
+  base: Initial
+  robot: brace_bottom_setup
+  frame: Tibia
+  useJoints: false
+  stiffness: 10
+  category: ["Initial Configuration"]
+
+Brace::Initialize:
+  base: Parallel
+  states: [Brace::Initialize::Femur, Brace::Initialize::Tibia]
 
 Brace::InitializeRobots:
   base: Parallel
@@ -11,16 +23,13 @@ Brace::InitializeRobots:
     Choice:
       category: []
       choices:
-        - ["Save Calibration", "Calibrate"]
-        - ["Skip Calibration", "SkipCalibration"]
-        - ["CalibrateRelative", "CalibrateRelative"]
-
-
+        - ["Calibrate Relative", "CalibrateRelative"]
+        - ["Load Tibia Calib", "LoadTibiaCalib"]
 
 Brace::InitializeRobots::Load:
-  base: Brace::InitializeRobots
+  base: Brace::Initialize
   configs:
-    Brace::Initialize:
+    Brace::Initialize::Femur:
       load: true
       reset_mbc: false
 
@@ -50,10 +59,38 @@ Brace::CalibrateRelative:
     rotation: [0,0,0]
     #translation: [0,0.0,0.0]
 
+Brace::CalibrateRelative::InContact:
+  base: CalibrateRelative
+  robot: panda_brace_femur
+  frame: Link2
+  target_robot: brace_bottom_setup
+  target_frame: Link6
+  refRobot : brace_bottom_setup
+  refFrame : Link6
+  # transfo between femur and tibia assuming they are in perfect contact
+  femurToTibia:  
+    translation: [0,-0.007, 0]
+    
+  
+  
+  # Transfo between link6 and the calibration frame
+  offsetLink6:
+    translation: [0,0,-0.0899] #0.158 with the orange calib part, -0.11 with the calib part with cones
+    rotation: [0,0,0]
+    #translation: [0,0.0,0.0]
 
-Brace::SaveCalibration:
+
+Brace::SaveFemurCalibration:
   base: SaveCalibration
   robot: panda_brace_femur
+
+Brace::SaveTibiaCalibration:
+  base: SaveCalibration
+  robot: brace_bottom_setup
+
+Brace::SaveCalibration:
+  base: Parallel
+  states: [Brace::SaveFemurCalibration, Brace::SaveTibiaCalibration]
 
 Brace::RemoveTool:
   base: RemoveTool
@@ -107,17 +144,20 @@ Brace::Simulation:
   transitions:
     - [InitialChoice, LoadSavedCalibration, Brace::InitializeRobots::Load, Auto]
     - [InitialChoice, StartFromCurrent, Brace::InitializeRobots::NoLoad, Auto]
-    - [Brace::InitializeRobots::NoLoad, Calibrate, Brace::SaveCalibration, Auto]
+    
+    - [Brace::InitializeRobots::NoLoad, CalibrateRelative, Brace::CalibrateRelative, Auto]
+    - [Brace::InitializeRobots::NoLoad, LoadTibiaCalib, Brace::Initialize::Tibia, Auto]
+    - [Brace::CalibrateRelative, OK, Brace::SaveCalibration, Auto]
+  
+    - [Brace::Initialize::Tibia, AddNewPose, Brace::RecordTrajectory::AddNewPose, Auto]
+    - [Brace::Initialize::Tibia, RecordNewTrajectory, Brace::RecordTrajectory, Auto]
+
+    - [Brace::Initialize::Load, OK, Brace::GoInContact, Auto]
+
     - [Brace::SaveCalibration, OK, Brace::RemoveTool, Auto]
-    - [Brace::InitializeRobots::Load, SkipCalibration, ChooseTrajectory, Auto]
     - [Brace::RemoveTool, OK, InitialChoice, Auto]
-    #- [Brace::RemoveTool, OK, Brace::GoBackCalibPos, Auto]
-    #- [Brace::GoBackCalibPos, OK, ChooseTrajectory, Auto]
-    - [Brace::InitializeRobots::Load, CalibrateRelative, Brace::CalibrateRelative, Auto]
-    - [Brace::CalibrateRelative, GoInContact, Brace::GoInContact, Auto]
-    - [Brace::CalibrateRelative, AddNewPose, Brace::RecordTrajectory::AddNewPose, Auto]
-    - [Brace::CalibrateRelative, RecordNewTrajectory, Brace::RecordTrajectory, Auto]
-    - [Brace::InitializeRobots::NoLoad, SkipCalibration, Brace::CalibrateRelative, Auto]
+
+
     - [Brace::GoInContact, OK, ChooseTrajectory, Auto]
     - [ChooseTrajectory, OK, Brace::PlayTrajectory, Auto]
     - [Brace::PlayTrajectory, PlayTrajectory, Brace::PlayTrajectory , Auto]
