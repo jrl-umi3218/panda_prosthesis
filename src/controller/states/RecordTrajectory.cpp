@@ -9,27 +9,36 @@ void RecordTrajectory::start(mc_control::fsm::Controller & ctl)
   config_("fileName", fileName_);
   config_("overwrite", overwrite_);
 
-  std::vector<sva::PTransformd> poses;
   mc_rtc::Configuration conf;
-  auto path = directory + "/" + "recorded_brace/" + fileName_;
+  path = directory + "/" + "recorded_brace/" + fileName_;
   if(!overwrite_)
   {
     conf.load(path);
     poses = conf("poses");
   }
+  auto addPose = [&, this]()
+  {
+    poses.push_back(ctl.robot().frame("Femur").position()
+                    * ctl.robot("brace_bottom_setup").frame("Tibia").position().inv());
+  };
 
-  poses.push_back(ctl.robot().frame("Femur").position()
-                  * ctl.robot("brace_bottom_setup").frame("Tibia").position().inv());
-
-  conf.add("poses", poses);
-  conf.save(path);
+  ctl.gui()->addElement(this, {}, mc_rtc::gui::Button("Add Pose", [addPose]() { addPose(); }),
+                        mc_rtc::gui::Button("Save", [this]() { save_ = true; }));
 
   output("OK");
 }
 
 bool RecordTrajectory::run(mc_control::fsm::Controller & ctl)
 {
-  return true;
+  if(save_)
+  {
+    mc_rtc::Configuration conf;
+    conf.add("poses", poses);
+    conf.save(path);
+    mc_rtc::log::success("Saved trajectory to {}", path);
+    return true;
+  }
+  return false;
 }
 
 void RecordTrajectory::teardown(mc_control::fsm::Controller & ctl) {}

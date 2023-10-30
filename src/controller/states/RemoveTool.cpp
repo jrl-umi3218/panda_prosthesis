@@ -3,9 +3,9 @@
 
 void RemoveTool::start(mc_control::fsm::Controller & ctl)
 {
-
+  config_("category", category_);
   ctl.gui()->addElement(
-      this, {"Post Calibration"},
+      this, category_,
       mc_rtc::gui::Button(
           "RemoveTool",
           [this, &ctl]()
@@ -29,23 +29,16 @@ void RemoveTool::start(mc_control::fsm::Controller & ctl)
             completed = true;
             ctl.solver().addTask(targetTask_);
             mc_rtc::log::info("RemoveTool Ok");
-            output("OK");
           }),
       mc_rtc::gui::Button("Pass", [this, &ctl]() { pass = true; }));
+  output("OK");
 }
 
 bool RemoveTool::run(mc_control::fsm::Controller & ctl)
 {
-
-  if(completed)
+  if(pass)
   {
-    if(!pass)
-    {
-    }
-    if(pass)
-    {
-      return true;
-    }
+    return true;
   }
   return false;
 }

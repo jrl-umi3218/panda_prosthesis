@@ -18,4 +18,5 @@ private:
   bool pass = false;
   std::shared_ptr<mc_tasks::TransformTask> targetTask_;
   double err = 100;
+  std::vector<std::string> category_{};
 };

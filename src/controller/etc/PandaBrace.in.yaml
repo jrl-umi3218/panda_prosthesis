@@ -17,7 +17,7 @@ StatesFiles:
 # If true, state factory will be more verbose
 VerboseStateFactory: false
 
-Plugins: [AtiDaq] #, PhidgetPressureSensorPlugin]
+Plugins: [] #[AtiDaq] #, PhidgetPressureSensorPlugin]
 
 TrajectoryLoaders:
   Brace:
@@ -88,13 +88,7 @@ ObserverPipelines:
 # Initial set of contacts
 contacts: []
 # Implement some additional text states
-states:
-  InitialChoice:
-    base: Choice
-    category: []
-    choices:
-      - ["Load Saved Calibration", "LoadSavedCalibration"]
-      - ["Start from current configuration", "StartFromCurrent"]
+states: {}
 
 transitions:
   - [Brace::Simulation, Auto, Brace::Simulation, Strict]

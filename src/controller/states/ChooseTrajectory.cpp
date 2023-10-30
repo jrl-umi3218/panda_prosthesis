@@ -71,15 +71,17 @@ void ChooseTrajectory::start(mc_control::fsm::Controller & ctl)
   for(auto & [name, loader] : loaders_)
   {
     keys.push_back(name);
-    mc_rtc::log::info("Adding to GUI {}", name);
-    loader->addToGUI(*ctl.gui(), {"ChooseTrajectory"});
   }
+  loader_ = keys.front();
+  loaders_[loader_]->addToGUI(*ctl.gui(), {"ChooseTrajectory"});
 
   ctl.gui()->addElement(this, {"ChooseTrajectory"},
                         mc_rtc::gui::ComboInput(
                             "Trajectory Loader", keys, [this]() { return loader_; },
                             [this, &ctl](const std::string & name)
                             {
+                              loaders_[loader_]->removeFromGUI(*ctl.gui(), {"ChooseTrajectory"});
+                              loader_ = name;
                               auto & l = *loaders_[loader_];
                               mc_rtc::log::info("Adding to GUI {}", l.name());
                               l.addToGUI(*ctl.gui(), {"ChooseTrajectory"});
@@ -113,7 +115,7 @@ void ChooseTrajectory::teardown(mc_control::fsm::Controller & ctl)
   ctl.gui()->removeCategory({"ChooseTrajectory"});
   for(auto & [name, loader] : loaders_)
   {
-    loader->removeFromGUI(*ctl.gui());
+    loader->removeFromGUI(*ctl.gui(), {"ChooseTrajectory"});
   }
 }
 

@@ -21,6 +21,7 @@ private:
   bool clicked = false;
   bool useForce_ = false;
   double heightAboveLink6_ = 0;
+  double vel_ = 0.01;
   Eigen::DenseCoeffsBase<Eigen::Matrix<double, 3, 1>, 1>::Scalar target_force_z;
 
   std::shared_ptr<mc_tasks::TransformTask> transfoTask_;

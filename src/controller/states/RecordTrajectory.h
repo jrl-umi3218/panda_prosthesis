@@ -13,4 +13,7 @@ struct RecordTrajectory : mc_control::fsm::State
 private:
   std::string fileName_ = "default.yaml";
   bool overwrite_ = false;
+  std::string path;
+  std::vector<sva::PTransformd> poses;
+  bool save_ = false;
 };

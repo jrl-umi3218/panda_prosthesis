@@ -7,9 +7,11 @@ void GoInContact::start(mc_control::fsm::Controller & ctl)
 {
   config_("useForce", useForce_);
   config_("heightAboveLink6", heightAboveLink6_);
+  config_("velocity", vel_);
 
   ctl.gui()->addElement(
-      this, {"GoInContact"},
+      this, {"GoInContact"}, mc_rtc::gui::Input("Use Force", useForce_),
+      mc_rtc::gui::Input("heightAboveLink6", heightAboveLink6_), mc_rtc::gui::Input("velocity [m/s]", vel_),
       mc_rtc::gui::Button(
           "Go to Contact",
           [this, &ctl]()
@@ -20,7 +22,7 @@ void GoInContact::start(mc_control::fsm::Controller & ctl)
             auto X_0_femur = ctl.robot().frame(frameName).position();
 
             auto X_0_link6 = ctl.robot("brace_bottom_setup").frame("Link6").position();
-            auto refVelLink6 = sva::MotionVecd({0, 0, 0}, {0, 0, -0.01});
+            auto refVelLink6 = sva::MotionVecd({0, 0, 0}, {0, 0, -vel_});
             auto refVelW = X_0_link6.inv() * refVelLink6;
             mc_rtc::log::info("refVelW: {}", refVelW.vector().transpose());
 

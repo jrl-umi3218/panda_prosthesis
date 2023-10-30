@@ -59,10 +59,11 @@ struct TrajectoryLoader
                        }));
   }
 
-  virtual void removeFromGUI(mc_rtc::gui::StateBuilder & gui)
+  virtual void removeFromGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
   {
     using namespace mc_rtc::gui;
-    gui.removeElements(this);
+    category.push_back(name_);
+    gui.removeCategory(category);
   }
 
   inline const std::string & name() const noexcept

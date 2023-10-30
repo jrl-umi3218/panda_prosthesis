@@ -1,45 +1,42 @@
 Brace::Initialize::Femur:
   base: Initial
   frame: Femur
-  stiffness: 10
-  category: ["Initial Configuration"]
+  stiffness: 10000
+  category: []
 
 Brace::Initialize::Tibia:
   base: Initial
   robot: brace_bottom_setup
   frame: Tibia
-  useJoints: false
-  stiffness: 10
-  category: ["Initial Configuration"]
+  stiffness: 10000
+  category: []
 
-Brace::Initialize:
+
+Brace::Initialize::Femur::Load:
+  base: Brace::Initialize::Femur
+  load: true
+
+Brace::Initialize::Tibia::Load:
+  base: Brace::Initialize::Tibia
+  load: true
+
+Brace::Initialize::Both::Load:
   base: Parallel
-  states: [Brace::Initialize::Femur, Brace::Initialize::Tibia]
+  states: [Brace::Initialize::Femur::Load, Brace::Initialize::Tibia::Load]
 
-Brace::InitializeRobots:
+Brace::Initialize::Femur::NoLoad:
+  base: Brace::Initialize::Femur
+  load: false
+
+Brace::Initialize::Tibia::NoLoad:
+  base: Brace::Initialize::Tibia
+  load: false
+
+Brace::Initialize::Both::NoLoad:
   base: Parallel
-  states: [Brace::Initialize, Choice]
-  configs:
-    Choice:
-      category: []
-      choices:
-        - ["Calibrate Relative", "CalibrateRelative"]
-        - ["Load Tibia Calib", "LoadTibiaCalib"]
+  states: [Brace::Initialize::Femur::NoLoad, Brace::Initialize::Tibia::NoLoad]
 
-Brace::InitializeRobots::Load:
-  base: Brace::Initialize
-  configs:
-    Brace::Initialize::Femur:
-      load: true
-      reset_mbc: false
-
-Brace::InitializeRobots::NoLoad:
-  base: Brace::InitializeRobots
-  configs:
-    Brace::Initialize:
-      load: false
-
-Brace::CalibrateRelative:
+Brace::CalibrateRelative::InCalibrationTool:
   base: CalibrateRelative
   robot: panda_brace_femur
   frame: Link2
@@ -48,11 +45,9 @@ Brace::CalibrateRelative:
   refRobot : brace_bottom_setup
   refFrame : Link6
   # transfo between femur and tibia assuming they are in perfect contact
-  femurToTibia:  
+  femurToTibia:
     translation: [0,-0.007, 0]
-    
-  
-  
+
   # Transfo between link6 and the calibration frame
   offsetLink6:
     translation: [0,0,-0.157] #0.158 with the orange calib part, -0.11 with the calib part with cones
@@ -68,11 +63,11 @@ Brace::CalibrateRelative::InContact:
   refRobot : brace_bottom_setup
   refFrame : Link6
   # transfo between femur and tibia assuming they are in perfect contact
-  femurToTibia:  
+  femurToTibia:
     translation: [0,-0.007, 0]
-    
-  
-  
+
+
+
   # Transfo between link6 and the calibration frame
   offsetLink6:
     translation: [0,0,-0.0899] #0.158 with the orange calib part, -0.11 with the calib part with cones
@@ -134,6 +129,13 @@ Brace::PlayTrajectory:
 Brace::RecordTrajectory:
   base: RecordTrajectory
   overwrite: true
+  tasks:
+    FemurTransform:
+      type: transform
+      robot: panda_brace_femur
+      frame: Femur
+      stiffness: 20
+      weight: 1000
 
 Brace::RecordTrajectory::AddNewPose:
   base: Brace::RecordTrajectory
@@ -141,24 +143,43 @@ Brace::RecordTrajectory::AddNewPose:
 
 Brace::Simulation:
   base: Meta
+  ResetPostures: true
   transitions:
-    - [InitialChoice, LoadSavedCalibration, Brace::InitializeRobots::Load, Auto]
-    - [InitialChoice, StartFromCurrent, Brace::InitializeRobots::NoLoad, Auto]
-    
-    - [Brace::InitializeRobots::NoLoad, CalibrateRelative, Brace::CalibrateRelative, Auto]
-    - [Brace::InitializeRobots::NoLoad, LoadTibiaCalib, Brace::Initialize::Tibia, Auto]
-    - [Brace::CalibrateRelative, OK, Brace::SaveCalibration, Auto]
-  
-    - [Brace::Initialize::Tibia, AddNewPose, Brace::RecordTrajectory::AddNewPose, Auto]
-    - [Brace::Initialize::Tibia, RecordNewTrajectory, Brace::RecordTrajectory, Auto]
+    - [Choice::Initial, LoadCalibration::Both, Brace::Initialize::Both::Load, Auto]
+    - [Choice::Initial, LoadCalibration::Femur, Brace::Initialize::Femur::Load, Auto]
+    - [Choice::Initial, LoadCalibration::Tibia, Brace::Initialize::Tibia::Load, Auto]
+    - [Choice::Initial, ManualCalibration::Femur, Brace::Initialize::Femur::NoLoad, Auto]
+    - [Choice::Initial, ManualCalibration::Tibia, Brace::Initialize::Tibia::NoLoad, Auto]
+    - [Choice::Initial, StartFromCurrent, Choice::StartFromCurrent, Auto]
 
-    - [Brace::Initialize::Load, OK, Brace::GoInContact, Auto]
+    - [Brace::Initialize::Both::Load, OK, Choice::Initial, Auto]
+    - [Brace::Initialize::Femur::Load, OK, Choice::Initial, Auto]
+    - [Brace::Initialize::Tibia::Load, OK, Choice::Initial, Auto]
+    - [Brace::Initialize::Femur::NoLoad, OK, Choice::Initial, Auto]
+    - [Brace::Initialize::Tibia::NoLoad, OK, Choice::Initial, Auto]
+    - [Choice::StartFromCurrent, CalibrateRelative::InCalibrationTool, Brace::CalibrateRelative::InCalibrationTool, Auto]
+    - [Choice::StartFromCurrent, CalibrateRelative::InContact, Brace::CalibrateRelative::InContact, Auto]
+    - [Choice::StartFromCurrent, CalibrateRelative::Skip, Brace::SaveCalibration, Auto]
+    - [Choice::StartFromCurrent, GoInContact, Brace::GoInContact, Auto]
+    - [Choice::StartFromCurrent, LoadTrajectory, ChooseTrajectory, Auto]
+    - [Choice::StartFromCurrent, RecordTrajectory, Choice::RecordTrajectory, Auto]
+
+    - [Brace::CalibrateRelative::InCalibrationTool, OK, Brace::SaveCalibration, Auto]
+    - [Brace::CalibrateRelative::InContact, OK, Brace::SaveCalibration, Auto]
+
+    - [Choice::RecordTrajectory, NewTrajectory, Brace::RecordTrajectory, Auto]
+    - [Choice::RecordTrajectory, AddStance, Brace::RecordTrajectory::AddNewPose, Auto]
+
+    - [Brace::RecordTrajectory, OK, Choice::Initial, Auto]
+    - [Brace::RecordTrajectory::AddNewPose, OK, Choice::Initial, Auto]
 
     - [Brace::SaveCalibration, OK, Brace::RemoveTool, Auto]
-    - [Brace::RemoveTool, OK, InitialChoice, Auto]
+    - [Brace::RemoveTool, OK, Choice::Initial, Auto]
 
+    - [Brace::GoInContact, OK, Choice::InContact, Auto]
+    - [Choice::InContact, ChooseTrajectory, ChooseTrajectory, Auto]
+    - [Choice::InContact, RecordTrajectory, Choice::RecordTrajectory, Auto]
 
-    - [Brace::GoInContact, OK, ChooseTrajectory, Auto]
     - [ChooseTrajectory, OK, Brace::PlayTrajectory, Auto]
     - [Brace::PlayTrajectory, PlayTrajectory, Brace::PlayTrajectory , Auto]
     - [Brace::PlayTrajectory, ChooseTrajectory, ChooseTrajectory , Auto]
