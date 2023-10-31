@@ -1,15 +1,18 @@
 #include <mc_rtc/gui/ArrayLabel.h>
+#include <mc_rtc/gui/Checkbox.h>
 #include <mc_rtc/gui/Input.h>
 #include <mc_rtc/gui/NumberSlider.h>
+#include <mc_rtc/log/Logger.h>
 #include <SpaceVecAlg/SpaceVecAlg>
 #include <PandaProsthesisImpedanceTask.h> // custom impedance task
 #include <TrajectoryPlayer.h>
 
-TrajectoryPlayer::TrajectoryPlayer(mc_solver::QPSolver & solver,
+TrajectoryPlayer::TrajectoryPlayer(mc_control::fsm::Controller & ctl,
                                    const Trajectory & traj,
                                    const mc_rtc::Configuration & config)
-: solver_(solver), trajectory_(traj)
+: ctl_(ctl), trajectory_(traj)
 {
+  auto & solver = ctl_.solver();
   const auto & frame = traj.frame();
   // task_ = std::make_shared<mc_tasks::force::PandaProsthesisImpedanceTask>(*traj.frame(), *traj.refAxisFrame(),
   //                                                                         *traj.frame());
@@ -35,10 +38,33 @@ TrajectoryPlayer::TrajectoryPlayer(mc_solver::QPSolver & solver,
       frame->name(), frame->name(), frame->robot().name(), config.dump(true));
 }
 
+void TrajectoryPlayer::addToLogger(mc_rtc::Logger & logger)
+{
+  const auto & frame = trajectory_.frame();
+  logger.addLogEntry("trackForce", [this]() { return trackForce_; });
+  logger.addLogEntry("target_wrench", [this]() -> const sva::ForceVecd & { return task_->targetWrench(); });
+  logger.addLogEntry("measured_wrench", [this]() -> const sva::ForceVecd & { return task_->filteredMeasuredWrench(); });
+  logger.addLogEntry(fmt::format("mesured_{}", trajectory_.refAxisFrame()->forceSensor().name()),
+                     [this]() { return trajectory_.refAxisFrame()->wrench(); });
+  logger.addLogEntry(fmt::format("transform_control_{}_{}", trajectory_.refAxisFrame()->name(), frame->name()), [this]()
+                     { return trajectory_.frame()->position() * trajectory_.refAxisFrame()->position().inv(); });
+  logger.addLogEntry(fmt::format("transform_real_{}_{}", trajectory_.refAxisFrame()->name(), frame->name()),
+                     [this]()
+                     {
+                       auto & frame = *trajectory_.frame();
+                       return ctl_.realRobot(frame.robot().name()).frame(frame.name()).position()
+                              * trajectory_.refAxisFrame()->position().inv();
+                     });
+}
+
 TrajectoryPlayer::~TrajectoryPlayer()
 {
   mc_rtc::log::error("TrajectoryPlayer::~TrajectoryPlayer for frame {}", task_->frame().name());
-  solver_.removeTask(task_);
+  ctl_.solver().removeTask(task_);
+  if(log_)
+  {
+    log_->flush();
+  }
 }
 
 void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
@@ -46,6 +72,26 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
   category.push_back(trajectory_.name());
   gui.addElement(this, category, mc_rtc::gui::Input("Pause", pause_), mc_rtc::gui::Input("Track Force", trackForce_),
                  mc_rtc::gui::Input("Apply force when paused", applyForceWhenPaused_));
+  gui.addElement(
+      this, category,
+      mc_rtc::gui::Form(
+          "Start Logging",
+          [this](const mc_rtc::Configuration & data)
+          {
+            auto filename = fmt::format("{}-LP_{:.3f}-RP_{:.3f}-{}", data("Patient Name"),
+                                        static_cast<double>(data("Left Pressure")),
+                                        static_cast<double>(data("Right Pressure")), static_cast<int>(data("Trial")));
+            log_ = std::make_shared<mc_rtc::Logger>(mc_rtc::Logger::Policy::THREADED,
+                                                    static_cast<std::string>(ctl_.config()("results_dir")),
+                                                    "trajectory-player");
+            log_->start(filename, ctl_.timeStep, true);
+            addToLogger(*log_);
+            logging_ = true;
+          },
+          mc_rtc::gui::FormStringInput("Patient Name", true, "Toto"),
+          mc_rtc::gui::FormNumberInput("Left Pressure", true, 0),
+          mc_rtc::gui::FormNumberInput("Right Pressure", true, 0), mc_rtc::gui::FormIntegerInput("Trial", true, 0)));
+  gui.addElement(this, category, mc_rtc::gui::Button("Stop logging", [this]() { logging_ = false; }));
   auto playingStatusCat = category;
   playingStatusCat.push_back("Playing Status");
   gui.addElement(this, category, mc_rtc::gui::NumberSlider("t: ", t_, 0, trajectory_.duration()),
@@ -113,10 +159,19 @@ void TrajectoryPlayer::update(double dt)
     /* mc_rtc::log::critical("Trajectory is finished"); */
     task_->targetWrench(sva::ForceVecd::Zero());
     task_->targetVel(sva::MotionVecd::Zero());
+
+    if(t_ >= trajectory_.duration()) // trajectory is finished
+    {
+      logging_ = false;
+    }
   }
 
   if(applyForceWhenPaused_)
   {
     trackForce();
+  }
+  if(log_ && logging_)
+  {
+    log_->log();
   }
 }

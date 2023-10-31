@@ -216,24 +216,30 @@ struct Trajectory
   }
 
   /**
-   * Returns the discrete desired world wrench for time t
+   * Desired wrench expressed in refForceAxis_ frame
    */
-  inline const sva::ForceVecd worldWrench(double t)
+  inline const sva::ForceVecd wrench(double t)
   {
     if(forces_)
     {
-      return refForceAxis_.dualMul((*forces_)[indexFromTime(t)]);
+      return (*forces_)[indexFromTime(t)];
     }
     else
     {
       // compute force
       auto pose = poseInterpolation_.compute(t);
       double flexionAngle = mc_rbdyn::rpyFromMat(pose.rotation()).x();
-      mc_rtc::log::info("Computed force for angle {} is {}", flexionAngle * 180 / 3.14,
-                        computeNormalForce(flexionAngle).force().z());
-      return refForceAxis_.dualMul(computeNormalForce(flexionAngle));
+      return computeNormalForce(flexionAngle);
     }
     return sva::ForceVecd::Zero();
+  }
+
+  /**
+   * Returns the discrete desired world wrench for time t
+   */
+  inline const sva::ForceVecd worldWrench(double t)
+  {
+    return refForceAxis_.dualMul(wrench(t));
   }
 
   inline void name(const std::string & name)

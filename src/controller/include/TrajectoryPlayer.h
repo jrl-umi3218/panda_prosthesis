@@ -1,4 +1,5 @@
 #pragma once
+#include <mc_control/fsm/Controller.h>
 #include <mc_solver/QPSolver.h>
 #include <SpaceVecAlg/SpaceVecAlg>
 #include <Trajectory.h>
@@ -13,7 +14,7 @@ struct PandaProsthesisImpedanceTask;
 
 struct TrajectoryPlayer
 {
-  TrajectoryPlayer(mc_solver::QPSolver & solver,
+  TrajectoryPlayer(mc_control::fsm::Controller & ctl,
                    const Trajectory & traj,
                    const mc_rtc::Configuration & config = mc_rtc::Configuration{});
 
@@ -39,8 +40,10 @@ struct TrajectoryPlayer
     return trajectory_;
   }
 
+  void addToLogger(mc_rtc::Logger & logger);
+
 protected:
-  mc_solver::QPSolver & solver_;
+  mc_control::fsm::Controller & ctl_;
   Trajectory trajectory_;
   std::shared_ptr<mc_tasks::force::PandaProsthesisImpedanceTask> task_;
   sva::ImpedanceVecd wrenchGains_ = sva::ImpedanceVecd::Zero();
@@ -54,4 +57,6 @@ protected:
                              /// instead of the one from the trajectory
   sva::ForceVecd manualWrench_ = sva::ForceVecd::Zero(); /// Manual wrench (only
                                                          /// used if manualForce_ = true
+  bool logging_ = false;
+  std::shared_ptr<mc_rtc::Logger> log_ = nullptr;
 };

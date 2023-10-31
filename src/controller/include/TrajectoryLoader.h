@@ -148,8 +148,10 @@ protected:
 
 struct BraceTrajectoryLoader : public TrajectoryLoader
 {
-  BraceTrajectoryLoader(const mc_rbdyn::RobotFrame & femurFrame, const mc_rbdyn::RobotFrame & tibiaFrame)
-  : trajFemur("FemurTrajectory", femurFrame, tibiaFrame)
+  BraceTrajectoryLoader(const mc_rbdyn::RobotFrame & femurFrame,
+                        const mc_rbdyn::RobotFrame & tibiaFrame,
+                        const std::string & trajectoryName = "BraceTrajectory")
+  : trajFemur(trajectoryName, femurFrame, tibiaFrame)
   {
     name_ = "BraceTrajectoryLoader";
   }
@@ -191,7 +193,7 @@ protected:
 struct RecordedBraceTrajectoryLoader : public BraceTrajectoryLoader
 {
   RecordedBraceTrajectoryLoader(const mc_rbdyn::RobotFrame & femurFrame, const mc_rbdyn::RobotFrame & tibiaFrame)
-  : BraceTrajectoryLoader(femurFrame, tibiaFrame)
+  : BraceTrajectoryLoader(femurFrame, tibiaFrame, "RecordedBraceTrajectory")
   {
     name_ = "RecordedBraceTrajectoryLoader";
   }
