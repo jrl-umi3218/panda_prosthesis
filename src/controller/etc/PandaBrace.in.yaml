@@ -17,7 +17,7 @@ StatesFiles:
 # If true, state factory will be more verbose
 VerboseStateFactory: false
 
-Plugins: [] #[AtiDaq] #, PhidgetPressureSensorPlugin]
+Plugins: [AtiDaq] #, PhidgetPressureSensorPlugin]
 
 TrajectoryLoaders:
   Brace:

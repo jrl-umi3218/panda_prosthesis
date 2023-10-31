@@ -71,7 +71,8 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
 {
   category.push_back(trajectory_.name());
   gui.addElement(this, category, mc_rtc::gui::Input("Pause", pause_), mc_rtc::gui::Input("Track Force", trackForce_),
-                 mc_rtc::gui::Input("Apply force when paused", applyForceWhenPaused_));
+                 mc_rtc::gui::Input("Apply force when paused", applyForceWhenPaused_),
+                 mc_rtc::gui::Input("Force Scaling (ratio)", forceScaling_));
   gui.addElement(
       this, category,
       mc_rtc::gui::Form(
@@ -92,6 +93,7 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
           mc_rtc::gui::FormNumberInput("Left Pressure", true, 0),
           mc_rtc::gui::FormNumberInput("Right Pressure", true, 0), mc_rtc::gui::FormIntegerInput("Trial", true, 0)));
   gui.addElement(this, category, mc_rtc::gui::Button("Stop logging", [this]() { logging_ = false; }));
+
   auto playingStatusCat = category;
   playingStatusCat.push_back("Playing Status");
   gui.addElement(this, category, mc_rtc::gui::NumberSlider("t: ", t_, 0, trajectory_.duration()),
@@ -130,7 +132,7 @@ void TrajectoryPlayer::update(double dt)
       else
       { // force from trajectory
         const auto & wrench = trajectory_.worldWrench(t_);
-        task_->targetWrenchW(wrench);
+        task_->targetWrenchW(forceScaling_ * wrench);
       }
     }
     else

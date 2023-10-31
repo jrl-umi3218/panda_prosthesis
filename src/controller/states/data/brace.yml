@@ -99,7 +99,7 @@ Brace::GoInContact:
   target_robot: brace_bottom_setup
   target_frame: Tibia
   useForce: true # when true move down until force is detected; otherwise move to "heightAboveLink6"
-  heightAboveLink6: 0.110353 # only used if useForce = false
+  heightAboveLink6: 0.095 #0.110353 # only used if useForce = false
 
 Brace::PlayTrajectory:
   base: PlayTrajectory
@@ -121,7 +121,7 @@ Brace::PlayTrajectory:
             linear: [1000, 1000, 1000]
           spring:
             angular: [1000, 1000, 1000]
-            linear: [50, 50, 50]
+            linear: [50, 50, 1]
           wrench:
             angular: [0, 0, 0]
             linear: [0, 0, 1]

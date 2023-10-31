@@ -55,6 +55,7 @@ protected:
   bool applyForceWhenPaused_ = true;
   bool manualForce_ = false; /// Whether to apply a manually specified force
                              /// instead of the one from the trajectory
+  double forceScaling_ = 1;
   sva::ForceVecd manualWrench_ = sva::ForceVecd::Zero(); /// Manual wrench (only
                                                          /// used if manualForce_ = true
   bool logging_ = false;
