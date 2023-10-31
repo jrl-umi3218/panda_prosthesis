@@ -184,3 +184,4 @@ Brace::Simulation:
     - [ChooseTrajectory, OK, Brace::PlayTrajectory, Auto]
     - [Brace::PlayTrajectory, PlayTrajectory, Brace::PlayTrajectory , Auto]
     - [Brace::PlayTrajectory, ChooseTrajectory, ChooseTrajectory , Auto]
+    - [Brace::PlayTrajectory, Choice::Initial, Choice::Initial, Auto]
