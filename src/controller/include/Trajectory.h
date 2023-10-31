@@ -5,6 +5,19 @@
 #include <optional>
 
 /**
+ * @param flexionAngle [rad]
+ * Expressed in tibia frame
+ */
+inline sva::ForceVecd computeNormalForce(double flexionAngle)
+{
+  sva::ForceVecd force = sva::ForceVecd::Zero();
+  force.force().z() = -47.331 * std::pow(flexionAngle, 6) + 150.97 * std::pow(flexionAngle, 5)
+                      - 168.73 * std::pow(flexionAngle, 4) + 81.151 * std::pow(flexionAngle, 3)
+                      - 23.117 * std::pow(flexionAngle, 2) + 19.756 * flexionAngle + 5.3681;
+  return force;
+}
+
+/**
  * Functor to interpolate values in-between two poses expressed as sva::PTransformd
  */
 struct PoseInterpolation
@@ -110,14 +123,14 @@ struct Trajectory
   {
     category.push_back(name_);
     using namespace mc_rtc::gui;
-    gui.addElement(
-        this, category, mc_rtc::gui::Label("Robot", [this]() { return frame_->robot().name(); }),
-        mc_rtc::gui::Label("Frame", [this]() { return frame_->name(); }),
-        mc_rtc::gui::Label("Poses", [this]() { return poses_.size(); }),
-        mc_rtc::gui::Label("Velocities", [this]() { return velocities_.size(); }),
-        mc_rtc::gui::Label("Forces", [this]() { return forces_ ? forces_->size() : 0; }),
-        mc_rtc::gui::NumberInput(
-            "Duration", [this]() { return duration_; }, [this](double duration) { this->duration(duration); }));
+    gui.addElement(this, category, mc_rtc::gui::Label("Robot", [this]() { return frame_->robot().name(); }),
+                   mc_rtc::gui::Label("Frame", [this]() { return frame_->name(); }),
+                   mc_rtc::gui::Label("Poses", [this]() { return poses_.size(); }),
+                   mc_rtc::gui::Label("Velocities", [this]() { return velocities_.size(); }),
+                   mc_rtc::gui::Label("Forces", [this]() { return forces_ ? forces_->size() : 0; }),
+                   mc_rtc::gui::NumberInput(
+                       "Flexion Angular Velocity [deg/s]", [this]() { return duration_; },
+                       [this](double duration) { this->duration(duration); }));
   }
 
   /**
@@ -176,12 +189,6 @@ struct Trajectory
     forces_ = std::nullopt;
   }
 
-  /**
-   * @brief In case no velocity is provided, computes it by derivating the
-   * provided pose
-   */
-  void computeVelocity();
-
   /*
    * Returns the interpolated world pose at time t
    */
@@ -211,11 +218,20 @@ struct Trajectory
   /**
    * Returns the discrete desired world wrench for time t
    */
-  inline const sva::ForceVecd worldWrench(double t) const
+  inline const sva::ForceVecd worldWrench(double t)
   {
     if(forces_)
     {
       return refForceAxis_.dualMul((*forces_)[indexFromTime(t)]);
+    }
+    else
+    {
+      // compute force
+      auto pose = poseInterpolation_.compute(t);
+      double flexionAngle = mc_rbdyn::rpyFromMat(pose.rotation()).x();
+      mc_rtc::log::info("Computed force for angle {} is {}", flexionAngle * 180 / 3.14,
+                        computeNormalForce(flexionAngle).force().z());
+      return refForceAxis_.dualMul(computeNormalForce(flexionAngle));
     }
     return sva::ForceVecd::Zero();
   }
@@ -271,7 +287,8 @@ private:
   mc_rbdyn::ConstRobotFramePtr refAxisFrame_;
   sva::PTransformd refAxis_{sva::PTransformd::Identity()}; ///< Reference axis in world frame
   sva::PTransformd refForceAxis_{sva::PTransformd::Identity()}; ///< Reference force axis in world frame
-  double duration_ = 30; ///< Duration of the trajectory
+  double flexionAngularVelocity_ = 0.122; // Desired angular velocity for the flexion angle (constant) [rad/s]
+  double duration_ = 0; ///< Duration of the trajectory
   double dt_ = 0;
   std::vector<sva::PTransformd> poses_; ///< Desired pose defined w.r.t refAxis_
   std::vector<sva::MotionVecd> velocities_; ///< Desired velocity defined w.r.t refAxis_

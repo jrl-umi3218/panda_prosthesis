@@ -67,24 +67,28 @@ void Trajectory::update()
     {
       mc_rtc::log::error_and_throw("[Trajectory::update] Must have at least one pose, none provided");
     }
-    auto Nintervals = poses_.size() - 1;
-    dt_ = duration_ / Nintervals;
     PoseInterpolator::TimedValueVector posesInterp;
-    for(int i = 0; i < poses_.size(); ++i)
-    {
-      const auto & pose = poses_[i];
-      posesInterp.emplace_back(dt_ * i, pose);
-    }
-    posesInterp.back().first = duration_;
-    poseInterpolation_.values(posesInterp);
-    computeVelocity();
+    posesInterp.emplace_back(0, poses_.front());
     VelocityInterpolator::TimedValueVector velInterp;
-    for(int i = 0; i < velocities_.size(); ++i)
+    velInterp.emplace_back(0, sva::MotionVecd::Zero());
+    for(int i = 1; i < poses_.size(); ++i)
     {
-      const auto & vel = velocities_[i];
-      velInterp.emplace_back(dt_ * i, vel);
+      auto [prevTime, prevPos] = posesInterp.front();
+      const auto & pose = poses_[i];
+
+      auto err = sva::transformError(prevPos, pose);
+      double relFlexionAngle = std::fabs(err.angular().x());
+      double relTime = relFlexionAngle / flexionAngularVelocity_;
+      double time = prevTime + relTime;
+
+      auto vel = err / relTime;
+
+      posesInterp.emplace_back(time, pose);
+      velInterp.emplace_back(time, vel);
     }
-    velInterp.back().first = duration_;
+    velInterp.back().second = sva::MotionVecd::Zero();
+    duration_ = posesInterp.back().first;
+    poseInterpolation_.values(posesInterp);
     velocityInterpolation_.values(velInterp);
     needUpdate_ = false;
   }
@@ -111,20 +115,4 @@ void Trajectory::reverse()
   }
   needUpdate_ = true;
   update();
-}
-
-void Trajectory::computeVelocity()
-{
-  if(velocities_.size())
-  {
-    velocities_.clear();
-  }
-  velocities_.emplace_back(sva::MotionVecd::Zero());
-  for(int i = 0; i < poses_.size() - 1; ++i)
-  {
-    const auto & X_a = poses_[i];
-    const auto & X_b = poses_[i + 1];
-    auto X_a_b = X_b * X_a.inv();
-    velocities_.push_back(sva::transformVelocity(X_a_b) * dt_);
-  }
 }
