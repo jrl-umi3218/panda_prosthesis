@@ -82,7 +82,7 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
             auto filename = fmt::format("{}-LP_{:.3f}-RP_{:.3f}-{}", data("Patient Name"),
                                         static_cast<double>(data("Left Pressure")),
                                         static_cast<double>(data("Right Pressure")), static_cast<int>(data("Trial")));
-            log_ = std::make_shared<mc_rtc::Logger>(mc_rtc::Logger::Policy::THREADED,
+            log_ = std::make_shared<mc_rtc::Logger>(mc_rtc::Logger::Policy::NON_THREADED,
                                                     static_cast<std::string>(ctl_.config()("results_dir")),
                                                     "trajectory-player");
             log_->start(filename, ctl_.timeStep, true);
