@@ -2,10 +2,76 @@
 
 #include <mc_control/fsm/Controller.h>
 #include <mc_filter/utils/clamp.h>
+#include <mc_rtc/gui/NumberInput.h>
 #include <mc_rtc/io_utils.h>
 #include <mc_tasks/MetaTaskLoader.h>
 #include <boost/filesystem.hpp>
 #include "../3rd-party/csv.h"
+
+namespace fs = boost::filesystem;
+
+double truncate(double value, double precision = 2)
+{
+  return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
+}
+
+template<typename VectorT>
+VectorT truncate(const VectorT & value, double precision = 2)
+{
+  VectorT r;
+  for(unsigned i = 0; i < value.size(); ++i)
+  {
+    r[i] = truncate(value[i], precision);
+  }
+  return r;
+}
+
+/**
+ * \brief   Return the filenames of all files that have the specified extension
+ *          in the specified directory and all subdirectories.
+ */
+std::vector<std::string> get_all(fs::path const & root, std::string const & ext)
+{
+  std::vector<std::string> paths;
+
+  if(fs::exists(root) && fs::is_directory(root))
+  {
+    for(auto const & entry : fs::recursive_directory_iterator(root))
+    {
+      if(fs::is_regular_file(entry) && entry.path().extension() == ext)
+        paths.emplace_back(entry.path().filename().c_str());
+    }
+  }
+
+  return paths;
+}
+
+void ReadCSV::clear()
+{
+  femurTranslationVector.clear();
+  tibiaTranslationVector.clear();
+  femurRotationVector.clear();
+  tibiaRotationVector.clear();
+}
+
+void ReadCSV::load(const std::string & path)
+{
+  clear();
+  io::CSVReader<12> in(path);
+  in.read_header(io::ignore_extra_column, "femur_tangage", "femur_roulis", "femur_lacet", "tibia_tangage",
+                 "tibia_roulis", "tibia_lacet", "femur_x", "femur_y", "femur_z", "tibia_x", "tibia_y", "tibia_z");
+  // std::string vendor; int size; double speed;
+  Eigen::Vector3d femurRotation, tibiaRotation, femurTranslation, tibiaTranslation;
+  while(in.read_row(femurRotation[0], femurRotation[1], femurRotation[2], tibiaRotation[0], tibiaRotation[1],
+                    tibiaRotation[2], femurTranslation[0], femurTranslation[1], femurTranslation[2],
+                    tibiaTranslation[0], tibiaTranslation[1], tibiaTranslation[2]))
+  {
+    femurTranslationVector.push_back(femurTranslation);
+    tibiaTranslationVector.push_back(tibiaTranslation);
+    femurRotationVector.push_back(femurRotation);
+    tibiaRotationVector.push_back(tibiaRotation);
+  }
+}
 
 std::string Result::to_csv() const
 {
@@ -142,48 +208,73 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                                               stop();
                                             }));
 
-  ctl.gui()->addElement(this, {"ManipulateKnee", "Offsets", "Tibia"},
-                        mc_rtc::gui::ArrayInput(
-                            "Tibia Offset Translation", {"Left (x) [mm]", "Forward (y) [mm]", "Down (z) [mm]"},
-                            [this]() -> Eigen::Vector3d { return tibiaOffset_.translation() * 1000; },
-                            [this, &ctl](const Eigen::Vector3d & t)
-                            {
-                              tibiaOffset_.translation() = t / 1000;
-                              updateAxes(ctl);
-                            }),
-                        mc_rtc::gui::ArrayInput(
-                            "Tibia Offset Rotation", {"Tangage [deg]", "Roulis [deg]", "Lacet [deg]"},
-                            [this]() -> Eigen::Vector3d
-                            { return mc_rbdyn::rpyFromMat(tibiaOffset_.rotation()) * 180 / mc_rtc::constants::PI; },
-                            [this, &ctl](const Eigen::Vector3d & r)
-                            {
-                              tibiaOffset_.rotation() = mc_rbdyn::rpyToMat(r * mc_rtc::constants::PI / 180);
-                              updateAxes(ctl);
-                            }));
-  ctl.gui()->addElement(this, {"ManipulateKnee", "Offsets", "Femur"},
-                        mc_rtc::gui::ArrayInput(
-                            "Femur Offset Translation", {"Left (x) [mm]", "Forward (y) [mm]", "Down (z) [mm]"},
-                            [this]() -> Eigen::Vector3d { return femurOffset_.translation() * 1000; },
-                            [this, &ctl](const Eigen::Vector3d & t)
-                            {
-                              femurOffset_.translation() = t / 1000;
-                              updateAxes(ctl);
-                            }),
-                        mc_rtc::gui::ArrayInput(
-                            "Femur Offset Rotation", {"Tangage [deg]", "Roulis [deg]", "Lacet [deg]"},
-                            [this]() -> Eigen::Vector3d
-                            { return mc_rbdyn::rpyFromMat(femurOffset_.rotation()) * 180 / mc_rtc::constants::PI; },
-                            [this, &ctl](const Eigen::Vector3d & r)
-                            {
-                              femurOffset_.rotation() = mc_rbdyn::rpyToMat(r * mc_rtc::constants::PI / 180);
-                              updateAxes(ctl);
-                            }));
+  ctl.gui()->addElement(
+      this, {"ManipulateKnee", "Offsets", "Tibia"},
+      mc_rtc::gui::ArrayInput(
+          "Tibia Offset",
+          {"Tangage [deg]", "Roulis [deg]", "Lacet [deg]", "Left (x) [mm]", "Forward (y) [mm]", "Down (z) [mm]"},
+          [this]() -> Eigen::Vector6d
+          {
+            Eigen::Vector6d res;
+            Eigen::Vector3d translation = tibiaOffset_.translation() * 1000;
+            Eigen::Vector3d rotation = mc_rbdyn::rpyFromMat(tibiaOffset_.rotation()) * 180 / mc_rtc::constants::PI;
+            res[0] = rotation.x();
+            res[1] = rotation.y();
+            res[2] = rotation.z();
+            res[3] = translation.x();
+            res[4] = translation.y();
+            res[5] = translation.z();
+            return res;
+          },
+          [this, &ctl](const Eigen::Vector6d & offset)
+          {
+            Eigen::Vector3d r;
+            r.x() = offset[0];
+            r.y() = offset[1];
+            r.z() = offset[2];
+            Eigen::Vector3d trans;
+            trans.x() = offset[3];
+            trans.y() = offset[4];
+            trans.z() = offset[5];
+            updateTibiaOffset({mc_rbdyn::rpyToMat(r * mc_rtc::constants::PI / 180), trans / 1000});
+          }),
+      mc_rtc::gui::ArrayInput(
+          "Femur Offset",
+          {"Tangage [deg]", "Roulis [deg]", "Lacet [deg]", "Left (x) [mm]", "Forward (y) [mm]", "Down (z) [mm]"},
+          [this]() -> Eigen::Vector6d
+          {
+            Eigen::Vector6d res;
+            Eigen::Vector3d translation = femurOffset_.translation() * 1000;
+            Eigen::Vector3d rotation = mc_rbdyn::rpyFromMat(femurOffset_.rotation()) * 180 / mc_rtc::constants::PI;
+            res[0] = rotation.x();
+            res[1] = rotation.y();
+            res[2] = rotation.z();
+            res[3] = translation.x();
+            res[4] = translation.y();
+            res[5] = translation.z();
+            return res;
+          },
+          [this, &ctl](const Eigen::Vector6d & offset)
+          {
+            Eigen::Vector3d trans;
+            trans.x() = offset[3];
+            trans.y() = offset[4];
+            trans.z() = offset[5];
+            Eigen::Vector3d r;
+            r.x() = offset[0];
+            r.y() = offset[1];
+            r.z() = offset[2];
+            updateFemurOffset({mc_rbdyn::rpyToMat(r * mc_rtc::constants::PI / 180), trans / 1000});
+          }),
+      mc_rtc::gui::NumberInput(
+          "Interpolation duration [s]", [this]() { return offsetDuration_; },
+          [this](double duration) { offsetDuration_ = duration; }));
   ctl.gui()->addElement(this, {"ManipulateKnee", "Offsets"},
                         mc_rtc::gui::Button("Reset Offsets",
                                             [this, &ctl]()
                                             {
-                                              tibiaOffset_ = tibiaOffsetInitial_;
-                                              femurOffset_ = femurOffsetInitial_;
+                                              updateTibiaOffset(tibiaOffsetInitial_);
+                                              updateFemurOffset(femurOffsetInitial_);
                                               updateAxes(ctl);
                                             }));
 
@@ -320,15 +411,14 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
 
   if(ctl.config().has("offsets"))
   {
-    ctl.config()("offsets")("tibia", tibiaOffset_);
+    ctl.config()("offsets")("tibia", tibiaOffsetInitial_);
   }
   if(ctl.config().has("offsets"))
   {
-    ctl.config()("offsets")("femur", femurOffset_);
+    ctl.config()("offsets")("femur", femurOffsetInitial_);
   }
-  tibiaOffsetInitial_ = tibiaOffset_;
-  femurOffsetInitial_ = femurOffset_;
-  updateAxes(ctl);
+  updateTibiaOffset(tibiaOffsetInitial_);
+  updateFemurOffset(femurOffsetInitial_);
 
   run(ctl);
 }
@@ -349,8 +439,12 @@ void ManipulateKnee::updateAxes(mc_control::fsm::Controller & ctl)
 {
   const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
   const auto & X_0_femurFrame = ctl.datastore().get<sva::PTransformd>("Femur");
+  femurOffset_ = femurOffsetInterpolator_.compute(femurOffsetInterpolationTime_);
+  tibiaOffset_ = tibiaOffsetInterpolator_.compute(tibiaOffsetInterpolationTime_);
   X_0_femurAxis = femurOffset_ * X_0_femurFrame;
   X_0_tibiaAxis = tibiaOffset_ * X_0_tibiaFrame;
+  tibiaOffsetInterpolationTime_ += ctl.timeStep;
+  femurOffsetInterpolationTime_ += ctl.timeStep;
 }
 
 bool ManipulateKnee::measure(mc_control::fsm::Controller & ctl)
@@ -383,6 +477,7 @@ bool ManipulateKnee::measure(mc_control::fsm::Controller & ctl)
 
 bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
 {
+  updateAxes(ctl);
   if(file_.tibiaRotationVector.empty())
   {
     if(play_)

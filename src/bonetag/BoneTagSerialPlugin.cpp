@@ -39,7 +39,7 @@ void BoneTagSerialPlugin::init(mc_control::MCGlobalController & gc, const mc_rtc
   double rate = config("rate", DEFAULT_RATE);
   rate_ = (1. / rate) / gc.controller().timeStep;
 
-  descriptor_ = config("descriptor", std::string{"/dev/ttyACM0"});
+  descriptor_ = config("descriptor", std::string{"/dev/ttyUSB0"});
   thread_ = std::thread(
       [this]()
       {
@@ -94,18 +94,17 @@ void BoneTagSerialPlugin::init(mc_control::MCGlobalController & gc, const mc_rtc
                                         });
   gc.controller().datastore().make_call("BoneTagSerialPlugin::Stop", [this]() -> void { running_ = false; });
 
-  gc.controller().gui()->addElement({"BoneTagSerialPlugin"},
-                                    mc_rtc::gui::Label("Connected", [this]() { return serial_.connected(); }),
-                                    mc_rtc::gui::Button("Connect", [this]() { connect_requested_ = true; }),
-                                    mc_rtc::gui::ArrayLabel("Data", {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
-                                                            [this]() { return lastData_; }),
+  gc.controller().gui()->addElement(
+      {"BoneTagSerialPlugin"}, mc_rtc::gui::Label("Connected", [this]() { return serial_.connected(); }),
+      mc_rtc::gui::Button("Connect", [this]() { connect_requested_ = true; }),
+      mc_rtc::gui::ArrayLabel("Data", {"0", "1", "2", "3"}, [this]() { return lastData_; }),
 
-                                    mc_rtc::gui::Button("Stop",
-                                                        [this]()
-                                                        {
-                                                          running_ = false;
-                                                          thread_.join();
-                                                        }));
+      mc_rtc::gui::Button("Stop",
+                          [this]()
+                          {
+                            running_ = false;
+                            thread_.join();
+                          }));
 
   using Color = mc_rtc::gui::Color;
   using Style = mc_rtc::gui::plot::Style;
@@ -123,13 +122,11 @@ void BoneTagSerialPlugin::init(mc_control::MCGlobalController & gc, const mc_rtc
   };
 
   gc.controller().gui()->addPlot("BoneTag Measurements", mc_rtc::gui::plot::X("N", [this]() { return t_; }),
-                                 make_sensor_plot(0), make_sensor_plot(1), make_sensor_plot(2), make_sensor_plot(3),
-                                 make_sensor_plot(4), make_sensor_plot(5), make_sensor_plot(6), make_sensor_plot(7),
-                                 make_sensor_plot(8), make_sensor_plot(9));
+                                 make_sensor_plot(0), make_sensor_plot(1), make_sensor_plot(2), make_sensor_plot(3));
   gc.controller().logger().addLogEntry("BoneTag_Sensors", this,
-                                       [this]() -> std::array<double, 10>
+                                       [this]() -> std::array<double, 4>
                                        {
-                                         std::array<double, 10> data{0};
+                                         std::array<double, 4> data{0};
                                          for(int i = 0; i < lastData_.size(); ++i)
                                          {
                                            data[i] = lastData_[i];

@@ -4,8 +4,7 @@
 
 ```sh
 (roscore &)
-rosparam set /mc_rtc_ticker/conf <panda_prosthesis>/src/controller/etc/mc_rtc.yaml
-rosrun mc_rtc_ticker mc_rtc_ticker
+run_bonetag_controller_simu
 roslaunch mc_rtc_ticker display.launch
 ```
 You can change the initial position of the robots by dragging the interactive markers in rviz.
@@ -19,7 +18,7 @@ You can change the initial position of the robots by dragging the interactive ma
 
 ```sh
 (roscore &)
-MCFrankaControl -f <panda_prosthesis>/src/controller/etc/mc_rtc.yaml
+run_bonetag_controller_real
 roslaunch mc_rtc_ticker display.launch
 ```
 
@@ -44,3 +43,7 @@ roslaunch mc_rtc_ticker display.launch
 ## Notes
 
 - Before starting the robots, make sure that the tibia and femur are not in contact. Otherwise the robot trajectory will be wrong!
+
+## Troubleshooting
+
+- If no data appears in the plots reading the bonetag sensors, try calling `reset_bonetag_serial` and then re-run the controller

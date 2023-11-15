@@ -55,23 +55,22 @@ void TrajectoryPlayer::addToLogger(mc_rtc::Logger & logger)
                        return ctl_.realRobot(frame.robot().name()).frame(frame.name()).position()
                               * trajectory_.refAxisFrame()->position().inv();
                      });
-    auto sensors = std::vector<std::string>{"Sensor0", "Sensor1"};
-    for(const auto & sensorName : sensors)
-    {
-   logger.addLogEntry("PhidgetPressureSensor_" + sensorName  + "_pressure",
-    [this, sensorName]()
-    {
-      if(ctl_.datastore().has("PhidgetPressureSensor::" + sensorName  + "::pressure"))
-      {
-        return ctl_.datastore().call<double>("PhidgetPressureSensor::" + sensorName  + "::pressure");
-      }
-      else
-      {
-        return 0.;
-      }
-    }
-   );
-    }
+  auto sensors = std::vector<std::string>{"Sensor0", "Sensor1"};
+  for(const auto & sensorName : sensors)
+  {
+    logger.addLogEntry("PhidgetPressureSensor_" + sensorName + "_pressure",
+                       [this, sensorName]()
+                       {
+                         if(ctl_.datastore().has("PhidgetPressureSensor::" + sensorName + "::pressure"))
+                         {
+                           return ctl_.datastore().call<double>("PhidgetPressureSensor::" + sensorName + "::pressure");
+                         }
+                         else
+                         {
+                           return 0.;
+                         }
+                       });
+  }
 }
 
 TrajectoryPlayer::~TrajectoryPlayer()
