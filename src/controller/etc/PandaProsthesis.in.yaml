@@ -21,8 +21,8 @@ TrajectoryLoaders:
   BoneTag:
     directory: "@TRAJECTORY_DIR@"
 
-trajectory_dir: "@TRAJECTORY_DIR@"
-results_dir: "@RESULTS_DIR@"
+trajectory_dir: "@TRAJECTORY_DIR@/bonetag"
+results_dir: "@RESULTS_DIR@/bonetag"
 offsets:
   femur:
     translation: [0, 0, 0.0]

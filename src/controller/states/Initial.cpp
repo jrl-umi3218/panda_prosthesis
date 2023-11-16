@@ -54,6 +54,10 @@ void Initial::load(mc_control::fsm::Controller & ctl)
       postureInterp_.values(values);
     }
   }
+  else
+  {
+    mc_rtc::log::error_and_throw("[{}] File {} does not exist", name(), etc_file_);
+  }
   auto qActual = robot.mbc().q;
   robot.forwardKinematics();
 
@@ -96,7 +100,8 @@ void Initial::start(mc_control::fsm::Controller & ctl)
   {
     mc_rtc::log::error_and_throw("[{}] No \"ETC_DIR\"  entry specified", name());
   }
-  etc_file_ = static_cast<std::string>(ctl.config()("ETC_DIR")) + "/initial_" + robot_ + ".yaml";
+  auto controllerName = ctl.datastore().get<std::string>("ControllerName");
+  etc_file_ = static_cast<std::string>(ctl.config()("ETC_DIR")) + "/" + controllerName + "/initial_" + robot_ + ".yaml";
 
   if(useJoints_)
   {

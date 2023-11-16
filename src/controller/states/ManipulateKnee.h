@@ -209,6 +209,10 @@ protected:
 
   } trajOffsets_;
 
+  sva::PTransformd X_0_femurAxisInitial =
+      sva::PTransformd::Identity(); ///< Axis around which the Femur frame rotates and translates
+  sva::PTransformd X_0_tibiaAxisInitial =
+      sva::PTransformd::Identity(); ///< Axis around which the Tibia frame rotates and translates
   sva::PTransformd X_0_femurAxis =
       sva::PTransformd::Identity(); ///< Axis around which the Femur frame rotates and translates
   sva::PTransformd X_0_tibiaAxis =

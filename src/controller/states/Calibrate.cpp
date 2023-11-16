@@ -17,25 +17,6 @@ void save(const std::string & etc_file, const mc_rbdyn::Robot & robot)
 
 void Calibrate::start(mc_control::fsm::Controller & ctl)
 {
-
-  // ctl.gui()->addElement(this, {}, mc_rtc::gui::Button("Skip tool changing", [this, &ctl]() { output("ChangeTool");
-  // }));
-
-  if(!ctl.datastore().has("Femur"))
-  {
-    ctl.datastore().make<sva::PTransformd>("Femur", sva::PTransformd::Identity());
-  }
-  if(!ctl.datastore().has("Tibia"))
-  {
-    ctl.datastore().make<sva::PTransformd>("Tibia", sva::PTransformd::Identity());
-  }
-
-  // Computes calibration online
-  run(ctl);
-}
-
-bool Calibrate::run(mc_control::fsm::Controller & ctl)
-{
   // 1. Compute relative pose between the panda_tibia/panda_femur floating base
   // taking panda_tibia as the (arbitrary) reference
   auto & panda_femur = ctl.realRobot("panda_femur");
@@ -51,16 +32,33 @@ bool Calibrate::run(mc_control::fsm::Controller & ctl)
   ctl.realRobot("panda_femur").posW(X_0_pf);
   ctl.robot("panda_femur").posW(X_0_pf);
 
-  // X_0_tibiaCalib = X_0_femurCalib
-  // Axis of rotation: X_0_tibia
-  ctl.datastore().assign("Tibia", ctl.robot("panda_tibia").frame("Tibia").position());
-  ctl.datastore().assign("Femur", ctl.robot("panda_tibia").frame("Tibia").position());
+  output("OK");
 
-  return output().size() != 0;
+  // Computes calibration online
+  run(ctl);
+}
+
+bool Calibrate::run(mc_control::fsm::Controller & ctl)
+{
+  return true;
 }
 
 void Calibrate::teardown(mc_control::fsm::Controller & ctl)
 {
+  if(config_("save", true))
+  {
+    if(!ctl.config().has("ETC_DIR") && ctl.config()("ETC_DIR").empty())
+    {
+      mc_rtc::log::error_and_throw("[{}] No \"ETC_DIR\"  entry specified", name());
+    }
+    auto controllerName = ctl.datastore().get<std::string>("ControllerName");
+    auto etc_file =
+        static_cast<std::string>(ctl.config()("ETC_DIR")) + "/" + controllerName + "/initial_panda_femur.yaml";
+    save(etc_file, ctl.robot("panda_femur"));
+    etc_file = static_cast<std::string>(ctl.config()("ETC_DIR")) + "/" + controllerName + "/initial_panda_tibia.yaml";
+    save(etc_file, ctl.robot("panda_tibia"));
+  }
+
   ctl.gui()->removeElements(this);
 }
 

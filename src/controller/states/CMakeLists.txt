@@ -16,6 +16,7 @@ target_link_libraries(CalibrateRelative PUBLIC state-observation::state-observat
 set_target_properties(CalibrateRelative PROPERTIES INSTALL_RPATH ${MC_STATES_RUNTIME_INSTALL_PREFIX})
 add_fsm_state_simple(TransformDatastore)
 add_fsm_state_simple(SaveCalibration)
-#add_fsm_state_simple(ManipulateKnee)
+add_fsm_state_simple(ManipulateKnee)
+target_include_directories(ManipulateKnee PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
 
 add_fsm_data_directory(data)

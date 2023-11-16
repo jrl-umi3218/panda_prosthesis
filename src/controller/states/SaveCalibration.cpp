@@ -19,7 +19,9 @@ void SaveCalibration::start(mc_control::fsm::Controller & ctl)
     mc_rtc::log::error_and_throw("[{}] No \"ETC_DIR\"  entry specified", name());
   }
   auto & robot = ctl.robot(config_("robot"));
-  auto etc_file = static_cast<std::string>(ctl.config()("ETC_DIR")) + "/initial_" + robot.name() + ".yaml";
+  auto controllerName = ctl.datastore().get<std::string>("ControllerName");
+  auto etc_file =
+      static_cast<std::string>(ctl.config()("ETC_DIR")) + "/" + controllerName + "/initial_" + robot.name() + ".yaml";
   save(etc_file, robot);
   output("OK");
 }

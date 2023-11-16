@@ -65,7 +65,7 @@ void BoneTagSerialPlugin::init(mc_control::MCGlobalController & gc, const mc_rtc
             }
             catch(std::runtime_error & e)
             {
-              mc_rtc::log::error("[BoneTagSerialPlugin] Failed to read data");
+              /* mc_rtc::log::error("[BoneTagSerialPlugin] Failed to read data"); */
               hasReceivedData_ = false;
             }
             iter_ = 0;

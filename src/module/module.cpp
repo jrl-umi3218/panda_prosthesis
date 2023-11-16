@@ -52,8 +52,8 @@ PandaProsthesisRobotModule::PandaProsthesisRobotModule(const std::string & prost
     mbg.addBody({mass, com, inertiaM, name});
 
     rbd::parsers::Geometry::Mesh geom_mesh;
-    geom_mesh.scale = 0.001;
-    // geom_mesh.scaleV = Eigen::Vector3d{0.001, 0.001, 0.001};
+    // geom_mesh.scale = 0.001;
+    geom_mesh.scaleV = Eigen::Vector3d{0.001, 0.001, 0.001};
     geom_mesh.filename = mesh.string();
     rbd::parsers::Geometry geom;
     geom.data = geom_mesh;

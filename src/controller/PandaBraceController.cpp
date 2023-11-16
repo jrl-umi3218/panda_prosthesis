@@ -27,6 +27,7 @@ PandaBraceController::PandaBraceController(mc_rbdyn::RobotModulePtr rm, double d
                      [this]() { return robot("brace_bottom_setup").frame("Tibia").position(); }));
   logger().addLogEntry("controlRobot_Frame_Femur", [this]() { return robot().frame("Femur").position(); });
   logger().addLogEntry("realRobot_Frame_Femur", [this]() { return realRobot().frame("Femur").position(); });
+  datastore().make<std::string>("ControllerName", "brace");
 }
 
 bool PandaBraceController::run()

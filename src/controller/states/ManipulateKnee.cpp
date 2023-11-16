@@ -6,7 +6,7 @@
 #include <mc_rtc/io_utils.h>
 #include <mc_tasks/MetaTaskLoader.h>
 #include <boost/filesystem.hpp>
-#include "../3rd-party/csv.h"
+#include <3rd-party/csv.h>
 
 namespace fs = boost::filesystem;
 
@@ -409,6 +409,9 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
   ctl.solver().addTask(tibia_task_);
   ctl.solver().addTask(femur_task_);
 
+  X_0_tibiaAxisInitial = ctl.robot("panda_tibia").frame("Tibia").position();
+  X_0_femurAxisInitial = X_0_tibiaAxisInitial;
+
   if(ctl.config().has("offsets"))
   {
     ctl.config()("offsets")("tibia", tibiaOffsetInitial_);
@@ -437,12 +440,10 @@ void ManipulateKnee::resetToZero()
 
 void ManipulateKnee::updateAxes(mc_control::fsm::Controller & ctl)
 {
-  const auto & X_0_tibiaFrame = ctl.datastore().get<sva::PTransformd>("Tibia");
-  const auto & X_0_femurFrame = ctl.datastore().get<sva::PTransformd>("Femur");
   femurOffset_ = femurOffsetInterpolator_.compute(femurOffsetInterpolationTime_);
   tibiaOffset_ = tibiaOffsetInterpolator_.compute(tibiaOffsetInterpolationTime_);
-  X_0_femurAxis = femurOffset_ * X_0_femurFrame;
-  X_0_tibiaAxis = tibiaOffset_ * X_0_tibiaFrame;
+  X_0_femurAxis = femurOffset_ * X_0_femurAxisInitial;
+  X_0_tibiaAxis = tibiaOffset_ * X_0_tibiaAxisInitial;
   tibiaOffsetInterpolationTime_ += ctl.timeStep;
   femurOffsetInterpolationTime_ += ctl.timeStep;
 }
