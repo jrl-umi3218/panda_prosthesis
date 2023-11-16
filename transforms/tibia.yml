@@ -4,4 +4,3 @@ ee_to_support:
 support_to_prosthesis:
   translation: [-0.05, 0.035, 0.045]
   rotation: [-1.57, 1.57, 0.0]
-

@@ -1,0 +1,102 @@
+---
+# If true, the FSM transitions are managed by an external tool
+Managed: false
+# If true and the FSM is self-managed, transitions should be triggered
+StepByStep: false
+# Change idle behaviour, if true the state is kept until transition,
+# otherwise the FSM holds the last state until transition
+IdleKeepState: true
+# Where to look for state libraries
+StatesLibraries:
+- "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@"
+- "@MC_STATES_RUNTIME_INSTALL_PREFIX@"
+# Where to look for state files
+StatesFiles:
+- "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@/data"
+- "@MC_STATES_RUNTIME_INSTALL_PREFIX@/data"
+# If true, state factory will be more verbose
+VerboseStateFactory: false
+
+Plugins: [] # [AtiDaq ,PhidgetPressureSensorPlugin]
+
+TrajectoryLoaders:
+  Brace:
+    directory: "@TRAJECTORY_DIR@"
+  RecordedBrace:
+    directory: "@TRAJECTORY_DIR@"
+
+trajectory_dir: "@TRAJECTORY_DIR@"
+results_dir: "@RESULTS_DIR@"
+
+offsets:
+  femur:
+    translation: [0, 0, 0.0]
+  tibia:
+    translation: [0, 0, -0.01]
+
+# Additional robots to load
+robots:
+  brace_bottom_setup:
+    module: brace_bottom_setup
+    init_pos:
+      translation: [0.55, 0.2, 0.0]
+      rotation: [0.0, 0.0, 0.0]
+    frames:
+      # Anatomic frame defined in Solidworks
+      - name: Tibia
+        parent: Link6
+        X_p_f:
+          translation: [0.00194, 0.003568, 0.044493] #valeur précedente de y 0,011432
+          rotation: [0.087602, 0.0872, 0.106] #Valeur précedente roty 0,0872
+  panda_brace_femur:
+    frames:
+      # Anatomic frame defined in Solidworks
+      - name: Femur
+        parent: Link2
+        X_p_f:
+          translation: [0.00060302, 0.00471268, -0.05168362]
+          roitation: [0.12755763, 0.02742844, 0.12627309]
+ #  brace_urdf:
+ #    module: brace_urdf
+
+# General constraints, always on
+constraints:
+- type: contact
+- type: kinematics
+  robot: panda_brace_femur
+  damper: [0.1, 0.01, 0.5]
+  velocityPercent: 0.8
+# Collision constraint
+collisions:
+- type: collision
+  robot: panda_tibia
+  useMinimal: true
+
+ObserverPipelines:
+  - name: PandaFemur
+    observers:
+    - type: BodySensor
+      config:
+        method: control
+    - type: Encoder
+      config:
+        #position: encoderValues
+        #velocity: encoderVelocities
+        position: control
+        velocity: control
+
+# Initial set of contacts
+contacts: []
+# Implement some additional text states
+states: {}
+
+transitions:
+  - [Brace::Simulation, Auto, Brace::Simulation, Strict]
+  #- [ChooseMode, Simulation, Brace::Simulation, Auto]
+  #- [ChooseMode, Real, Real, Auto]
+
+
+# Initial state
+init: Brace::Simulation
+# Store the location of configuration files
+ETC_DIR: "@CMAKE_CURRENT_SOURCE_DIR@/etc"

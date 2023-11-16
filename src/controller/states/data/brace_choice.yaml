@@ -1,0 +1,35 @@
+Choice::Initial:
+  base: Choice
+  category: []
+  choices:
+    - ["Load Saved Femur Calibration", LoadCalibration::Femur]
+    - ["Load Saved Tibia Calibration", LoadCalibration::Tibia]
+    - ["Load Femur and Tibia Calibration", LoadCalibration::Both]
+    - ["Manual Femur Calibration (simu)", ManualCalibration::Femur]
+    - ["Manual Tibia Calibration (simu)", ManualCalibration::Tibia]
+    - ["Start from current configuration", StartFromCurrent]
+
+Choice::StartFromCurrent:
+  base: Choice
+  category: []
+  choices:
+    - ["Calibrate Relative (in calibration tool)", CalibrateRelative::InCalibrationTool]
+    - ["Calibrate Relative (in contact)", CalibrateRelative::InContact]
+    - ["Keep Current Relative Calibration", CalibrateRelative::Skip]
+    - ["Go In Contact", GoInContact]
+    - ["Load Trajectory", LoadTrajectory]
+    - ["Record Trajectory", RecordTrajectory]
+
+Choice::InContact:
+  base: Choice
+  category: []
+  choices:
+    - ["Record Trajectory", RecordTrajectory]
+    - ["Choose Trajectory", ChooseTrajectory]
+
+Choice::RecordTrajectory:
+  base: Choice
+  category: []
+  choices:
+    - ["Create new trajectory", NewTrajectory]
+    - ["Add stance", AddStance]

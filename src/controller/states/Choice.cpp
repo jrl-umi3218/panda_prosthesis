@@ -17,10 +17,14 @@ void Choice::start(mc_control::fsm::Controller & ctl)
   {
     const auto & name = choice.first;
     const auto & transition = choice.second;
-    ctl.gui()->addElement(this, category, mc_rtc::gui::Button(choice.first, [this, transition]() {
-                            mc_rtc::log::info("[{}] Selected transition {}", this->name(), transition);
-                            output(transition);
-                          }));
+    ctl.gui()->addElement(this, category,
+                          mc_rtc::gui::Button(choice.first,
+                                              [this, transition]()
+                                              {
+                                                mc_rtc::log::info("[{}] Selected transition {}", this->name(),
+                                                                  transition);
+                                                output(transition);
+                                              }));
   }
 }
 

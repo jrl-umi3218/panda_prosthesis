@@ -29,7 +29,7 @@ struct BoneTagSerial
 protected:
   void sync();
   void get_input_data(bool print_bytes);
-  void get_results(bool print_bytes, bool print_raw, bool print_result); 
+  void get_results(bool print_bytes, bool print_raw, bool print_result);
   void parse_data(bool print_raw_data);
   void parse_result(bool print_result);
   void print_input_data();

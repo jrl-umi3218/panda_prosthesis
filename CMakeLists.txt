@@ -7,6 +7,7 @@ find_package(mc_panda REQUIRED)
 
 
 set(DATA_DIR "${CMAKE_INSTALL_PREFIX}/share/panda_prosthesis")
+set(calib_DIR "${DATA_DIR}/calib")
 set(meshes_DIR "${DATA_DIR}/meshes")
 set(convex_DIR "${DATA_DIR}/convex")
 set(inertia_DIR "${DATA_DIR}/inertia")
@@ -19,8 +20,6 @@ install(DIRECTORY inertia DESTINATION "${DATA_DIR}" FILES_MATCHING PATTERN "*.ym
 install(DIRECTORY transforms DESTINATION "${DATA_DIR}" FILES_MATCHING PATTERN "*.yml")
 install(DIRECTORY rsdf DESTINATION "${DATA_DIR}" FILES_MATCHING PATTERN "*.rsdf")
 
-set(TRAJECTORY_DIR "${PROJECT_SOURCE_DIR}/data/trajectories")
-set(RESULTS_DIR "${PROJECT_SOURCE_DIR}/data/results")
 add_subdirectory(src)
 
 

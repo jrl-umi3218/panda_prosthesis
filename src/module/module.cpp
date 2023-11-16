@@ -18,7 +18,8 @@ PandaProsthesisRobotModule::PandaProsthesisRobotModule(const std::string & prost
   auto inertias = bfs::path(panda_prosthesis::inertia_DIR);
   auto transforms = bfs::path(panda_prosthesis::transforms_DIR);
 
-  auto addBody = [&](const std::string name) {
+  auto addBody = [&](const std::string name)
+  {
     auto mesh = meshes / (name + ".stl");
     auto convex = convexes / (name + "-ch.txt");
     auto inertia = inertias / (name + ".yml");
@@ -51,8 +52,8 @@ PandaProsthesisRobotModule::PandaProsthesisRobotModule(const std::string & prost
     mbg.addBody({mass, com, inertiaM, name});
 
     rbd::parsers::Geometry::Mesh geom_mesh;
-    geom_mesh.scale = 0.001;
-    // geom_mesh.scaleV = Eigen::Vector3d{0.001, 0.001, 0.001};
+    // geom_mesh.scale = 0.001;
+    geom_mesh.scaleV = Eigen::Vector3d{0.001, 0.001, 0.001};
     geom_mesh.filename = mesh.string();
     rbd::parsers::Geometry geom;
     geom.data = geom_mesh;
@@ -98,8 +99,38 @@ PandaProsthesisRobotModule::PandaProsthesisRobotModule(const std::string & prost
     ofs << rbd::parsers::to_urdf({mb, mbc, mbg, limits, _visual, _collision, "panda_" + prosthesis});
   }
   this->urdf_path = urdf_path.string();
+  this->calib_dir = panda_prosthesis::calib_DIR;
   this->name = "panda_" + prosthesis;
   mc_rtc::log::info("Wrote URDF to {}", urdf_path.string());
 }
 
 } // namespace mc_robots
+
+extern "C"
+{
+  ROBOT_MODULE_API void MC_RTC_ROBOT_MODULE(std::vector<std::string> & names)
+  {
+    names = {"PandaProsthesis::Femur", "PandaProsthesis::Tibia"};
+  }
+  ROBOT_MODULE_API void destroy(mc_rbdyn::RobotModule * ptr)
+  {
+    delete ptr;
+  }
+  ROBOT_MODULE_API mc_rbdyn::RobotModule * create(const std::string & n)
+  {
+    ROBOT_MODULE_CHECK_VERSION("PandaProsthesis")
+    if(n == "PandaProsthesis::Femur")
+    {
+      return new mc_robots::PandaProsthesisRobotModule("femur");
+    }
+    else if(n == "PandaProsthesis::Tibia")
+    {
+      return new mc_robots::PandaProsthesisRobotModule("tibia");
+    }
+    else
+    {
+      mc_rtc::log::error("Panda module cannot create an object of type {}", n);
+      return nullptr;
+    }
+  }
+}

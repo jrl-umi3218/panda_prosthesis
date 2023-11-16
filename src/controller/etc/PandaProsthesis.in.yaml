@@ -17,8 +17,12 @@ StatesFiles:
 # If true, state factory will be more verbose
 VerboseStateFactory: false
 
-trajectory_dir: "@TRAJECTORY_DIR@"
-results_dir: "@RESULTS_DIR@"
+TrajectoryLoaders:
+  BoneTag:
+    directory: "@TRAJECTORY_DIR@"
+
+trajectory_dir: "@TRAJECTORY_DIR@/bonetag"
+results_dir: "@RESULTS_DIR@/bonetag"
 offsets:
   femur:
     translation: [0, 0, 0.0]
@@ -64,13 +68,13 @@ robots:
 # General constraints, always on
 constraints:
 - type: contact
-- type: kinematics
-  robot: panda_femur
-  damper: [0.1, 0.01, 0.5]
-  velocityPercent: 0.9
-- type: kinematics
-  robot: panda_tibia
-  damper: [0.1, 0.01, 0.5]
+#- type: kinematics
+#  robot: panda_femur
+#  damper: [0.1, 0.01, 0.5]
+#  velocityPercent: 0.9
+#- type: kinematics
+#  robot: panda_tibia
+#  damper: [0.1, 0.01, 0.5]
 # Collision constraint
 collisions:
 - type: collision
@@ -87,8 +91,8 @@ ObserverPipelines:
     - type: Encoder
       config:
         robot: panda_femur
-        position: encoderValues
-        velocity: encoderFiniteDifferences
+        position: control #encoderValues
+        velocity: control #encoderFiniteDifferences
   - name: PandaTibia
     observers:
     - type: BodySensor
@@ -98,13 +102,19 @@ ObserverPipelines:
     - type: Encoder
       config:
         robot: panda_tibia
-        position: encoderValues
-        velocity: encoderFiniteDifferences
+        position: control #encoderValues
+        velocity: control #encoderFiniteDifferences
 
 # Initial set of contacts
 contacts: []
 # Implement some additional text states
-states: {}
+states:
+  InitialChoice:
+    base: Choice
+    category: []
+    choices:
+      - ["Load Saved Calibration", "LoadSavedCalibration"]
+      - ["Start from current configuration", "StartFromCurrent"]
 
 Plugins: [BoneTagSerialPlugin]
 
@@ -113,6 +123,6 @@ transitions:
   - [ChooseMode, Real, Real, Auto]
 
 # Initial state
-init: InitialChoice
+init: ChooseMode
 # Store the location of configuration files
 ETC_DIR: "@CMAKE_CURRENT_SOURCE_DIR@/etc"

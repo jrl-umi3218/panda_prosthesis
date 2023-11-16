@@ -105,7 +105,8 @@ void BoneTagSerial::parse_data(bool print_raw_data)
 }
 
 template<typename T>
-T diff(const T&a, const T&b) {
+T diff(const T & a, const T & b)
+{
   return (a > b) ? (a - b) : (b - a);
 }
 
@@ -136,7 +137,8 @@ const BoneTagSerial::Data & BoneTagSerial::read()
     sync();
     get_results(debug_bytes, debug_raw, debug_results);
   }
-  else {
+  else
+  {
     throw std::runtime_error(fmt::format("[BoneTagSerial] Failed to read (stream error flags are set)"));
   }
 

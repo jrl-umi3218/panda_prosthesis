@@ -51,17 +51,6 @@ bool TransformDatastore::run(mc_control::fsm::Controller & ctl)
 void TransformDatastore::teardown(mc_control::fsm::Controller & ctl)
 {
   ctl.solver().removeTask(task_);
-
-  if(save_)
-  {
-    if(!ctl.config().has("ETC_DIR") && ctl.config()("ETC_DIR").empty())
-    {
-      mc_rtc::log::error_and_throw("[{}] No \"ETC_DIR\"  entry specified", name());
-    }
-    auto & robot = ctl.robot(robot_);
-    auto etc_file = static_cast<std::string>(ctl.config()("ETC_DIR")) + "/initial_" + robot.name() + ".yaml";
-    save(etc_file, robot);
-  }
 }
 
 EXPORT_SINGLE_STATE("TransformDatastore", TransformDatastore)

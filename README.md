@@ -1,49 +1,35 @@
-# Running
+# panda_prosthesis
 
-## In simulation
+This repository gathers controllers centered around the development and evaluation of Orthosis medical devices.
+It contains two controllers:
+- `PandaProsthesis` is a controller dedicated to the evaluation of BoneTag's capacitive sensors. The aim is to provide non-invasive imaging of in-patient knee prosthesis.
+- `PandaBrace` is a controller dedicated to the evaluation of experiemental medical Orthosis devices. The aim is to use a robotics setup to quantify how an Orhosis reduces the applied forces on the knee joints.
+
+## Building with superbuild
+
+You can add the [panda-prosthesis-superbuild](https://github.com/arntanguy/panda-prosthesis-superbuild) to your superbuild extension folder:
+
+The following options are available:
+- `WITH_PANDA_BRACE:BOOL`: Whether to build the PandaBrace controller and its related dependencies
+- `WITH_MC_RTC_ATI_DAQ:BOOL`: [optional in simulation/required for real experiments] Whether to build the `AtiDaq` plugin. This plugin allows to acquire ATI force sensor data plugged to a data acquisition card.
+- `WITH_PHIDGET_PRESSURE_SENSOR_PLUGIN:BOOL`: [optional in simulation/required for real experiments] Whether to build the `PhidgetPressureSensor` plugin. This plugin is used to read pressure data from the Orthesis
+- `WITH_TACTILE_FORCE_SENSOR_PLUGIN:BOOL`: [optional] Whether to build the `TactileForceSensor` plugin. This allows reading of pressure sensors placed on the surface of the tibia joint.
 
 ```sh
-(roscore &)
-run_bonetag_controller_simu
-roslaunch mc_rtc_ticker display.launch
-```
-You can change the initial position of the robots by dragging the interactive markers in rviz.
-
-## Real robot
-
-- Start both robots
-- In the web interface of the robots (`https://panda7` and `https://panda2`), unlock the joints and activate the FCI (from the top right menu).
-
-- Then run the controller
-
-```sh
-(roscore &)
-run_bonetag_controller_real
-roslaunch mc_rtc_ticker display.launch
+cd mc-rtc-superbuild/extensions
+git clone https://github.com/arntanguy/panda-prosthesis-superbuild.git
+cd ../build
+make # clone and build dependencies with superbuild
 ```
 
-## How to use
+## PandaProsthesis (BoneTag demo)
 
-### Calibration (to be done once)
+![PandaProsthesis image](doc/images/PandaProsthesis.png)
 
-- Attach the calibration tool. Move the robot such that the tools are in perfect contact.
-- Start the controller
-- Click on Real -> Start from Current configuration -> Calibrate
-- Click on `Change tool`, the robots will move away from each other
-- Remove the calibration tool, attach the prosthesis
-- Click `Tool changed`, the robots move to the initial knee configuration 
+For details on how to use the `PandaProsthesis` controller, see [PandaProsthesis documentation](doc/PandaProsthesis.md)
 
-### Normal use (without calibration)
+## PandaBrace (Lea's Orthesis demo)
 
-- Start the controller
-- Click on `Real -> Load saved calibration -> Skip Calibration
-- Go to the `ManipulateKnee` tab in the gui. You can move the joint by using the sliders in the `Tibia/Femur` tabs, or select a `Trajectory` to play and record
+![PandaBrace image](doc/images/PandaBrace.png)
 
-
-## Notes
-
-- Before starting the robots, make sure that the tibia and femur are not in contact. Otherwise the robot trajectory will be wrong!
-
-## Troubleshooting
-
-- If no data appears in the plots reading the bonetag sensors, try calling `reset_bonetag_serial` and then re-run the controller
+For details on how to use the `PandaBrace` controller, see [PandaBrace documentation](doc/PandaBrace.md)

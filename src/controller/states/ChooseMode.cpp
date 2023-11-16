@@ -9,14 +9,17 @@ void ChooseMode::start(mc_control::fsm::Controller & ctl)
   ctl.datastore().make<std::string>("Mode");
   ctl.gui()->addElement(this, {},
                         mc_rtc::gui::Button("Simulation",
-                                            [&ctl, this]() {
+                                            [&ctl, this]()
+                                            {
                                               ctl.datastore().assign("Mode", std::string{"simulation"});
                                               output("Simulation");
                                             }),
-                        mc_rtc::gui::Button("Real", [&ctl, this]() {
-                          ctl.datastore().assign("Mode", std::string{"real"});
-                          output("Real");
-                        }));
+                        mc_rtc::gui::Button("Real",
+                                            [&ctl, this]()
+                                            {
+                                              ctl.datastore().assign("Mode", std::string{"real"});
+                                              output("Real");
+                                            }));
 }
 
 bool ChooseMode::run(mc_control::fsm::Controller & ctl)

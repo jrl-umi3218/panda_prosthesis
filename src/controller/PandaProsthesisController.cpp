@@ -1,4 +1,4 @@
-#include "controller.h"
+#include "PandaProsthesisController.h"
 #include "config.h"
 
 namespace panda_prosthetics
@@ -14,11 +14,12 @@ PandaProsthetics::PandaProsthetics(mc_rbdyn::RobotModulePtr rm, double dt, const
                              [this]() { return robot("panda_tibia").frame("TibiaCalibration").position(); }),
       mc_rtc::gui::Transform("FemurCalibration",
                              [this]() { return robot("panda_femur").frame("FemurCalibration").position(); }));
+  datastore().make<std::string>("ControllerName", "bonetag");
 }
 
 bool PandaProsthetics::run()
 {
-  //return mc_control::fsm::Controller::run();
+  // return mc_control::fsm::Controller::run();
   return mc_control::fsm::Controller::run(mc_solver::FeedbackType::Joints);
 }
 
@@ -26,5 +27,7 @@ void PandaProsthetics::reset(const mc_control::ControllerResetData & reset_data)
 {
   mc_control::fsm::Controller::reset(reset_data);
 }
+
+CONTROLLER_CONSTRUCTOR("PandaProsthesis", panda_prosthetics::PandaProsthetics)
 
 } // namespace panda_prosthetics
