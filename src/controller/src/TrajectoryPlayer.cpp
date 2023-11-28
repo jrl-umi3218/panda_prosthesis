@@ -55,6 +55,21 @@ void TrajectoryPlayer::addToLogger(mc_rtc::Logger & logger)
                        return ctl_.realRobot(frame.robot().name()).frame(frame.name()).position()
                               * trajectory_.refAxisFrame()->position().inv();
                      });
+  logger.addLogEntry(fmt::format("rpy_control_{}_{}", trajectory_.refAxisFrame()->name(), frame->name()),
+                     [this]()
+                     {
+                       auto X_refFrame_Frame =
+                           trajectory_.frame()->position() * trajectory_.refAxisFrame()->position().inv();
+                       return mc_rbdyn::rpyFromMat(X_refFrame_Frame.rotation().inverse());
+                     });
+  logger.addLogEntry(fmt::format("rpy_real_{}_{}", trajectory_.refAxisFrame()->name(), frame->name()),
+                     [this]()
+                     {
+                       auto & frame = *trajectory_.frame();
+                       auto X_refFrame_Frame = ctl_.realRobot(frame.robot().name()).frame(frame.name()).position()
+                                               * trajectory_.refAxisFrame()->position().inv();
+                       return mc_rbdyn::rpyFromMat(X_refFrame_Frame.rotation().inverse());
+                     });
   auto sensors = std::vector<std::string>{"Sensor0", "Sensor1"};
   for(const auto & sensorName : sensors)
   {
