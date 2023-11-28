@@ -49,6 +49,21 @@ robots:
           translation: [0.00194, 0.003568, 0.044493] #valeur précedente de y 0,011432
           rotation: [0.087602, 0.0872, 0.106] #Valeur précedente roty 0,0872
   panda_brace_femur:
+    CollisionBehavior:
+      # Changes the collision behavior, see franka::Robot documentation for details
+      # Set common torque and force boundaries for acceleration/deceleration and constant velocity movement phases.
+      #
+      # Forces or torques between lower and upper threshold are shown as contacts in the RobotState. Forces or torques above the upper threshold are registered as collision and cause the robot to stop moving.
+      #
+      # Parameters:
+      # - lower_torque_thresholds	Contact torque thresholds for each joint in [Nm].
+      # - upper_torque_thresholds	Collision torque thresholds for each joint in [Nm].
+      # - lower_force_thresholds	Contact force thresholds for (x,y,z,R,P,Y) in [N].
+      # - upper_force_thresholds	Collision force thresholds for (x,y,z,R,P,Y) in [N].
+      lower_torque_thresholds: [-87, -87, -87, -87, -11, -11, -11]
+      upper_torque_thresholds: [87, 87, 87, 87, 11, 11, 11]
+      lower_force_thresholds: [-100, -100, -100, -100, -100, -100]
+      upper_force_thresholds: [100, 100, 100, 100, 100, 100]
     frames:
       # Anatomic frame defined in Solidworks
       - name: Femur

@@ -33,6 +33,7 @@ if(TARGET PandaBraceModule)
   add_controller(PandaBraceController PandaBraceController.cpp PandaBraceController.h)
   target_link_libraries(PandaBraceController PUBLIC PandaProsthesisCommon)
   target_link_libraries(PandaBraceController PUBLIC mc_rtc::mc_control_fsm)
+  target_link_libraries(PandaBraceController PUBLIC mc_panda::devices)
   target_include_directories(PandaBraceController PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../module/include>)
 
   set(TRAJECTORY_DIR "${PROJECT_SOURCE_DIR}/data/trajectories")
