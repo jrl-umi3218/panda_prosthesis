@@ -50,7 +50,7 @@ Brace::CalibrateRelative::InCalibrationTool:
 
   # Transfo between link6 and the calibration frame
   offsetLink6:
-    translation: [0,0,-0.157] #0.158 with the orange calib part, -0.11 with the calib part with cones
+    translation: [0,0,-0.158] #0.158 with the orange calib part, -0.11 with the calib part with cones
     rotation: [0,0,0]
     #translation: [0,0.0,0.0]
 
