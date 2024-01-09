@@ -26,10 +26,3 @@ Choice::InContact:
   choices:
     - ["Record Trajectory", RecordTrajectory]
     - ["Choose Trajectory", ChooseTrajectory]
-
-Choice::RecordTrajectory:
-  base: Choice
-  category: []
-  choices:
-    - ["Overwrite trajectory", NewTrajectory]
-    - ["Add/Remove stance to trajectory", AddStance]

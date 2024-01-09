@@ -3,30 +3,9 @@
 #include <mc_rtc/gui/ComboInput.h>
 #include <mc_rtc/gui/StateBuilder.h>
 #include <mc_rtc/io_utils.h>
-#include <boost/filesystem.hpp>
 #include <Trajectory.h>
 #include <string>
-#include <variant>
-
-/**
- * \brief   Return the filenames of all files that have the specified extension
- *          in the specified directory and all subdirectories.
- */
-inline std::vector<std::string> get_all_filenames(boost::filesystem::path const & root, std::string const & ext = "")
-{
-  std::vector<std::string> paths;
-
-  if(boost::filesystem::exists(root) && boost::filesystem::is_directory(root))
-  {
-    for(auto const & entry : boost::filesystem::recursive_directory_iterator(root))
-    {
-      if(boost::filesystem::is_regular_file(entry) && (ext.empty() || entry.path().extension() == ext))
-        paths.emplace_back(entry.path().filename().c_str());
-    }
-  }
-
-  return paths;
-}
+#include <utils.h>
 
 struct TrajectoryLoader
 {

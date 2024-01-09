@@ -11,14 +11,19 @@ struct RecordTrajectory : mc_control::fsm::State
 
   void teardown(mc_control::fsm::Controller & ctl) override;
 
+  void addPose(mc_control::fsm::Controller & ctl);
   void removePose(mc_control::fsm::Controller & ctl, size_t i);
   void updateGUI(mc_control::fsm::Controller & ctl);
   void save();
+  void loadDirectory(mc_control::fsm::Controller & ctl);
+  void loadFile(mc_control::fsm::Controller & ctl, const std::string & fileName);
 
 private:
-  std::string fileName_ = "default.yaml";
-  bool overwrite_ = false;
-  std::string path;
-  std::vector<sva::PTransformd> poses;
+  std::string directory_ = "";
+  std::vector<std::string> files_;
+  std::string fileName_ = "";
+  std::vector<sva::PTransformd> poses{};
+  std::string savedConfigPath_ = "";
+  mc_rtc::Configuration savedConfig_;
   bool done_ = false;
 };
