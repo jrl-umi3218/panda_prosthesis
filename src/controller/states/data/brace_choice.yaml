@@ -31,5 +31,5 @@ Choice::RecordTrajectory:
   base: Choice
   category: []
   choices:
-    - ["Create new trajectory", NewTrajectory]
-    - ["Add stance", AddStance]
+    - ["Overwrite trajectory", NewTrajectory]
+    - ["Add/Remove stance to trajectory", AddStance]
