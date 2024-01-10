@@ -64,7 +64,7 @@ Brace::CalibrateRelative::InCalibrationTool:
 
   # Transfo between link6 and the calibration frame
   offsetLink6:
-    translation: [0,0,-0.171] # with the orange calib part
+    translation: [0,0,-0.172] # with the orange calib part
     rotation: [0,0,0]
     #translation: [0,0.0,0.0]
 
@@ -114,6 +114,13 @@ Brace::GoInContact:
   target_frame: Tibia
   useForce: false # when true move down until force is detected; otherwise move to "heightAboveLink6"
   heightAboveLink6: 0.105 #0.110353 # only used if useForce = false
+  constraints:
+    GoStraightDownCstr:
+      type: boundedSpeed
+      constraints:
+        - frame: Link2
+          speed: [0, 0, 0, 0, 0, 0]
+          dof: [1,1,1,1,1,0]
 
 Brace::GoUp:
   base: Brace::GoInContact
