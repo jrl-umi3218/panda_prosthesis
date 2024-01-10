@@ -48,8 +48,16 @@ PandaBraceController::PandaBraceController(mc_rbdyn::RobotModulePtr rm, double d
 
 bool PandaBraceController::run()
 {
+  //  return mc_control::fsm::Controller::run(mc_solver::FeedbackType::Joints);
+  static size_t iter_ = 0;
+  if(++iter_ == 5000)
+  {
+    mc_rtc::log::warning("RESET CONTROL TO REAL");
+    robot().mbc().q = realRobot().mbc().q;
+    robot().forwardKinematics();
+    getPostureTask(robot().name())->reset();
+  }
   return mc_control::fsm::Controller::run();
-  // return mc_control::fsm::Controller::run(mc_solver::FeedbackType::Joints);
 }
 
 void PandaBraceController::reset(const mc_control::ControllerResetData & reset_data)
