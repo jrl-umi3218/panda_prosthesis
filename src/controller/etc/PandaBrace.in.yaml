@@ -95,10 +95,10 @@ ObserverPipelines:
         method: control
     - type: Encoder
       config:
-        #position: encoderValues
-        #velocity: encoderVelocities
-        position: control
-        velocity: control
+        position: encoderValues
+        velocity: encoderVelocities
+          #position: control
+          #velocity: control
 
 # Initial set of contacts
 contacts: []

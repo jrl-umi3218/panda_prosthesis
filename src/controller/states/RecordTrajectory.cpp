@@ -32,10 +32,18 @@ void RecordTrajectory::start(mc_control::fsm::Controller & ctl)
   output("OK");
 }
 
-void RecordTrajectory::addPose(mc_control::fsm::Controller & ctl)
+void RecordTrajectory::addPose(mc_control::fsm::Controller & ctl, bool useReal)
 {
-  poses.push_back(ctl.robot().frame("Femur").position()
-                  * ctl.robot("brace_bottom_setup").frame("Tibia").position().inv());
+  if(useReal)
+  {
+    poses.push_back(ctl.realRobot().frame("Femur").position()
+                    * ctl.robot("brace_bottom_setup").frame("Tibia").position().inv());
+  }
+  else
+  {
+    poses.push_back(ctl.robot().frame("Femur").position()
+                    * ctl.robot("brace_bottom_setup").frame("Tibia").position().inv());
+  }
   save();
   updateGUI(ctl);
 }
@@ -105,7 +113,9 @@ void RecordTrajectory::updateGUI(mc_control::fsm::Controller & ctl)
 
   if(fileName_.size())
   {
-    ctl.gui()->addElement(this, {"RecordTrajectory"}, mc_rtc::gui::Button("Add Pose", [this, &ctl]() { addPose(ctl); }),
+    ctl.gui()->addElement(this, {"RecordTrajectory"},
+                          mc_rtc::gui::Button("Add Pose (control)", [this, &ctl]() { addPose(ctl, false); }),
+                          mc_rtc::gui::Button("Add Pose (real)", [this, &ctl]() { addPose(ctl, true); }),
                           mc_rtc::gui::Button("Remove last pose",
                                               [this, &ctl]()
                                               {

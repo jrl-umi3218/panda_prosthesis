@@ -21,11 +21,11 @@ void GoInContact::start(mc_control::fsm::Controller & ctl)
             auto robotName = static_cast<std::string>(config_("robot"));
             auto frameName = static_cast<std::string>(config_("frame"));
             auto X_0_femur = ctl.robot().frame(frameName).position();
-            
+
             auto X_0_link6 = ctl.robot("brace_bottom_setup").frame("Link6").position();
             auto X_0_final = sva::PTransformd(Eigen::Vector3d{0, 0, heightAboveLink6_}) * X_0_link6;
             auto velSgn = std::copysign(1.0, X_0_final.translation().z() - X_0_femur.translation().z());
-            
+
             auto refVelLink6 = sva::MotionVecd({0, 0, 0}, {0, 0, velSgn * vel_});
             auto refVelW = X_0_link6.inv() * refVelLink6;
             mc_rtc::log::info("refVelW: {}", refVelW.vector().transpose());
