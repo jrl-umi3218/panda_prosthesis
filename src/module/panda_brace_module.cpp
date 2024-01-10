@@ -281,6 +281,7 @@ PandaBraceCommonRobotModule<DebugLog>::PandaBraceCommonRobotModule(const std::st
     ofs << rbd::parsers::to_urdf({mb, mbc, mbg, limits, _visual, _collision, "panda_brace_femur"});
   }
   this->urdf_path = urdf_path.string();
+  this->_real_urdf = this->urdf_path;
   this->calib_dir = panda_prosthesis::calib_DIR;
 
   this->name = "panda_brace_femur";

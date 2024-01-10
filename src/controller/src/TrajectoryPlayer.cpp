@@ -132,7 +132,7 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
                  mc_rtc::gui::RPYLabel("Target Rotation (World): ", task_->targetPose().rotation()));
 
   gui.addElement(this, category,
-                 mc_rtc::gui::ArrayLabel("Target Translation (Tibia Frame)",
+                 mc_rtc::gui::ArrayLabel("Real Femur Rotation (Tibia Frame)",
                                          [this]() -> Eigen::Vector3d
                                          {
                                            auto & frame = *trajectory_.frame();
@@ -142,7 +142,7 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
                                            return mc_rbdyn::rpyFromMat(X_refFrame_Frame.rotation().inverse()) * 180
                                                   / mc_rtc::constants::PI;
                                          }),
-                 mc_rtc::gui::ArrayLabel("Target Translation (Tibia Frame)",
+                 mc_rtc::gui::ArrayLabel("Real Femur Translation (Tibia Frame)",
                                          [this]() -> Eigen::Vector3d
                                          {
                                            auto & frame = *trajectory_.frame();
