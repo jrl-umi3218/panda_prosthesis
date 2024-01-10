@@ -131,6 +131,8 @@ Brace::Simulation:
   base: Meta
   ResetPostures: true
   transitions:
+    - [Brace::Initialize::Tibia::Load, OK, Choice::Initial, Auto]
+    - [Choice::Initial, LoadCalibration::Both, Brace::Initialize::Both::Load, Auto]
     - [Choice::Initial, LoadCalibration::Both, Brace::Initialize::Both::Load, Auto]
     - [Choice::Initial, LoadCalibration::Femur, Brace::Initialize::Femur::Load, Auto]
     - [Choice::Initial, LoadCalibration::Tibia, Brace::Initialize::Tibia::Load, Auto]
@@ -140,7 +142,6 @@ Brace::Simulation:
 
     - [Brace::Initialize::Both::Load, OK, Choice::Initial, Auto]
     - [Brace::Initialize::Femur::Load, OK, Choice::Initial, Auto]
-    - [Brace::Initialize::Tibia::Load, OK, Choice::Initial, Auto]
     - [Brace::Initialize::Femur::NoLoad, OK, Choice::Initial, Auto]
     - [Brace::Initialize::Tibia::NoLoad, OK, Choice::Initial, Auto]
     - [Choice::StartFromCurrent, CalibrateRelative::InCalibrationTool, Brace::CalibrateRelative::InCalibrationTool, Auto]
