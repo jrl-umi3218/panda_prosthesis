@@ -130,6 +130,26 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
   gui.addElement(this, category, mc_rtc::gui::NumberSlider("t: ", t_, 0, trajectory_.duration()),
                  mc_rtc::gui::ArrayLabel("Target Translation (World): ", task_->targetPose().translation()),
                  mc_rtc::gui::RPYLabel("Target Rotation (World): ", task_->targetPose().rotation()));
+
+  gui.addElement(this, category,
+                 mc_rtc::gui::ArrayLabel("Target Translation (Tibia Frame)",
+                                         [this]() -> Eigen::Vector3d
+                                         {
+                                           auto & frame = *trajectory_.frame();
+                                           auto X_refFrame_Frame =
+                                               ctl_.realRobot(frame.robot().name()).frame(frame.name()).position()
+                                               * trajectory_.refAxisFrame()->position().inv();
+                                           return mc_rbdyn::rpyFromMat(X_refFrame_Frame.rotation().inverse()) * 180
+                                                  / mc_rtc::constants::PI;
+                                         }),
+                 mc_rtc::gui::ArrayLabel("Target Translation (Tibia Frame)",
+                                         [this]() -> Eigen::Vector3d
+                                         {
+                                           auto & frame = *trajectory_.frame();
+                                           return (ctl_.realRobot(frame.robot().name()).frame(frame.name()).position()
+                                                   * trajectory_.refAxisFrame()->position().inv())
+                                               .translation();
+                                         }));
   category.push_back("Manual");
   gui.addElement(this, category, mc_rtc::gui::Input("Manual Target Force", manualForce_),
                  mc_rtc::gui::Input("Manual Target Wrench (Tibia frame)", manualWrench_),
