@@ -11,7 +11,7 @@ struct RecordTrajectory : mc_control::fsm::State
 
   void teardown(mc_control::fsm::Controller & ctl) override;
 
-  void addPose(mc_control::fsm::Controller & ctl);
+  void addPose(mc_control::fsm::Controller & ctl, bool useReal = true);
   void removePose(mc_control::fsm::Controller & ctl, size_t i);
   void updateGUI(mc_control::fsm::Controller & ctl);
   void save();
