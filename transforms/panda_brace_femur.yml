@@ -3,18 +3,18 @@ panda_link8_to_base_link:
   rotation: [0.0, -0.012, -0.017] # This small rotation adjustement was obtained visually
 brace_top_setup:
   base_link:
-    mass: 0.37798 #kg
+    mass: 0.53706 #kg
   Link1:
     mass: 0.09563
   Link2:
-    mass: 1.61915
+    mass: 1.8674
 brace_top_setup_brace:
   base_link:
-    mass: 0.37798 #kg
+    mass: 0.53706 #kg
   Link1:
     mass: 0.09563
   Link2:
-    mass: 2.4636
+    mass: 2.71185
 # inertia matrix for the brace expressed w.r.t base_link [kg.m^2]
 # TODO compute it automatically from individual body inertia
 inertia_brace_top_setup:

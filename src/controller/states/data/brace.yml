@@ -1,7 +1,7 @@
 Brace::Initialize::Femur:
   base: Initial
   frame: Femur
-  stiffness: 10000
+  stiffness: 50
   category: []
 
 Brace::Initialize::Tibia:
@@ -15,6 +15,20 @@ Brace::Initialize::Tibia:
 Brace::Initialize::Femur::Load:
   base: Brace::Initialize::Femur
   load: true
+  duration: 3
+  AddCollisions: &collisions
+    - r1: panda_brace_femur
+      r2: brace_bottom_setup
+      collisions:
+      - body1: Link2
+        body2: Link6
+        iDist: 0.05
+        sDist: 0.025
+      - body1: Link2
+        body2: base_link
+        iDist: 0.05
+        sDist: 0.025
+  RemoveCollisionsAfter: *collisions
 
 Brace::Initialize::Tibia::Load:
   base: Brace::Initialize::Tibia
@@ -98,8 +112,13 @@ Brace::GoInContact:
   frame: Link2
   target_robot: brace_bottom_setup
   target_frame: Tibia
-  useForce: true # when true move down until force is detected; otherwise move to "heightAboveLink6"
+  useForce: false # when true move down until force is detected; otherwise move to "heightAboveLink6"
   heightAboveLink6: 0.095 #0.110353 # only used if useForce = false
+
+Brace::GoUp:
+  base: Brace::GoInContact
+  useForce: false
+  heightAboveLink6: 0.15 #0.110353 # only used if useForce = false
 
 Brace::PlayTrajectory:
   base: PlayTrajectory
@@ -148,6 +167,7 @@ Brace::Simulation:
     - [Choice::StartFromCurrent, CalibrateRelative::InContact, Brace::CalibrateRelative::InContact, Auto]
     - [Choice::StartFromCurrent, CalibrateRelative::Skip, Brace::SaveCalibration, Auto]
     - [Choice::StartFromCurrent, GoInContact, Brace::GoInContact, Auto]
+    - [Choice::StartFromCurrent, GoUp, Brace::GoUp, Auto]
     - [Choice::StartFromCurrent, LoadTrajectory, ChooseTrajectory, Auto]
     - [Choice::StartFromCurrent, RecordTrajectory, RecordTrajectory, Auto]
 
@@ -160,6 +180,7 @@ Brace::Simulation:
     - [Brace::RemoveTool, OK, Choice::Initial, Auto]
 
     - [Brace::GoInContact, OK, Choice::InContact, Auto]
+    - [Brace::GoUp, OK, Choice::Initial, Auto]
     - [Choice::InContact, ChooseTrajectory, ChooseTrajectory, Auto]
     - [Choice::InContact, RecordTrajectory, RecordTrajectory, Auto]
 

@@ -75,10 +75,6 @@ void RecordTrajectory::removePose(mc_control::fsm::Controller & ctl, size_t i)
 void RecordTrajectory::save()
 {
   auto path = directory_ + "/" + fileName_;
-  if(poses.empty())
-  {
-    return;
-  }
   mc_rtc::Configuration conf;
   conf.add("poses", poses);
   conf.save(path);

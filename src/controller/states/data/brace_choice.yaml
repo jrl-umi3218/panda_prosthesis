@@ -17,6 +17,7 @@ Choice::StartFromCurrent:
     - ["Calibrate Relative (in contact)", CalibrateRelative::InContact]
     - ["Keep Current Relative Calibration", CalibrateRelative::Skip]
     - ["Go In Contact", GoInContact]
+    - ["Go Up", GoUp]
     - ["Load Trajectory", LoadTrajectory]
     - ["Record Trajectory", RecordTrajectory]
 

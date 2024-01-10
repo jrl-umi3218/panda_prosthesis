@@ -3,6 +3,7 @@
 path: "@brace_bottom_setup_DIR@"
 name: brace_bottom_setup
 urdf_path: urdf/brace_bottom_setup.urdf
+fixed: true
 # Force sensors attached to this robot
 forceSensors:
   - name: BraceTopForceSensor
