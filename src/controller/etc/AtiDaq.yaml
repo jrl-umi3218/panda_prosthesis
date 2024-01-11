@@ -7,8 +7,8 @@ AtiDaq:
       Port: 2 # DAQ port (1 or 2)
       Robot: brace_bottom_setup
       SensorName: BraceTopForceSensor
-      coeff1: 1.0693
-      coeff2: 0.4978
+      coeff1: 1.0336 #ex value  1.0693
+      coeff2: 0.0  #ex value 0.4978
     # FIXME BROKEN SENSOR?
     # - Serial: FT07319 # sensor serial number
     #   Port: 2 # DAQ port (1 or 2)
