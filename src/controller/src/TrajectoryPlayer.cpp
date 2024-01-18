@@ -14,10 +14,13 @@ TrajectoryPlayer::TrajectoryPlayer(mc_control::fsm::Controller & ctl,
 {
   auto & solver = ctl_.solver();
   const auto & frame = traj.frame();
-  // task_ = std::make_shared<mc_tasks::force::PandaProsthesisImpedanceTask>(*traj.frame(), *traj.refAxisFrame(),
-  //                                                                         *traj.frame());
+  // use ATI force sensor
   task_ = std::make_shared<mc_tasks::force::PandaProsthesisImpedanceTask>(*traj.frame(), *traj.refAxisFrame(),
-                                                                          traj.frame()->robot().frame("panda_link7"));
+                                                                          *traj.frame());
+  // Use robot's LeftHandForceSensor
+  /* task_ = std::make_shared<mc_tasks::force::PandaProsthesisImpedanceTask>(*traj.frame(), *traj.refAxisFrame(), */
+  /*                                                                         traj.frame()->robot().frame("panda_link7"));
+   */
   task_->reset();
   if(config.has("impedanceTask"))
   {
@@ -40,21 +43,22 @@ TrajectoryPlayer::TrajectoryPlayer(mc_control::fsm::Controller & ctl,
 
 void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Logger & logger)
 {
-  
+
   const auto & frame = trajectory_.frame();
   logger.addLogEntry("trackForce", [this]() { return trackForce_; });
   logger.addLogEntry("target_wrench", [this]() -> const sva::ForceVecd & { return task_->targetWrench(); });
   logger.addLogEntry("measured_wrench", [this]() -> const sva::ForceVecd & { return task_->filteredMeasuredWrench(); });
   logger.addLogEntry(fmt::format("measured_{}", trajectory_.refAxisFrame()->forceSensor().name()),
                      [this]() { return trajectory_.refAxisFrame()->wrench(); });
-  logger.addLogEntry("brace_bottom_setup_Bottom", [&ctl]() {
-    if(ctl.datastore().has("ForceShoePlugin::LFForce"))
-    {
-    return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::LFForce");
-    }
-    return sva::ForceVecd::Zero();
-  }
-  );
+  logger.addLogEntry("brace_bottom_setup_Bottom",
+                     [&ctl]()
+                     {
+                       if(ctl.datastore().has("ForceShoePlugin::LFForce"))
+                       {
+                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::LFForce");
+                       }
+                       return sva::ForceVecd::Zero();
+                     });
 
   logger.addLogEntry(fmt::format("transform_control_{}_{}", trajectory_.refAxisFrame()->name(), frame->name()), [this]()
                      { return trajectory_.frame()->position() * trajectory_.refAxisFrame()->position().inv(); });
@@ -80,7 +84,7 @@ void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Lo
                                                * trajectory_.refAxisFrame()->position().inv();
                        return mc_rbdyn::rpyFromMat(X_refFrame_Frame.rotation().inverse());
                      });
-  
+
   auto sensors = std::vector<std::string>{"Sensor0", "Sensor1"};
   for(const auto & sensorName : sensors)
   {

@@ -42,7 +42,7 @@ motion:
     percentLimits: 0.2
     period: 24
   - name: panda_joint5
-    percentLimits: 0.6
+    percentLimits: 0.4
     period: 25
   - name: panda_joint6
     period: 26
