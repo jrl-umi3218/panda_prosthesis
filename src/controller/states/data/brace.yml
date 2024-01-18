@@ -123,9 +123,13 @@ Brace::GoInContact:
           dof: [1,1,1,1,1,0]
 
 Brace::GoUp:
-  base: Brace::GoInContact
+  base: GoInContact
+  robot: panda_brace_femur
+  frame: Link2
+  target_robot: brace_bottom_setup
+  target_frame: Tibia
   useForce: false
-  heightAboveLink6: 0.15 #0.110353 # only used if useForce = false
+  heightAboveLink6: 0.15
 
 Brace::PlayTrajectory:
   base: PlayTrajectory

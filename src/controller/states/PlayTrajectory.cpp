@@ -32,7 +32,7 @@ void PlayTrajectory::start(mc_control::fsm::Controller & ctl)
       // XXX should restore default posture stiffness at some point
       ctl.getPostureTask(traj.frame()->robot().name())->stiffness(1);
       auto trajPlayer = std::make_shared<TrajectoryPlayer>(ctl, traj, config);
-      trajPlayer->addToGUI(*ctl.gui(), {"PlayTrajectory"});
+      trajPlayer->addToGUI(ctl, {"PlayTrajectory"});
       trajPlayers_.push_back(trajPlayer);
     }
   }

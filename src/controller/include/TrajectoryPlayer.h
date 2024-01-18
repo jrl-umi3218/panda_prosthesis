@@ -18,7 +18,7 @@ struct TrajectoryPlayer
                    const Trajectory & traj,
                    const mc_rtc::Configuration & config = mc_rtc::Configuration{});
 
-  void addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category);
+  void addToGUI(mc_control::fsm::Controller & ctl, std::vector<std::string> category);
   void removeFromGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category);
 
   ~TrajectoryPlayer();
@@ -40,7 +40,7 @@ struct TrajectoryPlayer
     return trajectory_;
   }
 
-  void addToLogger(mc_rtc::Logger & logger);
+  void addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Logger & logger);
 
 protected:
   mc_control::fsm::Controller & ctl_;

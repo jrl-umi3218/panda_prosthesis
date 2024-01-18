@@ -158,7 +158,7 @@ PandaBraceCommonRobotModule<DebugLog>::PandaBraceCommonRobotModule(const std::st
 
   merge_urdf(brace_urdf, "panda_link8", "base_link", transformC("panda_link8_to_base_link"), transformC);
 
-  auto generate_panda_mechanical_data = [this, &brace_urdf, totalMass](const Eigen::Matrix3d & inertia)
+  auto generate_panda_mechanical_data = [this, &brace_urdf, totalMass](const Eigen::Matrix3d & inertia) mutable
   {
     // For Panda end effector configuration
     auto & mb = brace_urdf.mb;
@@ -166,6 +166,11 @@ PandaBraceCommonRobotModule<DebugLog>::PandaBraceCommonRobotModule(const std::st
     auto braceCoM = rbd::computeCoM(brace_urdf.mb, brace_urdf.mbc);
     log_info("Brace CoM: {}", braceCoM.transpose());
     log_info("Total Mass: {}", totalMass);
+    if(totalMass > 3)
+    {
+      mc_rtc::log::warning("Brace mass ({}) exceeds the max payload of the panda robot (3Kg), clamping to the max value, this might cause control issues.", totalMass);
+      totalMass = 3;
+    }
     mc_rtc::Configuration conf;
     conf.add("mass", totalMass);
     conf.add("centerOfMass", braceCoM);

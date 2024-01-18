@@ -38,14 +38,24 @@ TrajectoryPlayer::TrajectoryPlayer(mc_control::fsm::Controller & ctl,
       frame->name(), frame->name(), frame->robot().name(), config.dump(true));
 }
 
-void TrajectoryPlayer::addToLogger(mc_rtc::Logger & logger)
+void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Logger & logger)
 {
+  
   const auto & frame = trajectory_.frame();
   logger.addLogEntry("trackForce", [this]() { return trackForce_; });
   logger.addLogEntry("target_wrench", [this]() -> const sva::ForceVecd & { return task_->targetWrench(); });
   logger.addLogEntry("measured_wrench", [this]() -> const sva::ForceVecd & { return task_->filteredMeasuredWrench(); });
-  logger.addLogEntry(fmt::format("mesured_{}", trajectory_.refAxisFrame()->forceSensor().name()),
+  logger.addLogEntry(fmt::format("measured_{}", trajectory_.refAxisFrame()->forceSensor().name()),
                      [this]() { return trajectory_.refAxisFrame()->wrench(); });
+  logger.addLogEntry("brace_bottom_setup_Bottom", [&ctl]() {
+    if(ctl.datastore().has("ForceShoePlugin::LFForce"))
+    {
+    return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::LFForce");
+    }
+    return sva::ForceVecd::Zero();
+  }
+  );
+
   logger.addLogEntry(fmt::format("transform_control_{}_{}", trajectory_.refAxisFrame()->name(), frame->name()), [this]()
                      { return trajectory_.frame()->position() * trajectory_.refAxisFrame()->position().inv(); });
   logger.addLogEntry(fmt::format("transform_real_{}_{}", trajectory_.refAxisFrame()->name(), frame->name()),
@@ -70,6 +80,7 @@ void TrajectoryPlayer::addToLogger(mc_rtc::Logger & logger)
                                                * trajectory_.refAxisFrame()->position().inv();
                        return mc_rbdyn::rpyFromMat(X_refFrame_Frame.rotation().inverse());
                      });
+  
   auto sensors = std::vector<std::string>{"Sensor0", "Sensor1"};
   for(const auto & sensorName : sensors)
   {
@@ -98,8 +109,9 @@ TrajectoryPlayer::~TrajectoryPlayer()
   }
 }
 
-void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std::string> category)
+void TrajectoryPlayer::addToGUI(mc_control::fsm::Controller & ctl, std::vector<std::string> category)
 {
+  auto & gui = *ctl.gui();
   category.push_back(trajectory_.name());
   gui.addElement(this, category, mc_rtc::gui::Input("Pause", pause_), mc_rtc::gui::Input("Track Force", trackForce_),
                  mc_rtc::gui::Input("Apply force when paused", applyForceWhenPaused_),
@@ -108,7 +120,7 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
       this, category,
       mc_rtc::gui::Form(
           "Start Logging",
-          [this](const mc_rtc::Configuration & data)
+          [&ctl, this](const mc_rtc::Configuration & data)
           {
             auto filename = fmt::format("{}-LP_{:.3f}-RP_{:.3f}-{}", data("Patient Name"),
                                         static_cast<double>(data("Left Pressure")),
@@ -117,7 +129,7 @@ void TrajectoryPlayer::addToGUI(mc_rtc::gui::StateBuilder & gui, std::vector<std
                                                     static_cast<std::string>(ctl_.config()("results_dir")),
                                                     "trajectory-player");
             log_->start(filename, ctl_.timeStep, true);
-            addToLogger(*log_);
+            addToLogger(ctl, *log_);
             logging_ = true;
           },
           mc_rtc::gui::FormStringInput("Patient Name", true, "Toto"),
