@@ -3,9 +3,13 @@ ObserverPipelines:
   observers:
     - type: Encoder
 forceSensors:
-- LeftHandForceSensor
+- BraceTopForceSensor
 initialGuess:
   LeftHandForceSensor:
+    autocompute: true
+    includeParent: false
+    verbose: true
+  BraceTopForceSensor:
     autocompute: true
     includeParent: false
     verbose: true
@@ -47,13 +51,18 @@ motion:
     period: 27
     percentLimits: 0.5
 collisions:
-- body1: panda_link6*
+- body1: convex_panda_link6
   body2: ground
-  iDist: 0.7
+  iDist: 0.1
   sDist: 0.04
   damping: 0.0
-- body1: panda_link7*
+- body1: convex_panda_link7
   body2: ground
-  iDist: 0.7
+  iDist: 0.1
+  sDist: 0.04
+  damping: 0.0
+- body1: Link2
+  body2: ground
+  iDist: 0.1
   sDist: 0.04
   damping: 0.0

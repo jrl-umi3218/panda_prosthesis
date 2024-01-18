@@ -287,7 +287,7 @@ PandaBraceCommonRobotModule<DebugLog>::PandaBraceCommonRobotModule(const std::st
   }
   this->urdf_path = urdf_path.string();
   this->_real_urdf = this->urdf_path;
-  this->calib_dir = panda_prosthesis::calib_DIR;
+  this->calib_dir = std::string{panda_prosthesis::calib_DIR} + "/" + brace_urdf_name;
 
   this->name = "panda_brace_femur";
   log_info("Wrote URDF to {}", urdf_path.string());
