@@ -53,9 +53,37 @@ void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Lo
   logger.addLogEntry("brace_bottom_setup_Bottom",
                      [&ctl]()
                      {
-                       if(ctl.datastore().has("ForceShoePlugin::LFForce"))
+                       if(ctl.datastore().has("ForceShoePlugin::LBForce"))
                        {
-                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::LFForce");
+                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::LBForce");
+                       }
+                       return sva::ForceVecd::Zero();
+                     });
+  logger.addLogEntry("brace_bottom_setup_Bottom_filteredaverage",
+                     [&ctl]()
+                     {
+                       if(ctl.datastore().has("ForceShoePlugin::LBfiltered"))
+                       {
+                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::LBfiltered");
+                       }
+                       return sva::ForceVecd::Zero();
+                     });
+
+  logger.addLogEntry("brace_bottom_setup_Top",
+                     [&ctl]()
+                     {
+                       if(ctl.datastore().has("ForceShoePlugin::RFForce"))
+                       {
+                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::RFForce");
+                       }
+                       return sva::ForceVecd::Zero();
+                     });
+  logger.addLogEntry("brace_bottom_setup_Top_filteredaverage",
+                     [&ctl]()
+                     {
+                       if(ctl.datastore().has("ForceShoePlugin::RFfiltered"))
+                       {
+                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::RFfiltered");
                        }
                        return sva::ForceVecd::Zero();
                      });
