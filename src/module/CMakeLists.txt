@@ -24,7 +24,7 @@ endif()
 
 find_description_package(brace_urdf)
 if(brace_urdf_FOUND)
-  set(brace_urdf_DIR ${BRACE_URDF_DESCRIPTION_PATH})
+  set(brace_urdf_DIR ${BRACE_URDF_PATH})
   message(STATUS "Found brace_urdf sources in ${brace_urdf_DIR}")
 
   # Generate the robot module YAML description using this value
@@ -43,7 +43,7 @@ endif()
 
 find_description_package(brace_top_setup)
 if(brace_top_setup_FOUND)
-  set(brace_top_setup_DIR ${BRACE_TOP_SETUP_DESCRIPTION_PATH})
+  set(brace_top_setup_DIR ${BRACE_TOP_SETUP_PATH})
   message(STATUS "Found brace_top_setup sources in ${brace_top_setup_DIR}")
 
   configure_file(alias/brace_top_setup.in.yaml ${CMAKE_CURRENT_BINARY_DIR}/alias/brace_top_setup.yaml)
@@ -54,7 +54,7 @@ endif()
 
 find_description_package(brace_top_setup_brace)
 if(brace_top_setup_brace_FOUND)
-  set(brace_top_setup_brace_DIR ${BRACE_TOP_SETUP_BRACE_DESCRIPTION_PATH})
+  set(brace_top_setup_brace_DIR ${BRACE_TOP_SETUP_BRACE_PATH})
   message(STATUS "Found brace_top_setup_brace sources in ${brace_top_setup_brace_DIR}")
 
   configure_file(alias/brace_top_setup_brace.in.yaml ${CMAKE_CURRENT_BINARY_DIR}/alias/brace_top_setup_brace.yaml)
