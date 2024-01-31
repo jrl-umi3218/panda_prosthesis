@@ -45,9 +45,22 @@ void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Lo
 {
 
   const auto & frame = trajectory_.frame();
+  const auto & refAxisFrame = trajectory_.refAxisFrame();
   logger.addLogEntry("trackForce", [this]() { return trackForce_; });
   logger.addLogEntry("target_wrench", [this]() -> const sva::ForceVecd & { return task_->targetWrench(); });
   logger.addLogEntry("measured_wrench", [this]() -> const sva::ForceVecd & { return task_->filteredMeasuredWrench(); });
+  logger.addLogEntry("measured_wrench_norm", [this]() { return task_->filteredMeasuredWrench().force().norm(); });
+  // wrench with gravity in refAxsFrame
+  auto wrenchWithGravity = [&refAxisFrame, frame]() -> sva::ForceVecd
+  {
+    auto X_0_f = refAxisFrame->position();
+    auto X_0_s = frame->forceSensor().X_0_f(frame->robot());
+    auto X_s_f = X_0_f * X_0_s.inv();
+    return X_s_f.dualMul(frame->forceSensor().wrench());
+  };
+  logger.addLogEntry("measured_wrench_with_gravity", wrenchWithGravity);
+  logger.addLogEntry("measured_wrench_with_gravity_norm",
+                     [wrenchWithGravity]() { return wrenchWithGravity().force().norm(); });
   logger.addLogEntry(fmt::format("measured_{}", trajectory_.refAxisFrame()->forceSensor().name()),
                      [this]() { return trajectory_.refAxisFrame()->wrench(); });
 
@@ -66,21 +79,23 @@ void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Lo
                          return sva::ForceVecd::Zero();
                        });
     // In refAxis frame
-    logger.addLogEntry(fmt::format("{}_{}Frame", logPrefix, trajectory_.refAxisFrame()->name()),
-                       [this, &ctl, datastoreEntry, forceSensorName]()
-                       {
-                         if(ctl.datastore().has(datastoreEntry))
-                         {
-                           auto wrench = ctl.datastore().get<sva::ForceVecd>(datastoreEntry);
-                           auto & tibiaRobot = ctl.robot("Tibia");
-                           const auto & fs = tibiaRobot.forceSensor(forceSensorName);
-                           const auto & X_0_fs = fs.X_0_f(tibiaRobot);
-                           auto X_0_tibia = trajectory_.refAxisFrame()->position();
-                           auto X_fs_tibia = X_0_tibia * X_0_fs.inv();
-                           return X_fs_tibia.dualMul(wrench);
-                         }
-                         return sva::ForceVecd::Zero();
-                       });
+    auto refAxisWrench = [this, &ctl, datastoreEntry, forceSensorName]()
+    {
+      if(ctl.datastore().has(datastoreEntry))
+      {
+        auto wrench = ctl.datastore().get<sva::ForceVecd>(datastoreEntry);
+        auto & tibiaRobot = ctl.robot("Tibia");
+        const auto & fs = tibiaRobot.forceSensor(forceSensorName);
+        const auto & X_0_fs = fs.X_0_f(tibiaRobot);
+        auto X_0_tibia = trajectory_.refAxisFrame()->position();
+        auto X_fs_tibia = X_0_tibia * X_0_fs.inv();
+        return X_fs_tibia.dualMul(wrench);
+      }
+      return sva::ForceVecd::Zero();
+    };
+    logger.addLogEntry(fmt::format("{}_{}Frame", logPrefix, trajectory_.refAxisFrame()->name()), refAxisWrench);
+    logger.addLogEntry(fmt::format("{}_{}Frame_norm", logPrefix, trajectory_.refAxisFrame()->name()),
+                       [refAxisWrench]() { return refAxisWrench().force().norm(); });
   };
   logForceShoeSensor("BraceBottomForceSensor", "brace_bottom_setup_Bottom_raw", "ForceShoePlugin::LBForce");
   logForceShoeSensor("BraceBottomForceSensor", "brace_bottom_setup_Bottom_filtered", "ForceShoePlugin::LBfiltered");
