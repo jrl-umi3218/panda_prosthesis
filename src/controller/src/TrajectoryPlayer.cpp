@@ -50,26 +50,25 @@ void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Lo
   logger.addLogEntry("measured_wrench", [this]() -> const sva::ForceVecd & { return task_->filteredMeasuredWrench(); });
   logger.addLogEntry(fmt::format("measured_{}", trajectory_.refAxisFrame()->forceSensor().name()),
                      [this]() { return trajectory_.refAxisFrame()->wrench(); });
+
+  // In refAxis frame
+  logger.addLogEntry("brace_bottom_setup_Top", [this]() { return trajectory_.refAxisFrame()->wrench(); });
+
+  // XXX hardcoded robot and sensor names
+  // In refAxis frame
   logger.addLogEntry("brace_bottom_setup_Bottom",
-                     [&ctl]()
+                     [&ctl, this]()
                      {
-                       if(ctl.datastore().has("ForceShoePlugin::LBForce"))
-                       {
-                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::LBForce");
-                       }
-                       return sva::ForceVecd::Zero();
-                     });
-  logger.addLogEntry("brace_bottom_setup_Bottom_filteredaverage",
-                     [&ctl]()
-                     {
-                       if(ctl.datastore().has("ForceShoePlugin::LBfiltered"))
-                       {
-                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::LBfiltered");
-                       }
-                       return sva::ForceVecd::Zero();
+                       auto & tibiaRobot = ctl.robot("Tibia");
+                       const auto & fs = tibiaRobot.forceSensor("BraceBottomForceSensor");
+                       const auto & X_0_fs = fs.X_0_f(tibiaRobot);
+                       auto X_0_tibia = trajectory_.refAxisFrame()->position();
+                       auto X_fs_tibia = X_0_tibia * X_0_fs.inv();
+                       return X_fs_tibia.dualMul(fs.wrenchWithoutGravity(tibiaRobot));
                      });
 
-  logger.addLogEntry("brace_bottom_setup_Top",
+  // In force sensor frame
+  logger.addLogEntry("brace_bottom_setup_Top_raw",
                      [&ctl]()
                      {
                        if(ctl.datastore().has("ForceShoePlugin::RFForce"))
@@ -78,12 +77,14 @@ void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Lo
                        }
                        return sva::ForceVecd::Zero();
                      });
-  logger.addLogEntry("brace_bottom_setup_Top_filteredaverage",
+
+  // In force sensor frame
+  logger.addLogEntry("brace_bottom_setup_Bottom_raw",
                      [&ctl]()
                      {
-                       if(ctl.datastore().has("ForceShoePlugin::RFfiltered"))
+                       if(ctl.datastore().has("ForceShoePlugin::LBForce"))
                        {
-                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::RFfiltered");
+                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::LBForce");
                        }
                        return sva::ForceVecd::Zero();
                      });

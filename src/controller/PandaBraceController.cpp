@@ -28,14 +28,7 @@ PandaBraceController::PandaBraceController(mc_rbdyn::RobotModulePtr rm, double d
                      [this]() { return robot("brace_bottom_setup").frame("Tibia").position(); }));
   logger().addLogEntry("controlRobot_Frame_Femur", [this]() { return robot().frame("Femur").position(); });
   logger().addLogEntry("realRobot_Frame_Femur", [this]() { return realRobot().frame("Femur").position(); });
-  logger().addLogEntry("brace_bottom_setup_Bottom", [this]() {
-    if(datastore().has("ForceShoePlugin::LFForce"))
-    {
-    return datastore().get<sva::ForceVecd>("ForceShoePlugin::LFForce");
-    }
-    return sva::ForceVecd::Zero();
-  }
-  );
+
   datastore().make<std::string>("ControllerName", "brace");
 
   if(config.has("robots") && config("robots").has(robot().name()))
@@ -52,10 +45,53 @@ PandaBraceController::PandaBraceController(mc_rbdyn::RobotModulePtr rm, double d
                                         colC("upper_force_thresholds").operator std::array<double, 6>());
     }
   }
+
+  // XXX should be done by the plugin
+  // Log the raw force shoes values
+  // The filtered values are set to the the robot's sensor
+  logger().addLogEntry("brace_bottom_setup_Bottom_raw",
+                       [this]()
+                       {
+                         if(datastore().has("ForceShoePlugin::LBForce"))
+                         {
+                           return datastore().get<sva::ForceVecd>("ForceShoePlugin::LBForce");
+                         }
+                         return sva::ForceVecd::Zero();
+                       });
+  logger().addLogEntry("brace_bottom_setup_Top_raw",
+                       [this]()
+                       {
+                         if(datastore().has("ForceShoePlugin::RFForce"))
+                         {
+                           return datastore().get<sva::ForceVecd>("ForceShoePlugin::RFForce");
+                         }
+                         return sva::ForceVecd::Zero();
+                       });
 }
 
 bool PandaBraceController::run()
 {
+  // Set actual sensor values from the FoceShoePlugin
+  // XXX should be done in the plugin
+  // XXX robot and sensor names hardcoded
+  auto setForceShoeSensorValue =
+      [this](const std::string & datastoreName, const std::string & robotName, const std::string & sensorName)
+  {
+    auto & data = *robot(robotName).data();
+    auto & fs = data.forceSensors[data.forceSensorsIndex.at(sensorName)];
+    if(this->datastore().has(datastoreName))
+    {
+      auto & wrench = this->datastore().get<sva::ForceVecd>(datastoreName);
+      fs.wrench(wrench);
+    }
+    else
+    {
+      fs.wrench(sva::ForceVecd::Zero());
+    }
+  };
+  setForceShoeSensorValue("ForceShoePlugin::RFfiltered", "Tibia", "BraceTopForceSensor");
+  setForceShoeSensorValue("ForceShoePlugin::LBfiltered", "Tibia", "BraceBottomForceSensor");
+
   //  return mc_control::fsm::Controller::run(mc_solver::FeedbackType::Joints);
   static size_t iter_ = 0;
   if(++iter_ == 5000)

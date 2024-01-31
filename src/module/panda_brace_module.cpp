@@ -168,7 +168,9 @@ PandaBraceCommonRobotModule<DebugLog>::PandaBraceCommonRobotModule(const std::st
     log_info("Total Mass: {}", totalMass);
     if(totalMass > 3)
     {
-      mc_rtc::log::warning("Brace mass ({}) exceeds the max payload of the panda robot (3Kg), clamping to the max value, this might cause control issues.", totalMass);
+      mc_rtc::log::warning("Brace mass ({}) exceeds the max payload of the panda robot (3Kg), clamping to the max "
+                           "value, this might cause control issues.",
+                           totalMass);
       totalMass = 3;
     }
     mc_rtc::Configuration conf;
