@@ -97,10 +97,10 @@ void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Lo
     logger.addLogEntry(fmt::format("{}_{}Frame_norm", logPrefix, trajectory_.refAxisFrame()->name()),
                        [refAxisWrench]() { return refAxisWrench().force().norm(); });
   };
-  logForceShoeSensor("BraceBottomForceSensor", "brace_bottom_setup_Bottom_raw", "ForceShoePlugin::LBForce");
-  logForceShoeSensor("BraceBottomForceSensor", "brace_bottom_setup_Bottom_filtered", "ForceShoePlugin::LBfiltered");
-  logForceShoeSensor("BraceTopForceSensor", "brace_bottom_setup_Top_raw", "ForceShoePlugin::RFForce");
-  logForceShoeSensor("BraceTopForceSensor", "brace_bottom_setup_Top_filtered", "ForceShoePlugin::RFfiltered");
+  logForceShoeSensor("BraceBottomForceSensor", "brace_bottom_setup_Bottom_raw", "ForceShoePlugin::RFForce");
+  logForceShoeSensor("BraceBottomForceSensor", "brace_bottom_setup_Bottom_filtered", "ForceShoePlugin::RFfiltered");
+  logForceShoeSensor("BraceTopForceSensor", "brace_bottom_setup_Top_raw", "ForceShoePlugin::LBForce");
+  logForceShoeSensor("BraceTopForceSensor", "brace_bottom_setup_Top_filtered", "ForceShoePlugin::LBfiltered");
 
   logger.addLogEntry(fmt::format("transform_control_{}_{}", trajectory_.refAxisFrame()->name(), frame->name()), [this]()
                      { return trajectory_.frame()->position() * trajectory_.refAxisFrame()->position().inv(); });

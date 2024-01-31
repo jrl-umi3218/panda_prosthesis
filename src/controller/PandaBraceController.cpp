@@ -52,18 +52,18 @@ PandaBraceController::PandaBraceController(mc_rbdyn::RobotModulePtr rm, double d
   logger().addLogEntry("brace_bottom_setup_Bottom_raw",
                        [this]()
                        {
-                         if(datastore().has("ForceShoePlugin::LBForce"))
+                         if(datastore().has("ForceShoePlugin::RFForce"))
                          {
-                           return datastore().get<sva::ForceVecd>("ForceShoePlugin::LBForce");
+                           return datastore().get<sva::ForceVecd>("ForceShoePlugin::RFForce");
                          }
                          return sva::ForceVecd::Zero();
                        });
   logger().addLogEntry("brace_bottom_setup_Top_raw",
                        [this]()
                        {
-                         if(datastore().has("ForceShoePlugin::RFForce"))
+                         if(datastore().has("ForceShoePlugin::LBForce"))
                          {
-                           return datastore().get<sva::ForceVecd>("ForceShoePlugin::RFForce");
+                           return datastore().get<sva::ForceVecd>("ForceShoePlugin::LBForce");
                          }
                          return sva::ForceVecd::Zero();
                        });
@@ -89,8 +89,8 @@ bool PandaBraceController::run()
       fs.wrench(sva::ForceVecd::Zero());
     }
   };
-  setForceShoeSensorValue("ForceShoePlugin::RFfiltered", "Tibia", "BraceTopForceSensor");
-  setForceShoeSensorValue("ForceShoePlugin::LBfiltered", "Tibia", "BraceBottomForceSensor");
+  setForceShoeSensorValue("ForceShoePlugin::LBfiltered", "brace_bottom_setup", "BraceTopForceSensor");
+  setForceShoeSensorValue("ForceShoePlugin::RFfiltered", "brace_bottom_setup", "BraceBottomForceSensor");
 
   //  return mc_control::fsm::Controller::run(mc_solver::FeedbackType::Joints);
   static size_t iter_ = 0;

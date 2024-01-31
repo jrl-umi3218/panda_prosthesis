@@ -294,7 +294,7 @@ private:
   sva::PTransformd refAxis_{sva::PTransformd::Identity()}; ///< Reference axis in world frame
   sva::PTransformd refForceAxis_{sva::PTransformd::Identity()}; ///< Reference force axis in world frame
   double flexionAngularVelocity_ =
-      0.0407; // previous value : 0.122 Desired angular velocity for the flexion angle (constant) [rad/s]
+      0.0235; // previous value : 0.122 Desired angular velocity for the flexion angle (constant) [rad/s]
   double duration_ = 0; ///< Duration of the trajectory
   double dt_ = 0;
   std::vector<sva::PTransformd> poses_; ///< Desired pose defined w.r.t refAxis_
