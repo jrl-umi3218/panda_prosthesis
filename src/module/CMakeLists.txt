@@ -17,9 +17,9 @@ else() # ROS2
 endif()
 
 if(brace_bottom_setup_FOUND)
-  # brace_bottom_setup_INSTALL_PREFIX, brace_bottom_setup_DEVEL_PREFIX, brace_bottom_setup_INSTALL_PREFIX
-  message(STATUS "Found brace_bottom_setup sources in ${brace_bottom_setup_INSTALL_PREFIX}")
-  set(brace_bottom_setup_DIR ${brace_bottom_setup_INSTALL_PREFIX})
+  find_description_package(brace_bottom_setup)
+  message(STATUS "Found brace_bottom_setup sources in ${brace_bottom_setup_DESRIPTION_PATH}")
+  set(brace_bottom_setup_DIR ${brace_bottom_setup_DESCRIPTION_PATH})
 
   # Generate the robot module YAML description using this value
   configure_file(yaml/brace_bottom_setup.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/yaml/brace_bottom_setup.yaml")
@@ -36,9 +36,10 @@ if(brace_bottom_setup_FOUND)
 endif()
 
 if(brace_urdf_FOUND)
+  find_description_package(brace_urdf)
   # brace_urdf_INSTALL_PREFIX, brace_urdf_DEVEL_PREFIX, brace_urdf_INSTALL_PREFIX
-  message(STATUS "Found brace_urdf sources in ${brace_urdf_INSTALL_PREFIX}")
-  set(brace_urdf_DIR ${brace_urdf_INSTALL_PREFIX})
+  message(STATUS "Found brace_urdf sources in ${brace_urdf_DESCRIPTION_PATH}")
+  set(brace_urdf_DIR ${brace_urdf_DESCRIPTION_PATH})
 
   # Generate the robot module YAML description using this value
   configure_file(yaml/brace_urdf.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/yaml/brace_urdf.yaml")
@@ -55,9 +56,9 @@ if(brace_urdf_FOUND)
 endif()
 
 if(brace_top_setup_FOUND)
-  # brace_top_setup_INSTALL_PREFIX, brace_top_setup_DEVEL_PREFIX, brace_top_setup_INSTALL_PREFIX
-  message(STATUS "Found brace_top_setup sources in ${brace_top_setup_INSTALL_PREFIX}")
-  set(brace_top_setup_DIR ${brace_top_setup_INSTALL_PREFIX})
+  find_description_package(brace_top_setup)
+  message(STATUS "Found brace_top_setup sources in ${brace_top_setup_DESCRIPTION_PATH}")
+  set(brace_top_setup_DIR ${brace_top_setup_DESCRIPTION_PATH})
 
   configure_file(alias/brace_top_setup.in.yaml ${CMAKE_CURRENT_BINARY_DIR}/alias/brace_top_setup.yaml)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/alias/brace_top_setup.yaml DESTINATION ${MC_ROBOTS_ALIASES_DIRECTORY})
@@ -66,9 +67,9 @@ else()
 endif()
 
 if(brace_top_setup_brace_FOUND)
-  # brace_top_setup_brace_INSTALL_PREFIX, brace_top_setup_brace_DEVEL_PREFIX, brace_top_setup_brace_INSTALL_PREFIX
-  message(STATUS "Found brace_top_setup_brace sources in ${brace_top_setup_brace_INSTALL_PREFIX}")
-  set(brace_top_setup_brace_DIR ${brace_top_setup_brace_INSTALL_PREFIX})
+  find_description_package(brace_top_setup_brace)
+  message(STATUS "Found brace_top_setup_brace sources in ${brace_top_setup_brace_DESCRIPTION_PATH}")
+  set(brace_top_setup_brace_DIR ${brace_top_setup_brace_DESCRIPTION_PATH})
 
   configure_file(alias/brace_top_setup_brace.in.yaml ${CMAKE_CURRENT_BINARY_DIR}/alias/brace_top_setup_brace.yaml)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/alias/brace_top_setup_brace.yaml DESTINATION ${MC_ROBOTS_ALIASES_DIRECTORY})
