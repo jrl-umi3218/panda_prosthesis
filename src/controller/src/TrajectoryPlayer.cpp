@@ -51,43 +51,41 @@ void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Lo
   logger.addLogEntry(fmt::format("measured_{}", trajectory_.refAxisFrame()->forceSensor().name()),
                      [this]() { return trajectory_.refAxisFrame()->wrench(); });
 
-  // In refAxis frame
-  logger.addLogEntry("brace_bottom_setup_Top", [this]() { return trajectory_.refAxisFrame()->wrench(); });
-
-  // XXX hardcoded robot and sensor names
-  // In refAxis frame
-  logger.addLogEntry("brace_bottom_setup_Bottom",
-                     [&ctl, this]()
-                     {
-                       auto & tibiaRobot = ctl.robot("Tibia");
-                       const auto & fs = tibiaRobot.forceSensor("BraceBottomForceSensor");
-                       const auto & X_0_fs = fs.X_0_f(tibiaRobot);
-                       auto X_0_tibia = trajectory_.refAxisFrame()->position();
-                       auto X_fs_tibia = X_0_tibia * X_0_fs.inv();
-                       return X_fs_tibia.dualMul(fs.wrenchWithoutGravity(tibiaRobot));
-                     });
-
-  // In force sensor frame
-  logger.addLogEntry("brace_bottom_setup_Top_raw",
-                     [&ctl]()
-                     {
-                       if(ctl.datastore().has("ForceShoePlugin::RFForce"))
+  // XXX somewhat hardcoded
+  auto logForceShoeSensor = [&ctl, &logger, this](const std::string & forceSensorName, const std::string & logPrefix,
+                                                  const std::string & datastoreEntry)
+  {
+    // In force sensor frame
+    logger.addLogEntry(fmt::format("{}_sensorFrame", logPrefix),
+                       [&ctl, datastoreEntry]()
                        {
-                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::RFForce");
-                       }
-                       return sva::ForceVecd::Zero();
-                     });
-
-  // In force sensor frame
-  logger.addLogEntry("brace_bottom_setup_Bottom_raw",
-                     [&ctl]()
-                     {
-                       if(ctl.datastore().has("ForceShoePlugin::LBForce"))
+                         if(ctl.datastore().has(datastoreEntry))
+                         {
+                           return ctl.datastore().get<sva::ForceVecd>(datastoreEntry);
+                         }
+                         return sva::ForceVecd::Zero();
+                       });
+    // In refAxis frame
+    logger.addLogEntry(fmt::format("{}_{}Frame", logPrefix, trajectory_.refAxisFrame()->name()),
+                       [this, &ctl, datastoreEntry, forceSensorName]()
                        {
-                         return ctl.datastore().get<sva::ForceVecd>("ForceShoePlugin::LBForce");
-                       }
-                       return sva::ForceVecd::Zero();
-                     });
+                         if(ctl.datastore().has(datastoreEntry))
+                         {
+                           auto wrench = ctl.datastore().get<sva::ForceVecd>(datastoreEntry);
+                           auto & tibiaRobot = ctl.robot("Tibia");
+                           const auto & fs = tibiaRobot.forceSensor(forceSensorName);
+                           const auto & X_0_fs = fs.X_0_f(tibiaRobot);
+                           auto X_0_tibia = trajectory_.refAxisFrame()->position();
+                           auto X_fs_tibia = X_0_tibia * X_0_fs.inv();
+                           return X_fs_tibia.dualMul(wrench);
+                         }
+                         return sva::ForceVecd::Zero();
+                       });
+  };
+  logForceShoeSensor("BraceBottomForceSensor", "brace_bottom_setup_Bottom_raw", "ForceShoePlugin::LBForce");
+  logForceShoeSensor("BraceBottomForceSensor", "brace_bottom_setup_Bottom_filtered", "ForceShoePlugin::LBfiltered");
+  logForceShoeSensor("BraceTopForceSensor", "brace_bottom_setup_Top_raw", "ForceShoePlugin::RFForce");
+  logForceShoeSensor("BraceTopForceSensor", "brace_bottom_setup_Top_filtered", "ForceShoePlugin::RFfiltered");
 
   logger.addLogEntry(fmt::format("transform_control_{}_{}", trajectory_.refAxisFrame()->name(), frame->name()), [this]()
                      { return trajectory_.frame()->position() * trajectory_.refAxisFrame()->position().inv(); });
