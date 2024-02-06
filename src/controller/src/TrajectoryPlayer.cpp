@@ -84,7 +84,7 @@ void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Lo
       if(ctl.datastore().has(datastoreEntry))
       {
         auto wrench = ctl.datastore().get<sva::ForceVecd>(datastoreEntry);
-        auto & tibiaRobot = ctl.robot("Tibia");
+        auto & tibiaRobot = ctl.robot("brace_bottom_setup");
         const auto & fs = tibiaRobot.forceSensor(forceSensorName);
         const auto & X_0_fs = fs.X_0_f(tibiaRobot);
         auto X_0_tibia = trajectory_.refAxisFrame()->position();
