@@ -252,7 +252,12 @@ struct Trajectory
     return name_;
   }
 
-  const mc_rbdyn::ConstRobotFramePtr frame() const noexcept
+  const mc_rbdyn::ConstRobotFramePtr & frame() const noexcept
+  {
+    return frame_;
+  }
+
+  mc_rbdyn::ConstRobotFramePtr & frame() noexcept
   {
     return frame_;
   }
@@ -274,7 +279,12 @@ struct Trajectory
     return duration_;
   }
 
-  inline mc_rbdyn::ConstRobotFramePtr refAxisFrame() const noexcept
+  inline const mc_rbdyn::ConstRobotFramePtr & refAxisFrame() const noexcept
+  {
+    return refAxisFrame_;
+  }
+
+  inline mc_rbdyn::ConstRobotFramePtr & refAxisFrame() noexcept
   {
     return refAxisFrame_;
   }
