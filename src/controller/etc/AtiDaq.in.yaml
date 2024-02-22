@@ -1,3 +1,4 @@
+SavePath: "@CMAKE_CURRENT_SOURCE_DIR@/etc/AtiDaqCalib.yaml"
 AtiDaq:
 - SamplingFrequency: 1000
   CutoffFrequency: -1

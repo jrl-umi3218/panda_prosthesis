@@ -41,7 +41,8 @@ if(TARGET PandaBraceModule)
   configure_file(etc/PandaBrace.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaBrace.yaml")
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/etc/PandaBrace.yaml" DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc")
 
-  install(FILES etc/AtiDaq.yaml DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc/PandaBrace/plugins/")
+  configure_file(etc/AtiDaq.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/etc/AtiDaq.yaml")
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/etc/AtiDaq.yaml" DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc/PandaBrace/plugins/")
   install(FILES etc/PhidgetPressureSensorPlugin.yaml DESTINATION "${MC_CONTROLLER_RUNTIME_INSTALL_PREFIX}/etc/PandaBrace/plugins/")
 endif()
 
