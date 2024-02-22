@@ -254,7 +254,7 @@ struct Trajectory
 
   const mc_rbdyn::ConstRobotFramePtr frame() const noexcept
   {
-    return *frame_;
+    return frame_;
   }
 
   inline void duration(double duration)

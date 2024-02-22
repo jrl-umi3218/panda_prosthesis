@@ -44,14 +44,24 @@ TrajectoryPlayer::TrajectoryPlayer(mc_control::fsm::Controller & ctl,
 void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Logger & logger)
 {
 
-  const auto & frame = trajectory_.frame();
-  const auto & refAxisFrame = trajectory_.refAxisFrame();
+  const auto frame = trajectory_.frame();
+  const auto refAxisFrame = trajectory_.refAxisFrame();
   logger.addLogEntry("trackForce", [this]() { return trackForce_; });
   logger.addLogEntry("target_wrench", [this]() -> const sva::ForceVecd & { return task_->targetWrench(); });
   logger.addLogEntry("measured_wrench", [this]() -> const sva::ForceVecd & { return task_->filteredMeasuredWrench(); });
   logger.addLogEntry("measured_wrench_norm", [this]() { return task_->filteredMeasuredWrench().force().norm(); });
-  // wrench with gravity in refAxsFrame
-  auto wrenchWithGravity = [&refAxisFrame, frame]() -> sva::ForceVecd
+
+  // Wrench in SensorFrame (actually not working)
+  logger.addLogEntry("measured_wrench_sensorFrame",
+                     [this]()
+                     {
+                       auto & frame = *trajectory_.frame();
+                       auto measuredWrenchInSensor = frame.forceSensor().wrench();
+                       return measuredWrenchInSensor;
+                     });
+
+  // wrench with gravity in refAxisFrame
+  auto wrenchWithGravity = [frame, refAxisFrame]() -> sva::ForceVecd
   {
     auto X_0_f = refAxisFrame->position();
     auto X_0_s = frame->forceSensor().X_0_f(frame->robot());
@@ -118,6 +128,18 @@ void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Lo
                            trajectory_.frame()->position() * trajectory_.refAxisFrame()->position().inv();
                        return mc_rbdyn::rpyFromMat(X_refFrame_Frame.rotation().inverse());
                      });
+
+  logger.addLogEntry(fmt::format("rpy_control_{}_Link6", trajectory_.refAxisFrame()->name()),
+                     [this]()
+                     {
+                       auto & frame = trajectory_.frame();
+                       auto X_brace_bottom_setup_Link6 = ctl_.realRobot("brace_bottom_setup").frame("Link6").position();
+                       auto X_PandaBraceFemur_Link2 = ctl_.realRobot("panda_brace_femur").frame("Link2").position();
+                       auto X_refFrame_Frame = X_brace_bottom_setup_Link6 * X_PandaBraceFemur_Link2.inv();
+                       auto rpy = mc_rbdyn::rpyFromMat(X_refFrame_Frame.rotation().transpose());
+                       return rpy;
+                     });
+
   logger.addLogEntry(fmt::format("rpy_real_{}_{}", trajectory_.refAxisFrame()->name(), frame->name()),
                      [this]()
                      {
