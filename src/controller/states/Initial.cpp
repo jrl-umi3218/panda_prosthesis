@@ -9,6 +9,7 @@ void Initial::load(mc_control::fsm::Controller & ctl)
 {
   mc_rtc::log::info("[{}] Loading configuration from {}", name(), etc_file_);
   auto & robot = ctl.robot(robot_);
+  auto & realRobot = ctl.realRobot(robot_);
   initial_pose_ = robot.posW();
 
   auto mbcToActuated = [&robot](const std::vector<std::vector<double>> & mbcJoints)
@@ -31,6 +32,7 @@ void Initial::load(mc_control::fsm::Controller & ctl)
     {
       initial_pose_ = initial(robot_)("pose");
       robot.posW(initial_pose_);
+      realRobot.posW(initial_pose_);
     }
 
     if(useJoints_)
@@ -46,6 +48,7 @@ void Initial::load(mc_control::fsm::Controller & ctl)
       if(reset_mbc_)
       {
         robot.mbc().q = initial_joints;
+        realRobot.mbc().q = initial_joints;
       }
 
       PostureInterpolator::TimedValueVector values;
@@ -60,6 +63,7 @@ void Initial::load(mc_control::fsm::Controller & ctl)
   }
   auto qActual = robot.mbc().q;
   robot.forwardKinematics();
+  realRobot.forwardKinematics();
 
   if(!ctl.datastore().has(frame_))
   {
@@ -72,6 +76,8 @@ void Initial::load(mc_control::fsm::Controller & ctl)
   {
     robot.mbc().q = qActual;
     robot.forwardKinematics();
+    realRobot.mbc().q = qActual;
+    realRobot.forwardKinematics();
   }
 }
 
@@ -145,6 +151,7 @@ bool Initial::run(mc_control::fsm::Controller & ctl)
   {
     pose_changed_ = false;
     ctl.robot(robot_).posW(initial_pose_);
+    ctl.realRobot(robot_).posW(initial_pose_);
   }
 
   if(load_)
