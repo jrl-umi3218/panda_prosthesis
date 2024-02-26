@@ -43,36 +43,70 @@ TrajectoryPlayer::TrajectoryPlayer(mc_control::fsm::Controller & ctl,
 
 void TrajectoryPlayer::addToLogger(mc_control::fsm::Controller & ctl, mc_rtc::Logger & logger)
 {
-
-  const auto frame = trajectory_.frame();
-  const auto refAxisFrame = trajectory_.refAxisFrame();
+  const auto & frame = trajectory_.frame();
+  const auto & refAxisFrame = trajectory_.refAxisFrame();
   logger.addLogEntry("trackForce", [this]() { return trackForce_; });
-  logger.addLogEntry("target_wrench", [this]() -> const sva::ForceVecd & { return task_->targetWrench(); });
-  logger.addLogEntry("measured_wrench", [this]() -> const sva::ForceVecd & { return task_->filteredMeasuredWrench(); });
-  logger.addLogEntry("measured_wrench_norm", [this]() { return task_->filteredMeasuredWrench().force().norm(); });
 
-  // Wrench in SensorFrame (actually not working)
-  logger.addLogEntry("measured_wrench_sensorFrame",
-                     [this]()
-                     {
-                       auto & frame = *trajectory_.frame();
-                       auto measuredWrenchInSensor = frame.forceSensor().wrench();
-                       return measuredWrenchInSensor;
-                     });
+  logger.addLogEntry(fmt::format("control_target_wrench-{}", refAxisFrame->name()),
+                     [this]() -> const sva::ForceVecd & { return task_->targetWrench(); });
+  logger.addLogEntry(fmt::format("control_measured_wrench-{}", refAxisFrame->name()),
+                     [this]() -> const sva::ForceVecd & { return task_->filteredMeasuredWrench(); });
+  logger.addLogEntry(fmt::format("control_measured_wrench_norm-{}", refAxisFrame->name()),
+                     [this]() { return task_->filteredMeasuredWrench().force().norm(); });
 
-  // wrench with gravity in refAxisFrame
-  auto wrenchWithGravity = [frame, refAxisFrame]() -> sva::ForceVecd
+  auto log_sensor = [&logger](const mc_rbdyn::RobotFrame & sensorFrame, const mc_rbdyn::RobotFrame & refFrame)
   {
-    auto X_0_f = refAxisFrame->position();
-    auto X_0_s = frame->forceSensor().X_0_f(frame->robot());
-    auto X_s_f = X_0_f * X_0_s.inv();
-    return X_s_f.dualMul(frame->forceSensor().wrench());
+    auto log_prefix = sensorFrame.robot().name();
+    auto logWrenchWithoutGravityInFrame =
+        [](const mc_rbdyn::RobotFrame & sensorFrame, const mc_rbdyn::RobotFrame & refFrame)
+    {
+      auto wrench = sensorFrame.wrench();
+      const auto & fs = sensorFrame.forceSensor();
+      const auto & X_0_fs = fs.X_0_f(sensorFrame.robot());
+      auto X_0_refFrame = refFrame.position();
+      auto X_fs_refFrame = X_0_refFrame * X_0_fs.inv();
+      return X_fs_refFrame.dualMul(wrench);
+    };
+
+    // wrench with gravity in refAxisFrame
+    auto logWrenchWithGravityInFrame =
+        [](const mc_rbdyn::RobotFrame & sensorFrame, const mc_rbdyn::RobotFrame & refFrame)
+    {
+      auto X_0_f = refFrame.position();
+      auto X_0_s = sensorFrame.forceSensor().X_0_f(sensorFrame.robot());
+      auto X_s_f = X_0_f * X_0_s.inv();
+      return X_s_f.dualMul(sensorFrame.forceSensor().wrench());
+    };
+
+    // Log in refFrame
+    logger.addLogEntry(
+        fmt::format("{}_{}-{}_without-gravity", log_prefix, sensorFrame.forceSensor().name(), refFrame.name()),
+        [&sensorFrame, &refFrame, logWrenchWithoutGravityInFrame]()
+        { return logWrenchWithoutGravityInFrame(sensorFrame, refFrame); });
+
+    // Log in sensorFrame
+    logger.addLogEntry(
+        fmt::format("{}_{}-{}_without-gravity", log_prefix, sensorFrame.forceSensor().name(), sensorFrame.name()),
+        [&sensorFrame, logWrenchWithoutGravityInFrame]()
+        { return logWrenchWithoutGravityInFrame(sensorFrame, sensorFrame); });
+
+    // Log in refFrame
+    logger.addLogEntry(
+        fmt::format("{}_{}-{}_with-gravity", log_prefix, sensorFrame.forceSensor().name(), refFrame.name()),
+        [&sensorFrame, &refFrame, logWrenchWithGravityInFrame]()
+        { return logWrenchWithGravityInFrame(sensorFrame, refFrame); });
+
+    // Log in sensorFrame
+    logger.addLogEntry(
+        fmt::format("{}_{}-{}_with-gravity", log_prefix, sensorFrame.forceSensor().name(), sensorFrame.name()),
+        [&sensorFrame, logWrenchWithGravityInFrame]()
+        { return logWrenchWithGravityInFrame(sensorFrame, sensorFrame); });
   };
-  logger.addLogEntry("measured_wrench_with_gravity", wrenchWithGravity);
-  logger.addLogEntry("measured_wrench_with_gravity_norm",
-                     [wrenchWithGravity]() { return wrenchWithGravity().force().norm(); });
-  logger.addLogEntry(fmt::format("measured_{}", trajectory_.refAxisFrame()->forceSensor().name()),
-                     [this]() { return trajectory_.refAxisFrame()->wrench(); });
+
+  // Log ATI sensor in sensor frame and refAxisFrame
+  log_sensor(ctl.robot("panda_brace_femur").frame("BraceTopForceSensor"), *trajectory_.refAxisFrame());
+  // Log Panda sensor in sensor frame and refAxisFrame
+  log_sensor(ctl.robot("panda_brace_femur").frame("LeftHandForceSensor"), *trajectory_.refAxisFrame());
 
   // XXX somewhat hardcoded
   auto logForceShoeSensor = [&ctl, &logger, this](const std::string & forceSensorName, const std::string & logPrefix,
