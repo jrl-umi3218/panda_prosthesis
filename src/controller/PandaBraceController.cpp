@@ -67,6 +67,14 @@ PandaBraceController::PandaBraceController(mc_rbdyn::RobotModulePtr rm, double d
                          }
                          return sva::ForceVecd::Zero();
                        });
+
+  for(auto & robot : robots())
+  {
+    for(auto & fs : robot.forceSensors())
+    {
+      robot.makeFrame(fs.name(), robot.frame(fs.parent()), fs.X_p_s());
+    }
+  }
 }
 
 bool PandaBraceController::run()
