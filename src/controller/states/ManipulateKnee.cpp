@@ -497,6 +497,11 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
                                               {
                                                 file_.load(trajectory_dir_ + "/" + trajectory_file_);
                                               }
+                                              next_ = true;
+                                              iter_ = 0;
+                                              hasConverged_ = false;
+                                              gotMeasurement_ = false;
+                                              newFrameRequested_ = false;
                                               play();
                                             }));
   ctl.gui()->addElement(this, {"ManipulateKnee", "Trajectory", "Generate"},
@@ -670,7 +675,6 @@ void ManipulateKnee::start(mc_control::fsm::Controller & ctl)
   updateTibiaOffset(tibiaOffsetInitial_);
   updateFemurOffset(femurOffsetInitial_);
 
-  resetToZero();
   output("OK");
   run(ctl);
 }
@@ -913,7 +917,7 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
 
         if(hasConverged_ || iter_ >= iterRate_)
         { // We have converged to a waypoint
-          if(measure_ && !gotMeasurement_)
+          if(sensorType_ != "BoneTagSerialPlugin" && measure_ && !gotMeasurement_)
           { // Start measurement
             // mc_rtc::log::success("Stopping motion and requesting measurement at iteration {}...", iter_);
             femur_task_->reset();
@@ -931,7 +935,7 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
 
           if(
               /*Proceed if not measuring, or if measuring and a measurement has been received.*/
-              (!measure_ || (measure_ && gotMeasurement_))
+              (sensorType_ == "BoneTagSerialPlugin" || !measure_ || gotMeasurement_)
               /*Proceed if not in continuous mode, or if in continuous mode and enough iterations have passed.*/
               && (!continuous_ || continuous_ && iter_ >= iterRate_))
           {
@@ -974,7 +978,28 @@ bool ManipulateKnee::run(mc_control::fsm::Controller & ctl)
   handle_motion(ctl.robot("panda_tibia"), convergence_.tibiaError_, convergence_.tibiaVelocityError_, *tibia_task_,
                 X_0_tibiaAxis, tibiaTranslation_, tibiaRotation_, tibiaTranslationActual_, tibiaRotationActual_);
 
-  if(manualLogging_)
+  // Record new BoneTag data throughout motion and convergence waits.
+  // GetNewData consumes the latest available frame, at most once per control cycle.
+  if(sensorType_ == "BoneTagSerialPlugin")
+  {
+    if(measure_ && (play_ || manualLogging_))
+    {
+      auto data = ctl.datastore().call<std::optional<io::BoneTagSerial::Data>>("BoneTagSerialPlugin::GetNewData");
+      if(data)
+      {
+        BoneTagResult result;
+        result.controllerIter = controllerIter_;
+        result.femurRotation = femurRotationActual_;
+        result.femurTranslation = femurTranslationActual_;
+        result.tibiaRotation = tibiaRotationActual_;
+        result.tibiaTranslation = tibiaTranslationActual_;
+        result.sensorData = *data;
+        resultsBoneTag_.addResult(result);
+        triggerSaveResults();
+      }
+    }
+  }
+  else if(manualLogging_)
   {
     measure(ctl);
   }

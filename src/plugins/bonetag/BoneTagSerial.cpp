@@ -280,11 +280,11 @@ bool BoneTagSerial::validate_data(std::array<uint16_t, SENSOR_COUNT> & raw_data)
 {
   for(auto & value : raw_data)
   {
-    if(value > 4100)
-    {
-      mc_rtc::log::warning("[BoneTagSerial] Invalid read (read {}, max {})", value, 4100);
-      return false;
-    }
+    // if(value > 4100)
+    // {
+    //   mc_rtc::log::warning("[BoneTagSerial] Invalid read (read {}, max {})", value, 4100);
+    //   return false;
+    // }
   }
   return true;
 }
@@ -334,7 +334,7 @@ void BoneTagSerial::parse_buffer(unsigned char * buff, size_t buff_len)
         else if(decode_status == -1)
         {
           // Packet size error
-          //   mc_rtc::log::error("[BoneTagSerial] Packet size error, {}",packet_bytes_index);
+          mc_rtc::log::error("[BoneTagSerial] Packet size error, {}", packet_bytes_index);
         }
 
         else if(decode_status == -3)

@@ -124,8 +124,8 @@ ObserverPipelines:
     observers:
     - type: Encoder
       robot: panda_tibia
-      position: encoderValues
-      # position: control
+      # position: encoderValues
+      position: control
       velocity: control # encoderVelocities
 
 # Initial set of contacts
@@ -139,8 +139,8 @@ states:
       - ["Load Saved Calibration", "LoadSavedCalibration"]
       - ["Start from current configuration", "StartFromCurrent"]
 
-# Plugins: [BoneTagSerialPlugin]
-Plugins: []
+Plugins: [BoneTagSerialPlugin]
+#Plugins: [ProtoTMRPlugin]
 
 ProtoTMRPlugin:
   # When false, allow to record measurements as-if the sensor was connected even if it isn't

@@ -33,7 +33,8 @@ Franka:
   panda_tibia: # Robot on which the tibia is attached
     ip: panda7
   # Actuated robots that are not controlled via mc_franka
-  ignored: [env/door, env/box]
+  #ignored: [panda_femur, env/door, env/box]
+  #ignored: [panda_tibia, env/door, env/box]
 
 
 ControllerModulePaths: ["@MC_CONTROLLER_RUNTIME_INSTALL_PREFIX@"]

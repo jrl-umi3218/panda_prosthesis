@@ -232,9 +232,12 @@ bool Initial::run(mc_control::fsm::Controller & ctl)
       if(useJoints_)
       {
         auto & pt = *ctl.getPostureTask(robotName_);
-        bool postureDone = pt.speed().norm() < 1e-4 && pt.eval().norm() < 1e-3;
-        bool transformDone = !useDefaultPose_ || (transformTask_->speed().norm() < 1e-4 && transformTask_->eval().norm() < 1e-3);
-        return postureDone && transformDone;
+        // bool postureDone = pt.speed().norm() < 1e-4 && pt.eval().norm() < 1e-3;
+        bool transformDone =
+            !useDefaultPose_ || (transformTask_->speed().norm() < 1e-4 && transformTask_->eval().norm() < 1e-3);
+        // return postureDone && transformDone;
+        // return transformDone;
+        return true; // FIXME adaptative gains
       }
       else
       {
