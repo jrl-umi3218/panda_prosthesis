@@ -34,6 +34,6 @@
   <joint name="support_to_prosthesis" type="fixed">
     <parent link="support_femur"/>
     <child link="femur"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0.4"/>
   </joint>
 </robot>
